@@ -345,9 +345,6 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-          <div className="about-shape4">
-            <img src="/assets/images/home-one/about-shape4.png" alt="" />
-          </div>
           <div className="about-shape5">
             <img src="/assets/images/home-one/about-shape5.png" alt="" />
           </div>

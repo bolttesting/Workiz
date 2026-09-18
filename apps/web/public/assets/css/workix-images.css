@@ -1,0 +1,310 @@
+/* Photo frames: Educate placeholders were these sizes. Crop real photos into them. */
+
+section.hero_area.style-one .hero-thumb {
+  overflow: hidden;
+}
+
+section.hero_area.style-one .hero-thumb img {
+  width: 525px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 525 / 640;
+  object-fit: contain;
+  object-position: center bottom;
+  display: block;
+  margin-left: auto;
+}
+
+.style-one .about-thumb {
+  overflow: visible;
+}
+
+.style-one .about-thumb img {
+  width: 806px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 806 / 630;
+  object-fit: contain;
+  object-position: center bottom;
+  display: block;
+}
+
+.style-one .case-study-thumb {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.style-one .case-study-thumb img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 385 / 300;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.style-one .team-thumb {
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.style-one .team-thumb img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 273 / 300;
+  object-fit: cover;
+  object-position: center 12%;
+  display: block;
+  border-radius: 16px;
+}
+
+.style-one .choose-thumb {
+  position: relative;
+  max-width: 585px;
+  margin-left: auto;
+}
+
+.style-one .choose-thumb > img {
+  width: 585px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 585 / 543;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  border-radius: 0;
+  background: transparent;
+}
+
+.style-one .choose-thumb .choose-shape-star img,
+.style-one .choose-thumb .choose-shape-dot img,
+.style-one .choose-thumb .choose-skill-icon img {
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+  display: block;
+  border-radius: 0;
+}
+
+.style-one .choose-shape-star {
+  position: absolute;
+  top: -18px;
+  left: -18px;
+  bottom: auto;
+  width: 70px;
+  height: 70px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.style-one .choose-shape-star img {
+  width: 70px !important;
+  height: 70px !important;
+}
+
+.style-one .choose-shape-dot {
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  left: auto;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.style-one .choose-skill-box {
+  position: absolute;
+  right: 16px;
+  bottom: 24px;
+  left: auto;
+  z-index: 3;
+  margin: 0;
+}
+
+/* Course offer video: rounded corners */
+.style-one .course-design-thumb {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.style-one .course-design-thumb img {
+  border-radius: 20px;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Instructors decorative character — stay on right, image already flipped to face left */
+.style-one .team-shape2 {
+  right: 10px !important;
+  left: auto !important;
+  bottom: 0 !important;
+  width: 235px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.style-one .team-shape2 img {
+  width: 235px !important;
+  max-width: 235px !important;
+  height: auto !important;
+  display: block;
+}
+
+.why-choose-area.style-one .choose-shape2 {
+  right: 40px !important;
+  top: 40px !important;
+  width: 100px;
+  height: auto;
+  z-index: 0;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.why-choose-area.style-one .choose-shape2 img {
+  width: 100px !important;
+  max-width: 100px !important;
+  height: auto !important;
+}
+
+.why-choose-area.style-one .choose-shape1 {
+  left: auto !important;
+  right: 8%;
+  bottom: 40px !important;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.style-one .testimonial-thumb img {
+  width: 495px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 495 / 640;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  margin: 0 auto;
+  background: transparent;
+}
+
+.style-inner .course-details-thumb {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.style-inner .course-details-thumb img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 385 / 300;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.style-one .case-autor-img,
+.style-one .testi-autor {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.style-one .case-autor-img img,
+.style-one .testi-autor img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 50%;
+  display: block;
+}
+
+section.hero_area.style-one .hero-autor-box .autor-thumb {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+section.hero_area.style-one .hero-autor-box .autor-thumb img {
+  width: auto;
+  height: 72px;
+  max-width: none;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0;
+  display: block;
+}
+
+.footer-widget-blog-thumb {
+  width: 86px;
+  height: 86px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.footer-widget-blog-thumb img {
+  width: 86px;
+  height: 86px;
+  object-fit: cover;
+  display: block;
+}
+
+.style-one .single-blog-thumb {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.style-one .single-blog-thumb img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 410 / 280;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 20px;
+}
+
+.blog-details-area .blog-thumb img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.team-area.inner .team-thumb img,
+.single-team-box .team-thumb img {
+  width: 100%;
+  aspect-ratio: 273 / 300;
+  object-fit: cover;
+  object-position: center 12%;
+}
+
+@media (max-width: 1199px) {
+  .style-one .about-thumb img {
+    width: 100%;
+  }
+}
+
+@media (max-width: 991px) {
+  section.hero_area.style-one .hero-thumb img,
+  .style-one .choose-thumb > img,
+  .style-one .testimonial-thumb img {
+    width: 100%;
+  }
+
+  .style-one .choose-skill-box {
+    right: 12px;
+    bottom: 16px;
+    width: min(279px, calc(100% - 24px));
+  }
+
+  .style-one .choose-shape-star {
+    left: 8px;
+    top: -12px;
+  }
+}

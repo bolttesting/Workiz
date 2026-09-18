@@ -1,0 +1,461 @@
+/* WORKIZ auth — navy / gold / cream, Operate surfaces */
+
+.workiz-auth,
+.workiz-auth * {
+  box-sizing: border-box;
+}
+
+.workiz-auth {
+  --wa-navy: #102846;
+  --wa-navy-deep: #0a1a2e;
+  --wa-gold: #b69856;
+  --wa-gold-deep: #8f7338;
+  --wa-cream: #f3e6c8;
+  --wa-cream-soft: #faf6ee;
+  --wa-ink: #102846;
+  --wa-muted: #4a5563;
+  --wa-line: rgba(16, 40, 70, 0.14);
+  --wa-danger: #b42318;
+  --wa-danger-bg: #fef3f2;
+  --wa-ok: #067647;
+  --wa-ok-bg: #ecfdf3;
+  --wa-radius: 14px;
+  --wa-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  background: var(--wa-cream-soft);
+  font-family: Outfit, "Open Sans", system-ui, sans-serif;
+  color: var(--wa-ink);
+  overflow-x: hidden;
+}
+
+/* —— Brand panel —— */
+.workiz-auth__brand {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(182, 152, 86, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 90%, rgba(243, 230, 200, 0.12), transparent 50%),
+    linear-gradient(165deg, var(--wa-navy) 0%, var(--wa-navy-deep) 100%);
+  color: var(--wa-cream);
+  padding: clamp(2rem, 4vw, 3.5rem);
+  display: flex;
+  align-items: center;
+}
+
+.workiz-auth__brand-glow {
+  position: absolute;
+  inset: auto -20% -30% auto;
+  width: min(520px, 70vw);
+  height: min(520px, 70vw);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(182, 152, 86, 0.22), transparent 68%);
+  pointer-events: none;
+}
+
+.workiz-auth__brand-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 28rem;
+  animation: wa-rise 0.7s var(--wa-ease) both;
+}
+
+.workiz-auth__brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none !important;
+  margin-bottom: 2.75rem;
+  color: var(--wa-cream) !important;
+}
+
+.workiz-auth__brand-logo img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.workiz-auth__brand-logo span {
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: 0.18em;
+  color: var(--wa-cream);
+}
+
+.workiz-auth__brand-title {
+  font-family: Outfit, sans-serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 3.2vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 1rem;
+}
+
+.workiz-auth__brand-body {
+  margin: 0 0 2rem;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: rgba(243, 230, 200, 0.82);
+}
+
+.workiz-auth__perks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.workiz-auth__perks li {
+  position: relative;
+  padding-left: 1.65rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: rgba(243, 230, 200, 0.92);
+}
+
+.workiz-auth__perks li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--wa-gold);
+  box-shadow: 0 0 0 3px rgba(182, 152, 86, 0.25);
+}
+
+/* —— Form panel —— */
+.workiz-auth__panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  min-height: 100vh;
+  background: var(--wa-cream-soft);
+}
+
+.workiz-auth__panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  max-width: 26rem;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.workiz-auth__back {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--wa-muted) !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease;
+}
+
+.workiz-auth__back:hover,
+.workiz-auth__back:focus-visible {
+  color: var(--wa-navy) !important;
+}
+
+.workiz-auth__mobile-logo {
+  display: none;
+  text-decoration: none !important;
+}
+
+.workiz-auth__mobile-logo img {
+  height: 36px;
+  width: auto;
+}
+
+.workiz-auth__card {
+  width: 100%;
+  max-width: 26rem;
+  margin-inline: auto;
+  animation: wa-rise 0.7s var(--wa-ease) 0.08s both;
+}
+
+.workiz-auth__header {
+  margin-bottom: 1.75rem;
+}
+
+.workiz-auth__title {
+  font-family: Outfit, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 2.5vw, 2.15rem);
+  letter-spacing: -0.02em;
+  color: var(--wa-navy);
+  margin: 0 0 0.45rem;
+  line-height: 1.2;
+}
+
+.workiz-auth__subtitle {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--wa-muted);
+}
+
+/* —— Fields —— */
+.workiz-auth__form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.workiz-auth__field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.workiz-auth__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--wa-navy);
+  margin: 0;
+}
+
+.workiz-auth__label span {
+  color: var(--wa-gold-deep);
+  margin-left: 0.15rem;
+}
+
+.workiz-auth__control {
+  position: relative;
+}
+
+.workiz-auth__input {
+  width: 100%;
+  height: 3.15rem;
+  padding: 0 1rem;
+  border: 1.5px solid var(--wa-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--wa-ink);
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  box-shadow: 0 1px 2px rgba(16, 40, 70, 0.04);
+}
+
+.workiz-auth__input::placeholder {
+  color: #8a93a0;
+}
+
+.workiz-auth__input:hover {
+  border-color: rgba(16, 40, 70, 0.28);
+}
+
+.workiz-auth__input:focus {
+  border-color: var(--wa-navy);
+  box-shadow: 0 0 0 3px rgba(16, 40, 70, 0.12);
+}
+
+.workiz-auth__input--password {
+  padding-right: 3rem;
+}
+
+.workiz-auth__eye {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 0;
+  background: transparent;
+  color: var(--wa-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.workiz-auth__eye:hover,
+.workiz-auth__eye:focus-visible {
+  color: var(--wa-navy);
+  background: rgba(16, 40, 70, 0.06);
+  outline: none;
+}
+
+.workiz-auth__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--wa-muted);
+}
+
+.workiz-auth__row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: -0.35rem;
+}
+
+.workiz-auth__link {
+  color: var(--wa-navy) !important;
+  font-weight: 600;
+  text-decoration: none !important;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.workiz-auth__link:hover,
+.workiz-auth__link:focus-visible {
+  color: var(--wa-gold-deep) !important;
+  border-bottom-color: var(--wa-gold);
+}
+
+.workiz-auth__forgot {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--wa-navy) !important;
+  text-decoration: none !important;
+}
+
+.workiz-auth__forgot:hover,
+.workiz-auth__forgot:focus-visible {
+  color: var(--wa-gold-deep) !important;
+}
+
+/* —— Feedback —— */
+.workiz-auth__alert {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.workiz-auth__alert--error {
+  background: var(--wa-danger-bg);
+  color: var(--wa-danger);
+  border: 1px solid rgba(180, 35, 24, 0.18);
+}
+
+.workiz-auth__alert--ok {
+  background: var(--wa-ok-bg);
+  color: var(--wa-ok);
+  border: 1px solid rgba(6, 118, 71, 0.18);
+}
+
+/* —— CTA —— */
+.workiz-auth__submit {
+  width: 100%;
+  height: 3.25rem;
+  margin-top: 0.35rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--wa-gold);
+  color: var(--wa-navy);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(182, 152, 86, 0.28);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s var(--wa-ease),
+    box-shadow 0.2s ease;
+}
+
+.workiz-auth__submit:hover:not(:disabled) {
+  background: #c4a65f;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(182, 152, 86, 0.34);
+}
+
+.workiz-auth__submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.workiz-auth__submit:focus-visible {
+  outline: 2px solid var(--wa-navy);
+  outline-offset: 3px;
+}
+
+.workiz-auth__submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.workiz-auth__switch {
+  margin: 1.75rem 0 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--wa-muted);
+}
+
+@keyframes wa-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workiz-auth__brand-inner,
+  .workiz-auth__card {
+    animation: none;
+  }
+
+  .workiz-auth__submit:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .workiz-auth {
+    grid-template-columns: 1fr;
+  }
+
+  .workiz-auth__brand {
+    padding: 1.5rem 1.35rem 1.75rem;
+    min-height: auto;
+    align-items: stretch;
+  }
+
+  .workiz-auth__brand-inner {
+    max-width: none;
+  }
+
+  .workiz-auth__brand-logo {
+    margin-bottom: 1.25rem;
+  }
+
+  .workiz-auth__brand-title {
+    font-size: 1.65rem;
+  }
+
+  .workiz-auth__brand-body {
+    margin-bottom: 1.15rem;
+    font-size: 0.95rem;
+  }
+
+  .workiz-auth__perks {
+    display: none;
+  }
+
+  .workiz-auth__panel {
+    min-height: auto;
+    padding: 1.5rem 1.25rem 2.5rem;
+  }
+
+  .workiz-auth__panel-top {
+    display: none;
+  }
+}

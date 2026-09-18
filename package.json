@@ -1,0 +1,20 @@
+{
+  "name": "workix-lms",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo dev --parallel",
+    "dev:web": "pnpm --filter @workix/web dev",
+    "dev:learn": "pnpm --filter @workix/learn dev",
+    "dev:admin": "pnpm --filter @workix/admin dev",
+    "dev:api": "pnpm --filter @workix/api dev",
+    "dev:worker": "pnpm --filter @workix/worker dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  }
+}

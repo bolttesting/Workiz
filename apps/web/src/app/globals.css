@@ -1,0 +1,506 @@
+/*
+  Tailwind v4 for shadcn/ui components.
+  Preflight is omitted so Bootstrap Educate theme styles stay intact.
+*/
+@layer theme, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+
+:root {
+  --background: #faf8f4;
+  --foreground: #102846;
+  --card: #ffffff;
+  --card-foreground: #102846;
+  --primary: #b69856;
+  --primary-foreground: #102846;
+  --secondary: #f3e6c8;
+  --secondary-foreground: #102846;
+  --muted: #efe8dc;
+  --muted-foreground: #5b6572;
+  --accent: #f3e6c8;
+  --accent-foreground: #102846;
+  --border: rgba(16, 40, 70, 0.14);
+  --ring: #b69856;
+  --destructive: #b42318;
+}
+
+@theme {
+  --color-workiz-navy: #102846;
+  --color-workiz-gold: #b69856;
+  --color-workiz-cream: #f3e6c8;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --font-sans: Outfit, ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0px);
+  }
+}
+
+@keyframes slideRightIn {
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateX(0px);
+  }
+}
+
+@keyframes testimonialIn {
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0px) scale(1);
+  }
+}
+
+.animate-element {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(12px);
+  animation: fadeSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slide-right {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(24px);
+  animation: slideRightIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-testimonial {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(16px) scale(0.96);
+  animation: testimonialIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-delay-100 {
+  animation-delay: 0.1s;
+}
+.animate-delay-200 {
+  animation-delay: 0.2s;
+}
+.animate-delay-250 {
+  animation-delay: 0.25s;
+}
+.animate-delay-300 {
+  animation-delay: 0.3s;
+}
+.animate-delay-400 {
+  animation-delay: 0.4s;
+}
+.animate-delay-500 {
+  animation-delay: 0.5s;
+}
+.animate-delay-600 {
+  animation-delay: 0.6s;
+}
+.animate-delay-700 {
+  animation-delay: 0.7s;
+}
+.animate-delay-800 {
+  animation-delay: 0.8s;
+}
+.animate-delay-900 {
+  animation-delay: 0.9s;
+}
+.animate-delay-1000 {
+  animation-delay: 1s;
+}
+.animate-delay-1200 {
+  animation-delay: 1.2s;
+}
+.animate-delay-1400 {
+  animation-delay: 1.4s;
+}
+
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1.5px solid #b0b7c3;
+  border-radius: 999px;
+  background: #fff;
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.custom-checkbox::after {
+  content: "";
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: transparent;
+  transform: none;
+  border: 0;
+}
+
+.custom-checkbox:checked {
+  background: #102846;
+  border-color: #102846;
+}
+
+.custom-checkbox:checked::after {
+  background: #f3e6c8;
+  border-color: transparent;
+}
+
+.custom-checkbox:focus-visible {
+  outline: 2px solid #b69856;
+  outline-offset: 2px;
+}
+
+.workiz-signin {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.workiz-signin a {
+  text-decoration: none !important;
+}
+
+.workiz-signin a.workiz-signin__home {
+  color: #102846 !important;
+  text-decoration: none !important;
+}
+
+.workiz-signin a.workiz-signin__home:hover,
+.workiz-signin a.workiz-signin__home:focus-visible {
+  color: #102846 !important;
+  background: #fff !important;
+}
+
+.workiz-signin__accent {
+  color: #8f7338 !important;
+  font-weight: 600;
+}
+
+.workiz-signin__accent:hover,
+.workiz-signin__accent:focus-visible {
+  color: #102846 !important;
+}
+
+/* Beat Bootstrap Educate global input/button styles */
+.workiz-signin input.workiz-signin__input,
+.workiz-signin .workiz-signin__input {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #102846 !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.4 !important;
+  font-family: inherit !important;
+}
+
+.workiz-signin .workiz-signin__field {
+  overflow: hidden;
+}
+
+.workiz-signin button.workiz-signin__submit,
+.workiz-signin .workiz-signin__submit {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 1.25rem !important;
+  background: #102846 !important;
+  color: #f3e6c8 !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  padding: 1.05rem 1.25rem !important;
+}
+
+.workiz-signin button.workiz-signin__submit:hover:not(:disabled),
+.workiz-signin .workiz-signin__submit:hover:not(:disabled) {
+  background: #0c1f37 !important;
+  color: #f3e6c8 !important;
+}
+
+.workiz-signin button.workiz-signin__eye,
+.workiz-signin .workiz-signin__eye {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: auto !important;
+  width: auto !important;
+  color: #5b6572 !important;
+}
+
+.workiz-signin input,
+.workiz-signin button {
+  font-family: inherit;
+}
+
+.workiz-signin__testimonial,
+.workiz-signin__testimonial p {
+  color: #ffffff !important;
+}
+
+.workiz-signin__testimonial p:nth-child(2) {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.workiz-signin button.workiz-signin__carousel-btn,
+.workiz-signin .workiz-signin__carousel-btn {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  border-radius: 999px !important;
+}
+
+.workiz-signin button.workiz-signin__carousel-btn:hover,
+.workiz-signin .workiz-signin__carousel-btn:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+  color: #ffffff !important;
+}
+
+.workiz-signin button.workiz-signin__dot,
+.workiz-signin .workiz-signin__dot {
+  background: #ffffff !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  border-radius: 999px !important;
+  aspect-ratio: 1 / 1 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-element,
+  .animate-slide-right,
+  .animate-testimonial {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+/* Beat Bootstrap `a { color }` so Tailwind navbar links stay readable */
+.workiz-rnav a {
+  text-decoration: none !important;
+}
+
+.workiz-rnav nav[aria-label="Primary"] a {
+  color: rgba(16, 40, 70, 0.82) !important;
+  font-size: 16px !important;
+}
+
+.workiz-rnav nav[aria-label="Primary"] a:hover,
+.workiz-rnav nav[aria-label="Primary"] a:focus-visible {
+  color: #102846 !important;
+}
+
+/* Fixed header overlays hero so backgrounds merge */
+.workiz-rnav {
+  position: relative;
+  z-index: 40;
+  height: 0;
+  overflow: visible;
+}
+
+/* Inner pages: breadcrumb matches site body, centered, theme shapes kept */
+.breadcumb-area,
+.breadcumb-area.workiz-breadcrumb {
+  background: #ffffff !important;
+  background-image: none !important;
+  margin-top: 0 !important;
+  padding: 140px 0 70px !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.workiz-breadcrumb .breadcumb-content,
+.breadcumb-area .breadcumb-content {
+  text-align: center !important;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.workiz-breadcrumb .breadcumb-title h4,
+.breadcumb-area .breadcumb-title h4 {
+  color: #102846 !important;
+  margin-bottom: 12px !important;
+}
+
+.workiz-breadcrumb .breadcumb-content ul,
+.breadcumb-area .breadcumb-content ul {
+  display: flex !important;
+  align-items: center;
+  justify-content: center !important;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workiz-breadcrumb .breadcumb-content ul li,
+.breadcumb-area .breadcumb-content ul li {
+  color: #3f4a57 !important;
+}
+
+.workiz-breadcrumb .breadcumb-content ul li a,
+.breadcumb-area .breadcumb-content ul li a {
+  color: #102846 !important;
+}
+
+.workiz-breadcrumb .breadcumb-shape,
+.workiz-breadcrumb .breadcumb-shape2 {
+  z-index: 1;
+  pointer-events: none;
+}
+
+section.course-sign-form-area,
+.course-details-area {
+  padding-top: 40px !important;
+}
+
+/* Keep theme FAQ / About sections readable with Workiz navy accents */
+.faq-area.style-one .section_title h1,
+.about-area.style-three .section_title h1 {
+  color: #102846;
+}
+
+/* Mirror theme .accordion styles for React-controlled FAQ (avoid jQuery clash) */
+.faq-area.style-one .faq-accordion {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.faq-area.style-one .faq-accordion li {
+  list-style: none;
+  padding: 0 0 20px;
+}
+
+.faq-area.style-one .faq-accordion li a {
+  position: relative;
+  width: 100%;
+  display: block;
+  cursor: pointer;
+  padding: 18px 15px 20px 25px;
+  z-index: 1;
+  font-size: 20px;
+  line-height: 26px;
+  color: #1e1e1e !important;
+  font-weight: 500;
+  font-family: Outfit, sans-serif;
+  border-radius: 10px;
+  background-color: #ffffff;
+  text-decoration: none !important;
+}
+
+.faq-area.style-one .faq-accordion li p {
+  padding: 25px 30px 30px 32px;
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 26px;
+  color: #1e1e1e;
+  font-weight: 500;
+  font-family: "Open Sans", sans-serif;
+  border-radius: 0 0 10px 10px;
+  background-color: #ffffff;
+}
+
+.faq-area.style-one .faq-accordion a:before {
+  width: 2px;
+  height: 12px;
+  background: #fff;
+  position: absolute;
+  right: 35px;
+  content: " ";
+  top: 23px;
+  transform: rotate(0deg);
+  transition: all 0.5s ease-in-out;
+  z-index: 2;
+}
+
+.faq-area.style-one .faq-accordion a:after {
+  width: 12px;
+  height: 2px;
+  background: #fff;
+  position: absolute;
+  right: 30px;
+  content: " ";
+  top: 28px;
+  transition: all 0.2s ease-in-out;
+  z-index: 2;
+}
+
+.faq-area.style-one .faq-accordion a span {
+  position: absolute;
+  right: 20px;
+  top: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #102846;
+  z-index: 1;
+}
+
+.faq-area.style-one .faq-accordion a.active {
+  background-color: #102846 !important;
+  color: #ffffff !important;
+}
+
+.faq-area.style-one .faq-accordion a.active:before {
+  background: #fff;
+  transform: rotate(90deg);
+}
+
+.faq-area.style-one .faq-accordion a.active span {
+  background: #b69856;
+}

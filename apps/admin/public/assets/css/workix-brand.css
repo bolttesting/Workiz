@@ -1,0 +1,25 @@
+/* WORKIZ brand: #102846 navy, #b69856 gold */
+
+:root {
+  --primary-50: #eef2f6;
+  --primary-100: #1028462e;
+  --primary-200: #c9b17a;
+  --primary-300: #c4ab72;
+  --primary-400: #c4a45e;
+  --primary-500: #b69856;
+  --primary-600: #102846;
+  --primary-700: #0c1e36;
+  --primary-800: #081526;
+  --primary-900: #050d18;
+}
+
+.sidebar-logo img.light-logo,
+.sidebar-logo img.dark-logo {
+  max-height: 52px;
+  width: auto;
+}
+
+.sidebar-logo img.logo-icon {
+  max-height: 40px;
+  width: auto;
+}

@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+educate
+edudash-admin
+edudash-admin-rtl
+educate-documentation
+documentation
+*.md
+.env

@@ -1,0 +1,409 @@
+/* WORKIZ brand: #102846 navy, #b69856 gold
+   Contrast rule: navy for text on light surfaces; gold for accents /
+   fills on dark surfaces. Never use gold as body/UI text on white. */
+
+:root {
+  --workiz-navy: #102846;
+  --workiz-gold: #b69856;
+  --workiz-gold-deep: #8f7338;
+  --text-color: #3f4a57;
+  --btn-white-border-hover: #b69856;
+  --btn-white-bg-hover: #b69856;
+  --btn-color-hover: #102846;
+  --btn-border-hover: #b69856;
+  --btn-bg-hover: #b69856;
+  --new-label-color: #102846;
+  --new-label-bg: #b69856;
+  --section-background-1: #102846;
+}
+
+.header-logo img,
+.header-logo .active_logo img,
+.mobile-logo img,
+.sign-form-logo img {
+  max-height: 56px;
+  width: auto;
+}
+
+.workiz-lockup {
+  align-items: center;
+  gap: 12px;
+  text-decoration: none !important;
+}
+
+.header-logo a.active_logo,
+.mobile-logo a.workiz-lockup {
+  display: inline-flex;
+}
+
+.educate-header-area.sticky a.active_logo {
+  display: inline-flex !important;
+}
+
+.educate-header-area.sticky a.logo_two {
+  display: none !important;
+}
+
+.workiz-wordmark {
+  font-family: Outfit, sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: #102846;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.educate-header-area.sticky .workiz-wordmark,
+.mean-container .workiz-wordmark {
+  color: #f3e6c8;
+}
+
+.educate-header-area.sticky {
+  background: #102846 !important;
+}
+
+.footer-logo img {
+  max-height: 72px;
+  width: auto;
+}
+
+.footer-logo a.workiz-lockup {
+  display: inline-flex;
+}
+
+.footer-area .workiz-wordmark {
+  color: #f3e6c8;
+  font-size: 20px;
+}
+
+.sidebar-logo img.light-logo,
+.sidebar-logo img.dark-logo {
+  max-height: 52px;
+  width: auto;
+}
+
+/* Top bar: light text / gold brand accent on navy */
+.header-top-welcome p {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.header-top-welcome p a {
+  color: #f3e6c8 !important;
+}
+
+.educate-header-from a {
+  color: #ffffff !important;
+}
+
+.educate-header-from a i,
+a.sign-up-btn,
+a.login-btn i,
+a.sign-up-btn i {
+  color: #f3e6c8 !important;
+}
+
+a.sign-up-btn:hover,
+a.login-btn:hover {
+  color: #ffffff !important;
+}
+
+/* Sticky nav: white links on navy */
+.educate-header-area.sticky .header-menu ul li a,
+.educate-header-area.sticky .header-menu ul li a i {
+  color: #ffffff !important;
+}
+
+.educate-header-area.sticky .header-btn a {
+  background-color: #b69856 !important;
+  border-color: #b69856 !important;
+  color: #102846 !important;
+}
+
+.educate-header-area.sticky .header-btn a:hover {
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #102846 !important;
+}
+
+.educate-header-area.sticky .header-sidbar-button a {
+  background-color: #b69856 !important;
+  color: #102846 !important;
+}
+
+/* Gold fill buttons → navy text (white-on-gold fails contrast) */
+.header-btn a::before,
+.hero-btn a::before {
+  background: #b69856 !important;
+}
+
+.hero-btn a:hover,
+.header-btn a:hover,
+.sign-btn button:hover,
+.bd-sign-btn button:hover {
+  background-color: #b69856 !important;
+  border-color: #b69856 !important;
+  color: #102846 !important;
+}
+
+/* Readable text on light surfaces — navy, not gold */
+.section_title h4,
+.section_title h6,
+.section-sub-title h6,
+.single-counter-box h1,
+.pricing-rate h2.price,
+.blog-author h4,
+.blog-title h3 a,
+.hero-autor-content h3,
+.hero-autor-content span,
+.hero-autor-content p {
+  color: #102846 !important;
+}
+
+.section-sub-title h6::before {
+  background-color: #b69856 !important;
+}
+
+.hero-rating i,
+.hero-star-icon i,
+.fa-star,
+.fa-star-half-stroke {
+  color: #b69856 !important;
+}
+
+section.hero_area.style-one {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: none !important;
+  box-sizing: border-box;
+}
+
+/* Why Choose Us: same light-blue bg treatment as About Us */
+.why-choose-area.style-one {
+  background: url(../images/home-one/about-bg11.png) !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+section.hero_area.style-one .hero_content {
+  padding-top: 80px !important;
+}
+
+section.hero_area.style-one .hero_content h5 {
+  background-color: rgba(16, 40, 70, 0.08);
+  border-color: rgba(16, 40, 70, 0.25);
+  color: #102846 !important;
+}
+
+section.hero_area.style-one .hero_content h5 i {
+  color: #8f7338;
+}
+
+/* Hero copy: theme used 60% opacity which washed out navy */
+section.hero_area.style-one .hero_content p {
+  opacity: 1 !important;
+  color: #1a2430 !important;
+}
+
+section.hero_area.style-one .hero_content p strong {
+  color: #102846 !important;
+}
+
+section.hero_area.style-one .hero-course-btn a {
+  color: #102846 !important;
+  border-color: #102846 !important;
+}
+
+section.hero_area.style-one .hero-course-btn a:hover {
+  color: #102846 !important;
+  background-color: #b69856 !important;
+  border-color: #b69856 !important;
+}
+
+/* Gold date badge → navy label for readable contrast */
+.style-one .blog-meta-top span,
+.style-one .single-blog-box.box-2 .blog-meta-top span,
+.single-blog-box.box-3 .blog-meta-top span {
+  background-color: #b69856 !important;
+  color: #102846 !important;
+}
+
+.meta-blog a {
+  background-color: #102846 !important;
+  color: #ffffff !important;
+}
+
+.scroll-up-btn {
+  background-color: #102846;
+  color: #ffffff;
+}
+
+.mean-container .mean-nav ul li a:hover {
+  background-color: #102846;
+  color: #ffffff;
+}
+
+/* Breadcrumb / muted body text */
+.breadcumb-content ul li,
+.breadcumb-content ul li a,
+p.subtitle,
+.blog-desc2,
+.testi-desc p {
+  color: #3f4a57 !important;
+}
+
+/* Feature cards: navy text on light cards; white when navy hover fills the box */
+.feature-area.style-one .feature-title {
+  color: #102846 !important;
+}
+
+.feature-area.style-one .feature-desc {
+  color: #3f4a57 !important;
+}
+
+.feature-area.style-one .single-feature-box:hover .feature-title {
+  color: #ffffff !important;
+}
+
+.feature-area.style-one .single-feature-box:hover .feature-desc {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.feature-area.style-two .feature-title {
+  color: #102846 !important;
+}
+
+.feature-area.style-two .feature-desc {
+  color: #3f4a57 !important;
+}
+
+.footer-widget-blog-content p,
+.footer-bottom-desc p,
+.footer-widget-content p {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+/* Footer sits on navy — never use navy text/icons here */
+.footer-area {
+  background-color: #102846 !important;
+}
+
+.footer-subcribe-title h3 {
+  color: #102846 !important;
+}
+
+.footer-subcribe-title h3 span {
+  color: #b69856 !important;
+}
+
+.footer-desc p {
+  opacity: 1 !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.footer-widget-title h4 {
+  color: #ffffff !important;
+}
+
+.footer-widget-menu ul li a {
+  opacity: 1 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.footer-widget-menu ul li a:hover,
+.footer-widget-blog-content a:hover,
+.footer-bottom-desc p a:hover {
+  color: #f3e6c8 !important;
+}
+
+.footer-widget-blog-content a {
+  color: #ffffff !important;
+}
+
+.footer-widget-blog-content p {
+  color: rgba(243, 230, 200, 0.85) !important;
+}
+
+/* Newsletter strip: white panel + brand navy/gold */
+.footer-area .row.subscribe {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(16, 40, 70, 0.08);
+  box-shadow: 0 12px 32px rgba(16, 40, 70, 0.08);
+}
+
+.footer-area .row.subscribe .workiz-wordmark {
+  color: #102846 !important;
+}
+
+.footer-area .row.subscribe .footer-subcribe-title h3 {
+  color: #102846 !important;
+}
+
+.footer-area .row.subscribe .footer-subcribe-title h3 span {
+  color: #b69856 !important;
+}
+
+.subscribe-box {
+  background-color: #ffffff !important;
+  border-color: rgba(16, 40, 70, 0.2) !important;
+}
+
+.subscribe-box span {
+  color: #b69856 !important;
+}
+
+.subscribe-box input,
+.subscribe-box input::placeholder {
+  color: #102846 !important;
+}
+
+.subscribe-box input::placeholder {
+  color: rgba(16, 40, 70, 0.45) !important;
+}
+
+.subscribe-box button {
+  background-color: #b69856 !important;
+  color: #102846 !important;
+}
+
+.subscribe-box button:hover {
+  background-color: #8f7338 !important;
+}
+
+.subscribe-box button span {
+  color: #102846 !important;
+}
+
+.footer-bottom-desc p {
+  opacity: 1 !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.footer-bottom-desc p a {
+  color: #f3e6c8 !important;
+}
+
+.footer-bottom-social-icon ul li a {
+  color: #102846 !important;
+  background-color: #b69856 !important;
+}
+
+.footer-bottom-social-icon ul li a:hover {
+  color: #ffffff !important;
+  background-color: #8f7338 !important;
+}
+
+/* Brand star: gold asterisk replaces theme green */
+.header-top-welcome p img {
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  vertical-align: -2px;
+}
+
+img[src*="top-star.png"] {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}

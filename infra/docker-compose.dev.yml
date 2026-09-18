@@ -1,0 +1,29 @@
+# Local stack without Traefik TLS. Point *.localhost at 127.0.0.1 (browsers already do).
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.api
+    env_file: ../.env
+    environment:
+      API_PORT: 4000
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "4000:4000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.worker
+    env_file: ../.env
+    environment:
+      REDIS_URL: redis://redis:6379
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

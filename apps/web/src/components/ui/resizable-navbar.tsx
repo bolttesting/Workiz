@@ -55,7 +55,9 @@ interface MobileNavMenuProps {
 export const Navbar = ({ children, className }: NavbarProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
-  const [visible, setVisible] = useState(false);
+  const lastY = useRef(0);
+  const [compact, setCompact] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [mounted, setMounted] = useState(false);
   const reduceMotion = useReducedMotion();
 
@@ -64,7 +66,21 @@ export const Navbar = ({ children, className }: NavbarProps) => {
   }, []);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
-    setVisible(latest > 80);
+    const prev = lastY.current;
+    const delta = latest - prev;
+
+    setCompact(latest > 80);
+
+    // Always show near the top; hide on scroll down, reveal on scroll up.
+    if (latest < 40) {
+      setHidden(false);
+    } else if (delta > 8) {
+      setHidden(true);
+    } else if (delta < -8) {
+      setHidden(false);
+    }
+
+    lastY.current = latest;
   });
 
   const nav = (
@@ -72,18 +88,23 @@ export const Navbar = ({ children, className }: NavbarProps) => {
       ref={ref}
       // Portaled to body so page-transition wrappers cannot break position:fixed
       className={cn("fixed inset-x-0 top-0 z-[1000] w-full pt-2", className)}
-      animate={
-        reduceMotion
-          ? undefined
-          : {
-              opacity: 1,
-            }
-      }
+      animate={{
+        transform: reduceMotion
+          ? "translateY(0px)"
+          : hidden
+            ? "translateY(-120%)"
+            : "translateY(0px)",
+      }}
+      transition={{
+        duration: 0.28,
+        ease: [0.23, 1, 0.32, 1],
+      }}
+      style={{ pointerEvents: hidden ? "none" : "auto" }}
     >
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
           ? React.cloneElement(child as React.ReactElement<{ visible?: boolean }>, {
-              visible,
+              visible: compact,
             })
           : child,
       )}

@@ -188,7 +188,7 @@ export default async function HomePage() {
 
       <section className="feature-area style-one">
         <div className="container">
-          <div className="row align-items-center section-title-space">
+          <div className="row align-items-center section-title-space" data-reveal>
             <div className="col-lg-6">
               <div className="section-sub-title">
                 <h6>core features</h6>
@@ -201,8 +201,8 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-          <div className="row">
-            <div className="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+          <div className="row" data-reveal-stagger>
+            <div className="col-xl-4 col-lg-6 col-md-6 col-sm-6" data-reveal>
               <div className="single-feature-box box-1">
                 <div className="feature-icon">
                   <img src="/assets/images/home-one/feature-icon1.png" alt="" />
@@ -217,7 +217,7 @@ export default async function HomePage() {
                 <div className="educate-hover-box hover-bx4" />
               </div>
             </div>
-            <div className="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+            <div className="col-xl-4 col-lg-6 col-md-6 col-sm-6" data-reveal>
               <div className="single-feature-box box-2">
                 <div className="feature-icon">
                   <img src="/assets/images/home-one/feature-icon2.png" alt="" />
@@ -232,7 +232,7 @@ export default async function HomePage() {
                 <div className="educate-hover-box hover-bx4" />
               </div>
             </div>
-            <div className="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+            <div className="col-xl-4 col-lg-6 col-md-6 col-sm-6" data-reveal>
               <div className="single-feature-box box-3">
                 <div className="feature-icon">
                   <img src="/assets/images/home-one/feature-icon3.png" alt="" />
@@ -262,7 +262,7 @@ export default async function HomePage() {
       <section className="about-area style-one">
         <div className="container">
           <div className="row">
-            <div className="col-xl-6 col-lg-12">
+            <div className="col-xl-6 col-lg-12" data-reveal>
               <div className="about-thumb-wrapper">
                 <div className="about-thumb">
                   <img src="/assets/images/home-one/about-thumb1.png" alt="" />
@@ -278,7 +278,7 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="col-xl-6 col-lg-12">
+            <div className="col-xl-6 col-lg-12" data-reveal style={{ ["--reveal-delay" as string]: "100ms" }}>
               <div className="about_content">
                 <div className="section-sub-title">
                   <h6>ABOUT US</h6>
@@ -419,7 +419,7 @@ export default async function HomePage() {
 
       <div className="case-study-area style-one">
         <div className="container">
-          <div className="row align-items-center section-title-space">
+          <div className="row align-items-center section-title-space" data-reveal>
             <div className="col-lg-6">
               <div className="section-sub-title">
                 <h6>OUR COURSES</h6>
@@ -434,7 +434,7 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="container">
-          <div className="row image_load">
+          <div className="row image_load" data-reveal-stagger>
             {courses.map((course, index) => (
               <HomeCourseCard key={course.id} course={course} index={index} />
             ))}
@@ -445,7 +445,7 @@ export default async function HomePage() {
       <div className="why-choose-area style-one">
         <div className="container">
           <div className="row align-items-center">
-            <div className="col-lg-7">
+            <div className="col-lg-7" data-reveal>
               <div className="choose-content">
                 <div className="section-sub-title">
                   <h6>why choose us?</h6>
@@ -487,7 +487,7 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="col-lg-5">
+            <div className="col-lg-5" data-reveal style={{ ["--reveal-delay" as string]: "120ms" }}>
               <div className="choose-thumb">
                 <img src="/assets/images/home-one/choose-thumb1.png" alt="" />
                 <div className="choose-skill-box">
@@ -518,7 +518,7 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div className="course-design-offer-area style-one">
+      <div className="course-design-offer-area style-one" data-reveal>
         <div className="container">
           <div className="row">
             <div className="col-lg-6">
@@ -584,7 +584,7 @@ export default async function HomePage() {
 
       <div className="team-area style-one">
         <div className="container">
-          <div className="row section-title-space">
+          <div className="row section-title-space" data-reveal>
             <div className="col-lg-6">
               <div className="section-sub-title">
                 <h6>INSTRUCTOR</h6>
@@ -597,9 +597,9 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-          <div className="row">
+          <div className="row" data-reveal-stagger>
             {instructors.map((person, i) => (
-              <div className="col-xl-3 col-lg-6 col-md-6" key={person.slug}>
+              <div className="col-xl-3 col-lg-6 col-md-6" key={person.slug} data-reveal>
                 <div className={`single-team-box box-${(i % 4) + 1}`}>
                   <div className="team-thumb">
                     <img src={person.photo} alt="" />
@@ -669,7 +669,7 @@ export default async function HomePage() {
 
       <div className="testimonial-area style-one">
         <div className="container">
-          <div className="row section-title-space align-items-center">
+          <div className="row section-title-space align-items-center" data-reveal>
             <div className="col-lg-6">
               <div className="section-sub-title">
                 <h6>TESTIMONIALS</h6>
@@ -683,7 +683,7 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="row">
-            <div className="col-lg-6">
+            <div className="col-lg-6" data-reveal>
               <div className="testi-thumb-wrapper">
                 <div className="testimonial-thumb">
                   <img src="/assets/images/home-one/testi-thumb.png" alt="" />
@@ -696,7 +696,7 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="col-lg-6">
+            <div className="col-lg-6" data-reveal style={{ ["--reveal-delay" as string]: "100ms" }}>
               <div className="testi-box">
                 <div className="single-testi-box">
                   <div className="testi-quote">

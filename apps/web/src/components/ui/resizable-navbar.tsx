@@ -7,10 +7,12 @@ import {
   AnimatePresence,
   useScroll,
   useMotionValueEvent,
+  useReducedMotion,
 } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -54,16 +56,29 @@ export const Navbar = ({ children, className }: NavbarProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setVisible(latest > 80);
   });
 
-  return (
+  const nav = (
     <motion.div
       ref={ref}
-      // Fixed so the hero background shows through (merges with header)
-      className={cn("fixed inset-x-0 top-0 z-40 w-full pt-2", className)}
+      // Portaled to body so page-transition wrappers cannot break position:fixed
+      className={cn("fixed inset-x-0 top-0 z-[1000] w-full pt-2", className)}
+      animate={
+        reduceMotion
+          ? undefined
+          : {
+              opacity: 1,
+            }
+      }
     >
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
@@ -74,9 +89,14 @@ export const Navbar = ({ children, className }: NavbarProps) => {
       )}
     </motion.div>
   );
+
+  if (!mounted) return null;
+  return createPortal(nav, document.body);
 };
 
 export const NavBody = ({ children, className, visible }: NavBodyProps) => {
+  const reduceMotion = useReducedMotion();
+
   return (
     <motion.div
       animate={{
@@ -85,7 +105,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
           ? "0 12px 40px rgba(16, 40, 70, 0.14), 0 0 0 1px rgba(16, 40, 70, 0.06)"
           : "0 0 0 1px transparent",
         width: visible ? "min(1120px, calc(100% - 2rem))" : "100%",
-        y: visible ? 8 : 0,
+        y: reduceMotion ? 0 : visible ? 8 : 0,
         borderRadius: visible ? 9999 : 0,
         paddingLeft: visible ? 20 : 28,
         paddingRight: visible ? 20 : 28,
@@ -155,6 +175,8 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
 };
 
 export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
+  const reduceMotion = useReducedMotion();
+
   return (
     <motion.div
       animate={{
@@ -166,7 +188,7 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
         paddingLeft: visible ? 14 : 16,
         paddingRight: visible ? 14 : 16,
         borderRadius: visible ? 18 : 0,
-        y: visible ? 6 : 0,
+        y: reduceMotion ? 0 : visible ? 6 : 0,
       }}
       transition={{
         type: "spring",

@@ -1,4 +1,6 @@
 import { EducateScripts } from "@/components/EducateScripts";
+import { SiteLoader } from "@/components/SiteLoader";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
 export const metadata = {
@@ -40,7 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ))}
       </head>
       <body>
+        <SiteLoader />
         {children}
+        <ScrollToTop />
         <EducateScripts />
       </body>
     </html>

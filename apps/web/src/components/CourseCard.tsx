@@ -79,7 +79,7 @@ export function HomeCourseCard({ course, index }: { course: Course; index: numbe
   const thumb = resolveThumb(course.thumbnail_url, `/assets/images/home-one/case-thumb${(index % 3) + 1}.jpg`);
   const autor = `/assets/images/home-one/case-autor${index % 3 === 0 ? "" : index % 3 === 1 ? "2" : "3"}.png`;
   return (
-    <div className="col-xl-4 col-lg-6 col-md-6 grid-item">
+    <div className="col-xl-4 col-lg-6 col-md-6 grid-item" data-reveal>
       <div className={`case-study-single-box${box}`}>
         <div className="case-study-thumb">
           <img src={thumb} alt="" />

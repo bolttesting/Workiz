@@ -79,51 +79,49 @@ export function HomeCourseCard({ course, index }: { course: Course; index: numbe
   const thumb = resolveThumb(course.thumbnail_url, `/assets/images/home-one/case-thumb${(index % 3) + 1}.jpg`);
   const autor = `/assets/images/home-one/case-autor${index % 3 === 0 ? "" : index % 3 === 1 ? "2" : "3"}.png`;
   return (
-    <div className="col-xl-4 col-lg-6 col-md-6 grid-item" data-reveal>
-      <div className={`case-study-single-box${box}`}>
-        <div className="case-study-thumb">
-          <img src={thumb} alt="" />
-          <div className="case-meta-top">
-            <span>{formatMoney(course.price_cents, course.currency)}</span>
+    <div className={`case-study-single-box${box}`}>
+      <div className="case-study-thumb">
+        <img src={thumb} alt="" />
+        <div className="case-meta-top">
+          <span>{formatMoney(course.price_cents, course.currency)}</span>
+        </div>
+      </div>
+      <div className="case-study-content">
+        <h5>{course.level || "Course"}</h5>
+        <h4>
+          <Link href={`/courses/${course.slug}`}>{course.title}</Link>
+        </h4>
+        <div className="case-rating">
+          <Stars />
+          <div className="case-rating-num">
+            <span>(4.5 Ratings)</span>
           </div>
         </div>
-        <div className="case-study-content">
-          <h5>{course.level || "Course"}</h5>
-          <h4>
-            <Link href={`/courses/${course.slug}`}>{course.title}</Link>
-          </h4>
-          <div className="case-rating">
-            <Stars />
-            <div className="case-rating-num">
-              <span>(4.5 Ratings)</span>
-            </div>
+        <div className="case-autor-box">
+          <div className="case-autor-img">
+            <img src={autor} alt="" />
           </div>
-          <div className="case-autor-box">
-            <div className="case-autor-img">
-              <img src={autor} alt="" />
-            </div>
-            <div className="case-autor-content">
-              <h3>Workiz Instructor</h3>
-              <p>Instructor</p>
-            </div>
+          <div className="case-autor-content">
+            <h3>Workiz Instructor</h3>
+            <p>Instructor</p>
           </div>
-          <div className="case-course-content">
-            <div className="course-lesson">
-              <span>
-                <i className="fa-regular fa-file-lines" /> {course.duration_minutes ?? 0} min
-              </span>
-            </div>
-            <div className="course-student">
-              <span>
-                <i className="fa-regular fa-user" /> Catalog
-              </span>
-            </div>
+        </div>
+        <div className="case-course-content">
+          <div className="course-lesson">
+            <span>
+              <i className="fa-regular fa-file-lines" /> {course.duration_minutes ?? 0} min
+            </span>
           </div>
-          <div className="course-btn">
-            <Link href={`/courses/${course.slug}`}>
-              Enroll Now <i className="flaticon flaticon-right-arrow" />
-            </Link>
+          <div className="course-student">
+            <span>
+              <i className="fa-regular fa-user" /> Catalog
+            </span>
           </div>
+        </div>
+        <div className="course-btn">
+          <Link href={`/courses/${course.slug}`}>
+            View course <i className="flaticon flaticon-right-arrow" />
+          </Link>
         </div>
       </div>
     </div>

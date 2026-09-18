@@ -249,7 +249,7 @@ export const MobileNavMenu = ({
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.18 }}
           className={cn(
-            "absolute inset-x-0 top-[calc(100%+8px)] z-50 flex w-full flex-col gap-1 rounded-2xl border border-[#102846]/10 bg-white px-3 py-4 shadow-[0_18px_50px_rgba(16,40,70,0.16)]",
+            "absolute inset-x-0 top-[calc(100%+8px)] z-50 flex w-full max-w-[calc(100vw-1.5rem)] flex-col gap-1 rounded-2xl border border-[#102846]/10 bg-white px-3 py-4 shadow-[0_18px_50px_rgba(16,40,70,0.16)]",
             className,
           )}
         >
@@ -292,10 +292,16 @@ export const NavbarLogo = ({
   return (
     <Link
       href={href}
-      className="relative z-20 mr-2 flex shrink-0 items-center gap-3 px-1 py-1 no-underline"
+      className="relative z-20 mr-1 flex min-w-0 shrink-0 items-center gap-2 px-0.5 py-1 no-underline sm:mr-2 sm:gap-3 sm:px-1"
     >
-      <img src={src} alt="" width={64} height={64} className="h-14 w-auto md:h-16" />
-      <span className="font-[Outfit,sans-serif] text-[20px] font-bold tracking-[0.16em] text-[#102846] md:text-[22px]">
+      <img
+        src={src}
+        alt=""
+        width={64}
+        height={64}
+        className="workiz-nav-logo h-10 w-auto sm:h-12 md:h-16"
+      />
+      <span className="workiz-nav-wordmark hidden font-[Outfit,sans-serif] text-[18px] font-bold tracking-[0.16em] text-[#102846] min-[380px]:inline sm:text-[20px] md:text-[22px]">
         {label}
       </span>
     </Link>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
-import { HomeCourseCard } from "@/components/CourseCard";
+import { HomeCoursesCarousel } from "@/components/HomeCoursesCarousel";
 import { BlogCard } from "@/components/BlogCard";
 import { BLOG_POSTS } from "@/lib/blog";
 import { publicApi } from "@/lib/session";
@@ -46,6 +46,45 @@ const fallbackCourses: Course[] = [
     duration_minutes: 120,
     level: "Communication",
   },
+  {
+    id: "demo-4",
+    slug: "cultural-awareness",
+    title: "Cultural Awareness at Work",
+    subtitle: "Build inclusive teams across cultures.",
+    description: null,
+    thumbnail_url: "/assets/images/home-one/case-thumb1.jpg",
+    price_cents: 6900,
+    currency: "usd",
+    published: true,
+    duration_minutes: 150,
+    level: "Culture",
+  },
+  {
+    id: "demo-5",
+    slug: "financial-literacy",
+    title: "Financial Literacy Essentials",
+    subtitle: "Practical money skills for professionals.",
+    description: null,
+    thumbnail_url: "/assets/images/home-one/case-thumb2.jpg",
+    price_cents: 8900,
+    currency: "usd",
+    published: true,
+    duration_minutes: 200,
+    level: "Finance",
+  },
+  {
+    id: "demo-6",
+    slug: "professional-skills",
+    title: "Professional Skills Development",
+    subtitle: "Habits that raise workplace performance.",
+    description: null,
+    thumbnail_url: "/assets/images/home-one/case-thumb3.jpg",
+    price_cents: 7500,
+    currency: "usd",
+    published: true,
+    duration_minutes: 165,
+    level: "Skills",
+  },
 ];
 
 const fallbackInstructors = [
@@ -65,7 +104,7 @@ async function loadHome() {
     ]);
     const coursesJson = coursesRes.ok ? await coursesRes.json() : { courses: [] };
     const instructorsJson = instructorsRes.ok ? await instructorsRes.json() : { instructors: [] };
-    const courses: Course[] = coursesJson.courses?.length ? coursesJson.courses.slice(0, 3) : fallbackCourses;
+    const courses: Course[] = coursesJson.courses?.length ? coursesJson.courses.slice(0, 9) : fallbackCourses;
     const instructors: HomeInstructor[] =
       instructorsJson.instructors?.length > 0
         ? instructorsJson.instructors.slice(0, 4).map(
@@ -431,10 +470,11 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="container">
-          <div className="row image_load" data-reveal-stagger>
-            {courses.map((course, index) => (
-              <HomeCourseCard key={course.id} course={course} index={index} />
-            ))}
+          <HomeCoursesCarousel courses={courses} />
+          <div className="text-center mt-4 mb-2">
+            <Link href="/courses" className="btn btn_primary">
+              View all courses <i className="flaticon flaticon-right-arrow" />
+            </Link>
           </div>
         </div>
       </div>

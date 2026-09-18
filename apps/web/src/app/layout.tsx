@@ -30,6 +30,7 @@ const css = [
   "/assets/css/workix-brand.css",
   "/assets/css/workix-header.css",
   "/assets/css/workix-auth.css",
+  "/assets/css/workix-responsive.css",
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

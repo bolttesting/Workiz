@@ -1,0 +1,357 @@
+/* WORKIZ mobile / tablet layout overrides */
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+img,
+video,
+iframe,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.marquee-section,
+.marquee {
+  overflow: hidden;
+  max-width: 100vw;
+}
+
+/* Beat Bootstrap `img { height: auto }` so nav logo stays compact */
+.workiz-nav-logo {
+  display: block !important;
+  width: auto !important;
+  height: 40px !important;
+  max-height: 40px !important;
+  object-fit: contain !important;
+}
+
+@media (min-width: 640px) {
+  .workiz-nav-logo {
+    height: 48px !important;
+    max-height: 48px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .workiz-nav-logo {
+    height: 56px !important;
+    max-height: 56px !important;
+  }
+}
+
+@media (max-width: 379px) {
+  .workiz-nav-wordmark {
+    display: none !important;
+  }
+}
+
+@media (min-width: 380px) {
+  .workiz-nav-wordmark {
+    display: inline !important;
+  }
+}
+
+/* Course cards — all breakpoints: never clip the CTA */
+.style-one .case-study-single-box {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.style-one .course-btn a {
+  position: relative !important;
+  opacity: 1 !important;
+  transform: none !important;
+  display: inline-flex !important;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.style-one .case-study-single-box:hover .course-btn a {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.style-one .case-study-single-box:hover .course-lesson,
+.style-one .case-study-single-box:hover .course-student {
+  opacity: 1 !important;
+}
+
+@media (max-width: 991px) {
+  /* Hero: stop forcing rigid desktop viewport height */
+  section.hero_area.style-one {
+    height: auto !important;
+    min-height: 100svh !important;
+    max-height: none !important;
+    padding: 108px 0 56px !important;
+  }
+
+  section.hero_area.style-one .hero_content {
+    padding-top: 12px !important;
+  }
+
+  section.hero_area.style-one .hero_content h1 {
+    font-size: clamp(2rem, 8vw, 2.75rem) !important;
+    line-height: 1.15 !important;
+  }
+
+  section.hero_area.style-one .hero_content h5 {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  /* Prevent hero decorative/rating blocks from colliding with copy */
+  section.hero_area.style-one .hero-rating-box {
+    margin-top: 24px;
+    position: relative !important;
+  }
+
+  section.hero_area.style-one .hero-button {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  section.hero_area.style-one .hero-btn,
+  section.hero_area.style-one .hero-course-btn {
+    width: 100%;
+  }
+
+  section.hero_area.style-one .hero-btn a,
+  section.hero_area.style-one .hero-course-btn a {
+    display: inline-flex !important;
+    width: 100% !important;
+    justify-content: center !important;
+    align-items: center !important;
+    box-sizing: border-box;
+  }
+
+  section.hero_area.style-one .hero-thumb-wrapper {
+    margin-top: 36px;
+  }
+
+  section.hero_area.style-one .hero-shape1,
+  section.hero_area.style-one .hero-arrow-shape,
+  section.hero_area.style-one .hero-dot-shape,
+  section.hero_area.style-one .hero-shape3 {
+    display: none !important;
+  }
+
+  /* Titles */
+  .section_title h1 {
+    font-size: clamp(1.55rem, 6.2vw, 2.1rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  .section-title-space {
+    margin-bottom: 28px !important;
+  }
+
+  /* Decorative underline bars overflow on phones */
+  .section-sub-title h6::after,
+  section.feature-area.style-one .section-sub-title h6::after,
+  .case-study-area.style-one .section-sub-title h6::after,
+  .team-area.style-one .section-sub-title h6::after,
+  .testimonial-area.style-one .section-sub-title h6::after,
+  .blog-area.style-one .section-sub-title h6::after,
+  .why-choose-area.style-one .section-sub-title h6::after,
+  .faq-area.style-one .section-sub-title h6::after {
+    width: min(28vw, 120px) !important;
+    max-width: 120px !important;
+  }
+
+  /* Cards / columns */
+  .style-one .single-feature-box,
+  .style-two .single-feature-box {
+    margin-bottom: 16px;
+  }
+
+  .case-study-single-box,
+  .single-team-box,
+  .single-blog-box,
+  .single-pricing-box {
+    margin-bottom: 20px;
+  }
+
+  /* Course cards: fixed height + overflow was clipping Enroll button */
+  .style-one .case-study-single-box {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding-bottom: 28px !important;
+  }
+
+  .style-one .course-btn {
+    margin-top: 18px;
+  }
+
+  .style-one .course-btn a {
+    position: relative !important;
+    opacity: 1 !important;
+    transform: none !important;
+    display: inline-flex !important;
+    align-items: center;
+  }
+
+  .style-one .case-study-single-box:hover .course-btn a {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .style-one .case-study-single-box:hover .course-lesson,
+  .style-one .case-study-single-box:hover .course-student {
+    opacity: 1 !important;
+  }
+
+  /* Floating shapes that spill off-screen */
+  .feature-shape1,
+  .feature-shape2,
+  .about-shape5,
+  .about-shape31,
+  .choose-shape1,
+  .choose-shape2,
+  .team-shape1,
+  .case-shape1,
+  .call-to-shape31 {
+    display: none !important;
+  }
+
+  /* Breadcrumb */
+  .breadcumb-area,
+  .breadcumb-area.workiz-breadcrumb {
+    padding: 108px 16px 44px !important;
+  }
+
+  .breadcumb-area .breadcumb-title h4 {
+    font-size: clamp(1.75rem, 7vw, 2.25rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  /* About */
+  .about-thumb-wrapper,
+  .about-thumb,
+  .about-thumb img,
+  .style-three .about-thumb img {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .about-education-box {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin-top: 20px;
+    max-width: 100%;
+  }
+
+  /* Why choose */
+  .choose-item-menu ul li {
+    font-size: 15px;
+  }
+
+  /* Footer newsletter */
+  .footer-area .row.subscribe {
+    margin-left: 12px !important;
+    margin-right: 12px !important;
+    padding: 22px 16px !important;
+  }
+
+  .footer-area .row.subscribe > [class*="col-"] {
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 100%;
+    margin-bottom: 14px;
+  }
+
+  .subscribe-box {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .footer-widget-content {
+    margin-bottom: 28px;
+  }
+
+  /* Pricing / contact forms */
+  .pricing-area .form-control,
+  .course-sign-form-area .form-control,
+  .sign-form-wrapper .form-control {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .single-pricing-box {
+    height: auto !important;
+  }
+
+  /* Back to top */
+  .workiz-scroll-top {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    width: 46px;
+    height: 46px;
+  }
+
+  /* Container breathing room */
+  .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+@media (max-width: 575px) {
+  section.hero_area.style-one {
+    padding: 96px 0 48px !important;
+  }
+
+  section.hero_area.style-one .hero-rating-box {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .style-one .single-feature-box {
+    padding: 28px 18px !important;
+  }
+
+  .hero-autor-box {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin-top: 16px;
+    display: inline-flex;
+  }
+
+  .workiz-loader__logo {
+    height: clamp(88px, 22vw, 120px);
+  }
+
+  .workiz-loader__mark {
+    font-size: clamp(36px, 11vw, 56px);
+    letter-spacing: 0.14em;
+  }
+
+  .workiz-loader__tag {
+    font-size: clamp(16px, 4.2vw, 20px);
+  }
+
+  /* Mobile nav denser */
+  .workiz-rnav .fixed,
+  body > .fixed {
+    padding-top: 6px !important;
+  }
+}

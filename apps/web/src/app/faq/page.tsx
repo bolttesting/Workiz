@@ -39,42 +39,24 @@ export default function FaqPage() {
       <SiteHeader />
       <Breadcrumb title="Faq" crumb="Faq" />
 
-      {/* Theme: educate faq Area style-one */}
-      <div className="faq-area style-one">
+      <div className="faq-area style-one workiz-faq">
         <div className="container">
-          <div className="row">
+          <div className="row align-items-center">
             <div className="col-xl-6 col-lg-12">
-              <div className="faq-thumb-wrapper">
-                <div className="faq-thumb">
-                  <img src="/assets/images/home-three/faq-thumb.png" alt="" />
-                </div>
-                <div className="faq-dot">
-                  <img src="/assets/images/home-three/faq-dot.png" alt="" />
-                </div>
-                <div className="faq-star">
-                  <img src="/assets/images/home-three/faq-star.png" alt="" />
-                </div>
-                <div className="faq-qestion">
-                  <img src="/assets/images/home-three/faq-qestion.png" alt="" />
-                </div>
-                <div className="faq-suport-box">
-                  <div className="suport-icon">
-                    <img src="/assets/images/home-three/faq-icon.png" alt="" />
-                  </div>
-                  <div className="suport-content">
-                    <h3>24 Hrs</h3>
-                    <p>ready for suport</p>
-                  </div>
-                </div>
+              <div className="workiz-faq__media">
+                <img
+                  src="/assets/images/home-one/about-thumb1.png"
+                  alt="Workiz support and learning"
+                />
               </div>
             </div>
             <div className="col-xl-6 col-lg-12">
               <div className="section-sub-title three">
-                <h6>freequently asked question</h6>
+                <h6>frequently asked questions</h6>
               </div>
               <div className="section_title">
-                <h1>What you want to Know About</h1>
-                <h1>Workiz Platform?</h1>
+                <h1>What you want to know about</h1>
+                <h1>Workiz Platform</h1>
               </div>
 
               <div className="tab_container">
@@ -107,39 +89,32 @@ export default function FaqPage() {
 
               <div className="faq-button">
                 <Link href="/contact">
-                  Learn More
+                  Contact us
                   <i className="flaticon flaticon-right-arrow" />
                 </Link>
               </div>
             </div>
           </div>
-          <div className="faq-circle">
-            <img src="/assets/images/home-three/faq-circle.png" alt="" />
-          </div>
         </div>
       </div>
 
-      {/* Theme: call to action style-two */}
-      <div className="call-to-action style-two">
+      <div className="call-to-action style-two workiz-about-theme__cta">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
               <div className="call-to-title">
-                <h3>Your Learning Journey Begins Here</h3>
-                <h3>Explore – all programs Today</h3>
+                <h3>Your learning journey begins here</h3>
+                <h3>Explore all programs today</h3>
               </div>
             </div>
             <div className="col-lg-6">
               <div className="call-to-btn">
                 <Link href="/courses">
-                  all programs
+                  View courses
                   <i className="flaticon flaticon-right-arrow" />
                 </Link>
               </div>
             </div>
-          </div>
-          <div className="call-to-shape31">
-            <img src="/assets/images/home-three/call-to-arrow2.png" alt="" />
           </div>
         </div>
       </div>

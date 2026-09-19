@@ -33,9 +33,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
                       <img src={post.authorImage} alt={post.author} />
                       <span>{post.author}</span>
                     </li>
-                    <li className="detail-calender">
-                      <i className="fa-solid fa-calendar-week" />
-                      <span>{post.dateFull}</span>
+                    <li className="detail-calender"> <span>{post.dateFull}</span>
                     </li>
                   </ul>
                   <h2 className="blog-title">{post.title}</h2>

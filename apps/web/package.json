@@ -9,14 +9,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@number-flow/react": "^0.6.2",
+    "@radix-ui/react-slot": "^1.3.3",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
     "@tabler/icons-react": "^3.46.0",
     "@workix/config": "workspace:*",
     "@workix/db": "workspace:*",
+    "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.46.0",
+    "maplibre-gl": "^6",
     "motion": "^13.3.0",
     "next": "^15.3.1",
     "react": "^19.1.0",
@@ -26,6 +30,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^22.14.1",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

@@ -416,12 +416,12 @@ img[src*="top-star.png"] {
 
 .workiz-courses-carousel__track {
   display: flex;
-  gap: 16px;
+  gap: 24px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  padding: 8px 2px 12px;
+  padding: 10px 2px 18px;
   scrollbar-width: none;
 }
 
@@ -433,11 +433,12 @@ img[src*="top-star.png"] {
   flex: 0 0 88%;
   max-width: 88%;
   scroll-snap-align: start;
+  display: flex;
 }
 
-.workiz-course-slide .case-study-single-box {
-  height: auto !important;
-  margin-bottom: 0;
+.workiz-course-slide .workiz-course-card {
+  width: 100%;
+  height: 100%;
 }
 
 .workiz-courses-carousel__dots {
@@ -472,15 +473,15 @@ img[src*="top-star.png"] {
 
 @media (min-width: 768px) {
   .workiz-course-slide {
-    flex-basis: calc(50% - 8px);
-    max-width: calc(50% - 8px);
+    flex-basis: calc(50% - 12px);
+    max-width: calc(50% - 12px);
   }
 }
 
 @media (min-width: 1200px) {
   .workiz-course-slide {
-    flex-basis: calc(33.333% - 11px);
-    max-width: calc(33.333% - 11px);
+    flex-basis: calc(33.333% - 16px);
+    max-width: calc(33.333% - 16px);
   }
 }
 
@@ -785,3 +786,2530 @@ img[src*="top-star.png"] {
     display: block !important;
   }
 }
+
+/* —— Contact page —— */
+.workiz-contact {
+  background:
+    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(182, 152, 86, 0.08), transparent 55%),
+    linear-gradient(180deg, #f7f5f0 0%, #ffffff 48%, #ffffff 100%);
+}
+
+.workiz-contact__row {
+  align-items: stretch !important;
+}
+
+.workiz-contact__row > [class*="col-"] {
+  display: flex;
+  flex-direction: column;
+}
+
+.workiz-contact__intro {
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px dashed rgba(243, 230, 200, 0.18);
+}
+
+.workiz-contact__intro .section-sub-title h6,
+.workiz-contact__intro .section-sub-title.three h6 {
+  color: #f3e6c8 !important;
+  margin-bottom: 10px !important;
+}
+
+.workiz-contact__intro .section_title h1,
+.workiz-contact__intro .section_title h1:first-child,
+.workiz-contact__intro .section_title h1:last-child {
+  color: #ffffff !important;
+  font-size: clamp(28px, 3vw, 36px) !important;
+  line-height: 1.2 !important;
+  margin: 0 0 12px !important;
+}
+
+.workiz-contact__intro .section-title-desc,
+.workiz-contact__intro .section-title-desc p {
+  margin: 0 !important;
+  color: #ffffff !important;
+  opacity: 0.9;
+}
+
+.workiz-contact .contact_main_info,
+.workiz-contact.inner_section .contact_main_info {
+  background: #102846;
+  border: 1px solid rgba(182, 152, 86, 0.35);
+  box-shadow: 0 24px 60px rgba(16, 40, 70, 0.18);
+}
+
+.workiz-contact__info,
+.workiz-contact.inner_section .contact-form-box.style_two.workiz-contact__form {
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto !important;
+  min-height: 100%;
+  align-self: stretch;
+}
+
+.workiz-contact__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.workiz-contact.inner_section .contact_main_info .call-do-action-info {
+  border-bottom-color: rgba(243, 230, 200, 0.18);
+}
+
+.workiz-contact.inner_section .contact_main_info .call-do-action-info:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.workiz-contact.inner_section .contact_main_info .call-do-social_icon i {
+  background: rgba(182, 152, 86, 0.16);
+  color: #b69856;
+  border-color: rgba(182, 152, 86, 0.35);
+}
+
+.workiz-contact.inner_section .contact_main_info .call-do-action-info:hover .call-do-social_icon i {
+  background: #b69856;
+  color: #102846;
+}
+
+.workiz-contact.inner_section .contact_main_info .call_info p {
+  color: rgba(243, 230, 200, 0.72);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+}
+
+.workiz-contact.inner_section .contact_main_info .call_info h3,
+.workiz-contact.inner_section .contact_main_info .call_info h3 a {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.workiz-contact.inner_section .contact_main_info .call_info h3 a:hover {
+  color: #b69856 !important;
+}
+
+.workiz-contact.inner_section .contact_main_info .call_info span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.workiz-contact.inner_section .contact-form-box.style_two {
+  border: 1px solid rgba(16, 40, 70, 0.08);
+  box-shadow: 0 28px 70px rgba(16, 40, 70, 0.1);
+  filter: none;
+}
+
+.workiz-contact.inner_section .contact-section-title h4 {
+  color: #b69856;
+  letter-spacing: 0.08em;
+}
+
+.workiz-contact.inner_section .contact-section-title h1 {
+  color: #102846;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.25;
+}
+
+.workiz-contact.inner_section .form-box input,
+.workiz-contact.inner_section .form-box select,
+.workiz-contact.inner_section .form-box.message textarea {
+  border: 1px solid rgba(16, 40, 70, 0.14);
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.workiz-contact.inner_section .form-box select {
+  width: 100%;
+  height: 54px;
+  border-radius: 4px;
+  background-color: #ffffff;
+  margin-bottom: 20px;
+  padding: 0 25px;
+  outline: 0;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23102846' d='M1.4.3 6 4.9 10.6.3 12 1.7 6 7.7 0 1.7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  padding-right: 44px;
+}
+
+.workiz-contact.inner_section .form-box input:focus,
+.workiz-contact.inner_section .form-box select:focus,
+.workiz-contact.inner_section .form-box.message textarea:focus {
+  border-color: #b69856;
+  box-shadow: 0 0 0 3px rgba(182, 152, 86, 0.18);
+}
+
+.workiz-contact.inner_section .checkbox a {
+  color: #102846;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.workiz-contact.inner_section .contact-form button {
+  background-color: #102846;
+  border: 0;
+  border-radius: 4px;
+  width: auto;
+  min-width: 180px;
+  padding: 0 28px;
+  cursor: pointer;
+}
+
+.workiz-contact.inner_section .contact-form button:hover {
+  background-color: #b69856;
+  color: #102846;
+}
+
+.workiz-contact__status {
+  margin: 16px 0 0;
+  color: #102846;
+  font-size: 14px;
+}
+
+.workiz-contact__map {
+  margin: 0;
+  padding: 0 0 80px;
+  background: #ffffff;
+}
+
+.workiz-contact__map-panel {
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(16, 40, 70, 0.12);
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(16, 40, 70, 0.08);
+}
+
+.workiz-contact__map-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 28px 22px;
+  color: #102846;
+  background: #ffffff;
+}
+
+.workiz-contact__map-head h2 {
+  margin: 0 0 8px;
+  font-family: Outfit, sans-serif;
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 600;
+  color: #102846;
+}
+
+.workiz-contact__map-head p {
+  margin: 0;
+  color: #5b6572;
+}
+
+.workiz-contact__map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #b69856 !important;
+  font-family: Outfit, sans-serif;
+  font-weight: 500;
+  text-decoration: none !important;
+}
+
+.workiz-contact__map-link:hover {
+  color: #8f7338 !important;
+}
+
+.workiz-contact__map-frame {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  margin: 0 28px 28px;
+  width: calc(100% - 56px);
+  background: #f7f5f0;
+}
+
+.workiz-contact__map-frame .maplibregl-map,
+.workiz-contact__map-frame > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+}
+
+/* —— Strip Educate decorative icon chrome —— */
+.section-sub-title h6::before,
+.section-sub-title h6::after,
+.section-sub-title.three h6::before,
+.section-sub-title.three h6::after {
+  display: none !important;
+  content: none !important;
+}
+
+.section-sub-title h6 {
+  padding-left: 0 !important;
+}
+
+.section-sub-title h6 img {
+  display: none !important;
+}
+
+.style-one .choose-item-menu ul li:nth-child(1),
+.style-one .choose-item-menu ul li:nth-child(2),
+.style-one .choose-item-menu ul li:nth-child(3),
+.style-one .choose-item-menu ul li:nth-child(4) {
+  padding: 14px 28px !important;
+}
+
+.style-one .about-item-list span img,
+.style-three .about-iteam-list ul li img,
+.footer-widget-menu li > img {
+  display: none !important;
+}
+
+.footer-widget-menu ul li {
+  padding-left: 0 !important;
+}
+
+.inner_section .contact_main_info .call-do-action-info {
+  align-items: flex-start;
+}
+
+.workiz-contact.inner_section .contact_main_info .call-do-action-info {
+  gap: 0;
+}
+
+.single-feature-box .feature-icon {
+  display: none !important;
+}
+
+.style-one .single-feature-box h4.feature-title,
+.style-two .single-feature-box h4.feature-title {
+  margin-top: 0 !important;
+}
+
+.breadcumb-shape,
+.breadcumb-shape2 {
+  display: none !important;
+}
+
+/* —— Courses catalog —— */
+.workiz-courses-page {
+  padding: 72px 0 96px;
+  background:
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(182, 152, 86, 0.1), transparent 55%),
+    linear-gradient(180deg, #f7f5f0 0%, #ffffff 42%, #ffffff 100%);
+}
+
+.workiz-courses-page__intro {
+  max-width: 720px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.workiz-courses-page__eyebrow {
+  margin: 0 0 10px;
+  font-family: Outfit, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b69856;
+}
+
+.workiz-courses-page__title {
+  margin: 0 0 14px;
+  font-family: Outfit, sans-serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #102846;
+}
+
+.workiz-courses-page__lede {
+  margin: 0 auto;
+  max-width: 54ch;
+  font-size: 17px;
+  line-height: 1.65;
+  color: #5b6572;
+}
+
+.workiz-courses__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.workiz-courses__search {
+  flex: 1 1 260px;
+  max-width: 360px;
+}
+
+.workiz-courses__search input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid rgba(16, 40, 70, 0.14);
+  border-radius: 10px;
+  background: #ffffff;
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.workiz-courses__search input:focus {
+  border-color: #b69856;
+  box-shadow: 0 0 0 3px rgba(182, 152, 86, 0.18);
+}
+
+.workiz-courses__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workiz-courses__filter {
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(16, 40, 70, 0.14);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.workiz-courses__filter:hover {
+  border-color: #b69856;
+}
+
+.workiz-courses__filter.is-active {
+  background: #102846;
+  border-color: #102846;
+  color: #ffffff;
+}
+
+.workiz-courses__count {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: #5b6572;
+}
+
+.workiz-courses__grid > [class*="col-"] {
+  margin-bottom: 28px;
+}
+
+.workiz-course-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(16, 40, 70, 0.05);
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease;
+}
+
+.workiz-course-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(182, 152, 86, 0.45);
+  box-shadow: 0 22px 44px rgba(16, 40, 70, 0.12);
+}
+
+.workiz-course-card:active {
+  transform: translateY(-2px) scale(0.995);
+}
+
+.workiz-course-card__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #102846;
+}
+
+.workiz-course-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workiz-course-card:hover .workiz-course-card__media img {
+  transform: scale(1.05);
+}
+
+.workiz-course-card__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(16, 40, 70, 0.08) 0%, transparent 38%),
+    linear-gradient(180deg, transparent 48%, rgba(16, 40, 70, 0.55) 100%);
+  pointer-events: none;
+}
+
+.workiz-course-card__level,
+.workiz-course-card__dept {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 230, 200, 0.35);
+  background: rgba(16, 40, 70, 0.82);
+  backdrop-filter: blur(8px);
+  color: #f3e6c8;
+  font-family: Outfit, sans-serif;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workiz-course-card__chip--dept {
+  border-color: rgba(182, 152, 86, 0.45) !important;
+  background: rgba(182, 152, 86, 0.12) !important;
+  color: #102846 !important;
+  font-weight: 650;
+}
+
+.workiz-seat-slider--spacer {
+  min-height: 72px;
+}
+
+.workiz-course-card__duration {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 16px rgba(16, 40, 70, 0.12);
+}
+
+.workiz-course-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
+  padding: 22px 22px 20px;
+}
+
+.workiz-course-card__copy {
+  flex: 1;
+}
+
+.workiz-course-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0 0 8px;
+  min-height: 2.5em;
+  font-family: Outfit, sans-serif;
+  font-size: 21px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.workiz-course-card__title a {
+  color: #102846 !important;
+  text-decoration: none !important;
+}
+
+.workiz-course-card__title a:hover {
+  color: #b69856 !important;
+}
+
+.workiz-course-card__blurb {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #5b6572;
+}
+
+.workiz-course-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workiz-course-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(16, 40, 70, 0.05);
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.workiz-course-card__chip--muted {
+  background: transparent;
+  border: 1px solid rgba(16, 40, 70, 0.12);
+  color: #5b6572;
+}
+
+.workiz-course-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(16, 40, 70, 0.08);
+}
+
+.workiz-course-card__price-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.workiz-course-card__price-label {
+  font-family: Outfit, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a93a0;
+}
+
+.workiz-course-card__price {
+  font-family: Outfit, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #102846;
+  line-height: 1.1;
+}
+
+.workiz-course-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #102846;
+  color: #ffffff !important;
+  font-family: Outfit, sans-serif;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none !important;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workiz-course-card__cta:hover {
+  background: #b69856;
+  color: #102846 !important;
+}
+
+.workiz-course-card__cta:active {
+  transform: scale(0.97);
+}
+
+.workiz-courses__empty {
+  padding: 56px 24px;
+  text-align: center;
+  border: 1px dashed rgba(16, 40, 70, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.workiz-courses__empty h3 {
+  margin: 0 0 8px;
+  font-family: Outfit, sans-serif;
+  font-size: 24px;
+  color: #102846;
+}
+
+.workiz-courses__empty p {
+  margin: 0 0 18px;
+  color: #5b6572;
+}
+
+.workiz-courses__empty button {
+  height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #102846;
+  color: #ffffff;
+  font-family: Outfit, sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.workiz-courses__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 24px;
+  padding: 28px 32px;
+  border-radius: 16px;
+  background: #102846;
+}
+
+.workiz-courses__cta h3 {
+  margin: 0 0 6px;
+  font-family: Outfit, sans-serif;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.workiz-courses__cta p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.workiz-courses__cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 8px;
+  background: #b69856;
+  color: #102846 !important;
+  font-family: Outfit, sans-serif;
+  font-weight: 700;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.workiz-courses__cta-btn:hover {
+  background: #f3e6c8;
+}
+
+/* —— Course detail (single) —— */
+.workiz-course-detail {
+  padding: 48px 0 88px;
+  background:
+    radial-gradient(ellipse 70% 45% at 8% 0%, rgba(182, 152, 86, 0.08), transparent 55%),
+    linear-gradient(180deg, #f7f5f1 0%, #ffffff 42%);
+}
+
+.workiz-course-detail__main {
+  padding-right: 12px;
+}
+
+.workiz-course-detail__intro {
+  margin-bottom: 28px;
+}
+
+.workiz-course-detail__eyebrow {
+  margin: 0 0 10px;
+  font-family: Outfit, sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b69856;
+}
+
+.workiz-course-detail__title {
+  margin: 0 0 12px;
+  font-family: Outfit, sans-serif;
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #102846;
+}
+
+.workiz-course-detail__lede {
+  margin: 0 0 20px;
+  max-width: 38ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #5b6572;
+}
+
+.workiz-course-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workiz-course-detail__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 40, 70, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.workiz-course-detail__chip--solid {
+  border-color: transparent;
+  background: #102846;
+  color: #f3e6c8;
+  text-transform: capitalize;
+}
+
+.workiz-course-detail__hero-media {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 36px;
+  border-radius: 20px;
+  aspect-ratio: 16 / 9;
+  background: #102846;
+  box-shadow: 0 18px 40px rgba(16, 40, 70, 0.1);
+}
+
+.workiz-course-detail__hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.workiz-course-detail__hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(16, 40, 70, 0.28) 100%);
+  pointer-events: none;
+}
+
+.workiz-course-detail__block {
+  margin-bottom: 36px;
+  padding-bottom: 36px;
+  border-bottom: 1px solid rgba(16, 40, 70, 0.08);
+}
+
+.workiz-course-detail__block:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.workiz-course-detail__block h2 {
+  margin: 0 0 16px;
+  font-family: Outfit, sans-serif;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #102846;
+}
+
+.workiz-course-detail__block p {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #5b6572;
+}
+
+.workiz-course-detail__block p:last-child {
+  margin-bottom: 0;
+}
+
+.workiz-course-detail__outcomes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.workiz-course-detail__outcomes li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: #102846;
+}
+
+.workiz-course-detail__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: rgba(182, 152, 86, 0.18);
+  color: #102846;
+}
+
+.workiz-course-detail__audience {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workiz-course-detail__pill {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(16, 40, 70, 0.05);
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.workiz-course-detail__curriculum-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.workiz-course-detail__curriculum-head h2 {
+  margin: 0;
+}
+
+.workiz-course-detail__curriculum-head span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a93a0;
+}
+
+.workiz-course-detail__curriculum {
+  display: grid;
+  gap: 10px;
+}
+
+.workiz-course-detail__module {
+  overflow: hidden;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.workiz-course-detail__module summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-family: Outfit, sans-serif;
+  user-select: none;
+}
+
+.workiz-course-detail__module summary::-webkit-details-marker {
+  display: none;
+}
+
+.workiz-course-detail__module-title {
+  font-size: 15.5px;
+  font-weight: 650;
+  color: #102846;
+}
+
+.workiz-course-detail__module-count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a93a0;
+}
+
+.workiz-course-detail__module[open] summary {
+  border-bottom: 1px solid rgba(16, 40, 70, 0.08);
+  background: rgba(16, 40, 70, 0.02);
+}
+
+.workiz-course-detail__module ul {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.workiz-course-detail__module li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+}
+
+.workiz-course-detail__module li + li {
+  border-top: 1px solid rgba(16, 40, 70, 0.06);
+}
+
+.workiz-course-detail__lesson-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: rgba(16, 40, 70, 0.06);
+  color: #102846;
+}
+
+.workiz-course-detail__lesson-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.workiz-course-detail__lesson-copy strong {
+  font-family: Outfit, sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #102846;
+}
+
+.workiz-course-detail__lesson-copy span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a93a0;
+  text-transform: capitalize;
+}
+
+.workiz-course-detail__lesson-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: #102846;
+}
+
+.workiz-course-detail__instructors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.workiz-course-detail__instructor {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.workiz-course-detail__instructor img,
+.workiz-course-detail__instructor-avatar {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #102846;
+}
+
+.workiz-course-detail__instructor-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Outfit, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f3e6c8;
+}
+
+.workiz-course-detail__instructor h3 {
+  margin: 0 0 4px;
+  font-family: Outfit, sans-serif;
+  font-size: 18px;
+  font-weight: 650;
+  color: #102846;
+}
+
+.workiz-course-detail__instructor h3 a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.workiz-course-detail__instructor h3 a:hover {
+  color: #b69856 !important;
+}
+
+.workiz-course-detail__instructor-role {
+  margin: 0 0 8px !important;
+  font-size: 13px !important;
+  font-weight: 600;
+  color: #b69856 !important;
+}
+
+.workiz-course-detail__instructor p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #5b6572;
+}
+
+.workiz-course-detail__aside {
+  position: sticky;
+  top: 100px;
+}
+
+.workiz-course-detail__card {
+  overflow: hidden;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(16, 40, 70, 0.08);
+}
+
+.workiz-course-detail__card-media {
+  aspect-ratio: 16 / 10;
+  background: #102846;
+}
+
+.workiz-course-detail__card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.workiz-course-detail__card-body {
+  padding: 22px;
+}
+
+.workiz-course-detail__price-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.workiz-course-detail__price-label {
+  font-family: Outfit, sans-serif;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a93a0;
+}
+
+.workiz-course-detail__price {
+  font-family: Outfit, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #102846;
+}
+
+.workiz-course-detail__card-note {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #5b6572;
+}
+
+.workiz-course-detail__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: #102846;
+  color: #ffffff !important;
+  font-family: Outfit, sans-serif;
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: none !important;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workiz-course-detail__cta:hover {
+  background: #b69856;
+  color: #102846 !important;
+}
+
+.workiz-course-detail__cta:active {
+  transform: scale(0.98);
+}
+
+.workiz-course-detail__cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(16, 40, 70, 0.14);
+  border-radius: 10px;
+  background: transparent;
+  color: #102846 !important;
+  font-family: Outfit, sans-serif;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none !important;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.workiz-course-detail__cta-secondary:hover {
+  border-color: rgba(182, 152, 86, 0.55);
+  background: rgba(182, 152, 86, 0.08);
+}
+
+.workiz-course-detail__includes {
+  list-style: none;
+  margin: 0;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(16, 40, 70, 0.08);
+  display: grid;
+  gap: 12px;
+}
+
+.workiz-course-detail__includes li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #102846;
+}
+
+.workiz-course-detail__includes svg {
+  flex-shrink: 0;
+  color: #b69856;
+}
+
+/* —— About page (theme-based, no floating overlays) —— */
+.workiz-about-theme.about-area.style-three,
+.workiz-about-theme.about-area.style-three.inner {
+  background: #ffffff !important;
+}
+
+.workiz-about-theme .about-thumb-wrapper {
+  margin-left: 0 !important;
+  position: relative;
+}
+
+.workiz-about-theme__media .about-thumb {
+  border-radius: 18px;
+  overflow: hidden;
+  background: #102846;
+}
+
+.workiz-about-theme__media .about-thumb img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  min-height: 420px;
+}
+
+.workiz-about-theme .about-iteam-list ul {
+  padding-left: 0;
+}
+
+.workiz-about-theme .about-iteam-list ul li {
+  list-style: none;
+  position: relative;
+  padding-left: 18px;
+}
+
+.workiz-about-theme .about-iteam-list ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #b69856;
+}
+
+.workiz-about-theme .about-iteam-phone a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.workiz-about-theme .about-iteam-phone a:hover {
+  color: #b69856 !important;
+}
+
+.workiz-about-theme__leader {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(16, 40, 70, 0.1);
+}
+
+.workiz-about-theme__leader p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #5b6572;
+}
+
+.workiz-about-theme__leader strong {
+  color: #102846;
+  font-weight: 650;
+}
+
+.workiz-about-theme__objective {
+  padding: 72px 0;
+  background: #ffffff;
+}
+
+.workiz-objective {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.workiz-objective__media {
+  overflow: hidden;
+  border-radius: 20px;
+  background: #102846;
+  min-height: 420px;
+}
+
+.workiz-objective__media img {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  object-fit: cover;
+  display: block;
+}
+
+.workiz-objective__eyebrow {
+  margin: 0 0 12px;
+  font-family: Outfit, sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b69856;
+}
+
+.workiz-objective__title {
+  margin: 0 0 18px;
+  font-family: Outfit, sans-serif;
+  font-size: clamp(28px, 3.2vw, 38px);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #102846;
+}
+
+.workiz-objective__title span {
+  display: block;
+  color: #b69856;
+  font-weight: 500;
+}
+
+.workiz-objective__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.workiz-objective__copy > p {
+  margin: 0 0 14px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #5b6572;
+}
+
+.workiz-objective__pillars {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(16, 40, 70, 0.1);
+  display: grid;
+  gap: 14px;
+}
+
+.workiz-objective__pillars li {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px 16px;
+  align-items: baseline;
+}
+
+.workiz-objective__pillars strong {
+  font-family: Outfit, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #102846;
+}
+
+.workiz-objective__pillars span {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #5b6572;
+}
+
+.workiz-about-theme__portfolio {
+  padding: 20px 0 72px;
+  background: #ffffff;
+}
+
+.workiz-about-theme__portfolio .section_title {
+  margin-bottom: 36px;
+}
+
+.workiz-about-theme__portfolio-grid > [class*="col-"] {
+  display: flex;
+  margin-bottom: 28px;
+}
+
+.workiz-portfolio-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  background: #ffffff;
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.workiz-portfolio-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(182, 152, 86, 0.45);
+  box-shadow: 0 20px 40px rgba(16, 40, 70, 0.1);
+}
+
+.workiz-portfolio-card__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #102846;
+}
+
+.workiz-portfolio-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workiz-portfolio-card:hover .workiz-portfolio-card__media img {
+  transform: scale(1.05);
+}
+
+.workiz-portfolio-card__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(16, 40, 70, 0.45) 100%);
+  pointer-events: none;
+}
+
+.workiz-portfolio-card__index {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 230, 200, 0.35);
+  background: rgba(16, 40, 70, 0.82);
+  backdrop-filter: blur(8px);
+  color: #f3e6c8;
+  font-family: Outfit, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.workiz-portfolio-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 10px;
+  padding: 20px 20px 22px;
+}
+
+.workiz-portfolio-card__body h3 {
+  margin: 0;
+  font-family: Outfit, sans-serif;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #102846;
+}
+
+.workiz-portfolio-card__body p {
+  margin: 0;
+  flex: 1;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #5b6572;
+}
+
+.workiz-portfolio-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-family: Outfit, sans-serif;
+  font-size: 14px;
+  font-weight: 650;
+  color: #102846 !important;
+  text-decoration: none !important;
+  transition: color 180ms ease;
+}
+
+.workiz-portfolio-card__link i {
+  font-size: 12px;
+  transition: transform 180ms ease;
+}
+
+.workiz-portfolio-card__link:hover {
+  color: #b69856 !important;
+}
+
+.workiz-portfolio-card__link:hover i {
+  transform: translateX(3px);
+}
+
+.workiz-about-theme__features {
+  background: #ffffff !important;
+}
+
+.workiz-about-theme__features .row > [class*="col-"] {
+  display: flex;
+  margin-bottom: 24px;
+}
+
+.workiz-about-theme__features .single-feature-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  border-radius: 18px;
+  border: 1px solid rgba(16, 40, 70, 0.08);
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(16, 40, 70, 0.05);
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+}
+
+.workiz-about-theme__features .single-feature-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 36px rgba(16, 40, 70, 0.1);
+}
+
+.workiz-about-theme__feature-media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 18px 18px 0 0;
+  background: #102846;
+}
+
+.workiz-about-theme__feature-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workiz-about-theme__features .single-feature-box:hover .workiz-about-theme__feature-media img {
+  transform: scale(1.04);
+}
+
+.workiz-about-theme__features .feature-content {
+  float: none !important;
+  overflow: visible !important;
+  padding: 22px 22px 26px !important;
+  padding-right: 22px !important;
+}
+
+.workiz-about-theme__features .feature-icon {
+  display: none;
+}
+
+.workiz-about-theme__features h4.feature-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #102846;
+}
+
+.workiz-about-theme__features p.feature-desc {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #5b6572;
+}
+
+/* About CTA — white band */
+.workiz-about-theme__cta.call-to-action.style-two {
+  background: #ffffff !important;
+  background-image: none !important;
+  padding: 48px 0;
+  border-top: 1px solid rgba(16, 40, 70, 0.08);
+}
+
+.workiz-about-theme__cta .call-to-title h3 {
+  color: #102846 !important;
+}
+
+.workiz-about-theme__cta .call-to-title h3:last-child {
+  color: #b69856 !important;
+}
+
+.workiz-about-theme__cta .call-to-btn a {
+  background: #102846 !important;
+  border: 1px solid #102846 !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  text-transform: none;
+  font-weight: 650;
+}
+
+.workiz-about-theme__cta .call-to-btn a::before {
+  background: #b69856 !important;
+}
+
+.workiz-about-theme__cta .call-to-btn a:hover {
+  color: #102846 !important;
+}
+
+/* —— Company seats form (pricing page) —— */
+.workiz-seats-form {
+  margin-top: 8px;
+  padding: 32px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(16, 40, 70, 0.06);
+}
+
+.workiz-seats-form h3 {
+  margin: 0 0 10px;
+  font-family: Outfit, sans-serif;
+  font-size: 24px;
+  color: #102846;
+}
+
+.workiz-seats-form > p {
+  margin: 0 0 24px;
+  color: #5b6572;
+}
+
+.workiz-seats-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #102846;
+}
+
+@media (max-width: 640px) {
+  .workiz-seats-form {
+    padding: 20px 16px;
+  }
+
+  .workiz-seats-form h3 {
+    font-size: 20px;
+  }
+
+  .workiz-seats-form .btn_primary {
+    width: 100%;
+  }
+}
+
+/* —— FAQ page —— */
+.workiz-faq.faq-area.style-one {
+  background: #ffffff !important;
+  padding: 72px 0 40px;
+}
+
+.workiz-faq__media {
+  border-radius: 18px;
+  overflow: hidden;
+  background: #102846;
+  margin-bottom: 28px;
+}
+
+.workiz-faq__media img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  min-height: 420px;
+}
+
+.workiz-faq .faq-button a {
+  background: #102846 !important;
+  border: 1px solid #102846 !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  text-transform: none;
+  font-weight: 650;
+}
+
+.workiz-faq .faq-button a::before {
+  background: #b69856 !important;
+}
+
+.workiz-faq .faq-button a:hover {
+  color: #102846 !important;
+}
+
+/* —— Floating help widget (Bootstrap-safe) —— */
+.workiz-help {
+  position: fixed;
+  left: max(20px, env(safe-area-inset-left));
+  right: auto;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.workiz-help__panel {
+  width: min(calc(100vw - 2.5rem), 300px);
+  padding: 24px;
+  border-radius: 32px;
+  background: #102846 !important;
+  border: 1px solid rgba(182, 152, 86, 0.28);
+  box-shadow: 0 28px 70px rgba(16, 40, 70, 0.4);
+  color: #ffffff;
+}
+
+.workiz-help__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.workiz-help__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.workiz-help__live {
+  position: relative;
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: #25d366;
+  box-shadow: 0 0 0 5px rgba(37, 211, 102, 0.22);
+}
+
+.workiz-help__live::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  background: rgba(37, 211, 102, 0.35);
+  animation: workiz-help-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes workiz-help-ping {
+  75%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+.workiz-help__title {
+  margin: 0;
+  font-family: Outfit, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff !important;
+}
+
+.workiz-help__subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(243, 230, 200, 0.75) !important;
+}
+
+.workiz-help__close {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: rgba(243, 230, 200, 0.7) !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.workiz-help__close:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.workiz-help__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workiz-help__btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  font-family: Outfit, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
+
+.workiz-help__btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.workiz-help__btn--whatsapp {
+  background: #25d366 !important;
+  border: 0 !important;
+  color: #ffffff !important;
+}
+
+.workiz-help__btn--whatsapp:hover {
+  opacity: 0.92;
+  color: #ffffff !important;
+}
+
+.workiz-help__btn--call {
+  background: transparent !important;
+  border: 1px solid rgba(182, 152, 86, 0.45) !important;
+  color: #ffffff !important;
+}
+
+.workiz-help__btn--call:hover {
+  border-color: #b69856 !important;
+  background: rgba(182, 152, 86, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.workiz-help__pill {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 6px 20px 6px 6px !important;
+  border: 1px solid rgba(182, 152, 86, 0.4) !important;
+  border-radius: 999px !important;
+  background: #102846 !important;
+  color: #ffffff !important;
+  box-shadow: 0 16px 40px rgba(16, 40, 70, 0.35) !important;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1;
+}
+
+.workiz-help__pill:hover,
+.workiz-help__pill:focus,
+.workiz-help__pill:focus-visible {
+  background: #102846 !important;
+  color: #ffffff !important;
+  border-color: #b69856 !important;
+  outline: none;
+}
+
+.workiz-help__pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #25d366;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.workiz-help__wa {
+  width: 22px;
+  height: 22px;
+}
+
+.workiz-help__pill-label {
+  padding-right: 4px;
+  font-family: Outfit, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workiz-help__live::after {
+    animation: none;
+  }
+}
+
+/* —— Cart nav + page + buy actions —— */
+.workiz-cart-nav {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: #102846 !important;
+  text-decoration: none !important;
+  transition: background-color 0.18s ease;
+}
+
+.workiz-cart-nav:hover {
+  background: rgba(16, 40, 70, 0.06);
+  color: #102846 !important;
+}
+
+.workiz-cart-nav__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #b69856;
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+.workiz-buy-actions {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.workiz-buy-actions .workiz-course-detail__cta,
+.workiz-buy-actions .workiz-course-detail__cta-secondary {
+  margin-bottom: 0;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+}
+
+.workiz-buy-actions .workiz-course-detail__cta {
+  background: #102846 !important;
+  color: #ffffff !important;
+}
+
+.workiz-buy-actions .workiz-course-detail__cta:hover {
+  background: #b69856 !important;
+  color: #102846 !important;
+}
+
+.workiz-buy-actions__cart {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.workiz-buy-actions__cart.is-in-cart {
+  border-color: rgba(182, 152, 86, 0.55) !important;
+  background: rgba(182, 152, 86, 0.1) !important;
+}
+
+.workiz-buy-actions__view-cart {
+  display: inline-flex;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #b69856 !important;
+  text-decoration: none !important;
+}
+
+.workiz-buy-actions__msg,
+.workiz-buy-actions__err {
+  margin: 0;
+  font-size: 13px;
+  text-align: center;
+}
+
+.workiz-buy-actions__msg {
+  color: #102846;
+}
+
+.workiz-buy-actions__err {
+  color: #b42318;
+}
+
+.workiz-cart {
+  padding: 48px 0 88px;
+  background: #ffffff;
+}
+
+.workiz-cart__intro {
+  max-width: 640px;
+  margin-bottom: 36px;
+}
+
+.workiz-cart__eyebrow {
+  margin: 0 0 8px;
+  font-family: Outfit, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #b69856;
+}
+
+.workiz-cart__title {
+  margin: 0 0 10px;
+  font-family: Outfit, sans-serif;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 700;
+  color: #102846;
+}
+
+.workiz-cart__lede {
+  margin: 0;
+  color: #5b6572;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.workiz-cart__empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 40px 36px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  border-radius: 18px;
+  background: #faf8f4;
+  color: #102846;
+}
+
+.workiz-cart__empty h2 {
+  margin: 0;
+  font-family: Outfit, sans-serif;
+  font-size: 24px;
+}
+
+.workiz-cart__empty p {
+  margin: 0 0 8px;
+  color: #5b6572;
+}
+
+.workiz-cart__primary,
+.workiz-cart__checkout {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: #102846 !important;
+  color: #ffffff !important;
+  font-family: Outfit, sans-serif;
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+.workiz-cart__primary:hover,
+.workiz-cart__checkout:hover {
+  background: #b69856 !important;
+  color: #102846 !important;
+}
+
+.workiz-cart__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 28px;
+  align-items: start;
+}
+
+.workiz-cart__list {
+  display: grid;
+  gap: 14px;
+}
+
+.workiz-cart__row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.workiz-cart__thumb {
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #102846;
+}
+
+.workiz-cart__thumb img {
+  display: block;
+  width: 100%;
+  height: 84px;
+  object-fit: cover;
+}
+
+.workiz-cart__copy h2 {
+  margin: 0 0 4px;
+  font-family: Outfit, sans-serif;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.workiz-cart__copy h2 a {
+  color: #102846 !important;
+  text-decoration: none !important;
+}
+
+.workiz-cart__copy h2 a:hover {
+  color: #b69856 !important;
+}
+
+.workiz-cart__copy p {
+  margin: 0 0 10px;
+  color: #5b6572;
+  font-size: 14px;
+}
+
+.workiz-cart__remove {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #5b6572 !important;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+.workiz-cart__remove:hover {
+  color: #b42318 !important;
+}
+
+.workiz-cart__price {
+  font-family: Outfit, sans-serif;
+  font-size: 18px;
+  color: #102846;
+  white-space: nowrap;
+}
+
+.workiz-cart__summary {
+  padding: 24px;
+  border: 1px solid rgba(16, 40, 70, 0.1);
+  border-radius: 16px;
+  background: #faf8f4;
+}
+
+.workiz-cart__summary h2 {
+  margin: 0 0 16px;
+  font-family: Outfit, sans-serif;
+  font-size: 20px;
+  color: #102846;
+}
+
+.workiz-cart__summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #102846;
+  font-weight: 650;
+}
+
+.workiz-cart__summary-note {
+  margin: 0 0 18px;
+  color: #5b6572;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.workiz-cart__error {
+  margin: 0 0 12px;
+  color: #b42318;
+  font-size: 13.5px;
+}
+
+.workiz-cart__checkout {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.workiz-cart__signed-in {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: #5b6572;
+}
+
+.workiz-cart__signed-in strong {
+  color: #102846;
+}
+
+.workiz-cart__auth {
+  margin-bottom: 12px;
+}
+
+.workiz-cart__auth-switch {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: #5b6572;
+}
+
+.workiz-cart__auth-switch button {
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  color: #b69856 !important;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: underline;
+  box-shadow: none !important;
+}
+
+.workiz-cart__company-check {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #102846;
+  cursor: pointer;
+}
+
+.workiz-cart__company-check input {
+  width: 16px !important;
+  min-height: 16px !important;
+  height: 16px;
+  margin: 0;
+  accent-color: #102846;
+  flex-shrink: 0;
+}
+
+.workiz-cart__auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(16, 40, 70, 0.06);
+}
+
+.workiz-cart__auth-tabs button {
+  margin: 0;
+  padding: 8px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #5b6572 !important;
+  font-family: Outfit, sans-serif;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+.workiz-cart__auth-tabs button.is-active {
+  background: #ffffff !important;
+  color: #102846 !important;
+  box-shadow: 0 2px 8px rgba(16, 40, 70, 0.08) !important;
+}
+
+.workiz-cart__auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+.workiz-cart__auth-form label {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: #102846;
+}
+
+.workiz-cart__auth-form input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(16, 40, 70, 0.14);
+  border-radius: 10px;
+  background: #ffffff;
+  color: #102846;
+  font-size: 14px;
+  outline: none;
+}
+
+.workiz-cart__auth-form input:focus {
+  border-color: #b69856;
+  box-shadow: 0 0 0 3px rgba(182, 152, 86, 0.18);
+}
+
+.workiz-cart__message {
+  margin: 0;
+  color: #0f6b3c;
+  font-size: 13px;
+}
+
+.workiz-cart__auth-alt {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: #5b6572;
+}
+
+.workiz-cart__auth-alt a {
+  color: #b69856 !important;
+  font-weight: 650;
+  text-decoration: none !important;
+}
+
+.workiz-cart__company-field {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px;
+  font-family: Outfit, sans-serif;
+  font-size: 13px;
+  font-weight: 650;
+  color: #102846;
+}
+
+.workiz-cart__company-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(16, 40, 70, 0.16);
+  border-radius: 10px;
+  background: #ffffff;
+  color: #102846;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.workiz-cart__company-field input:focus {
+  outline: none;
+  border-color: #b69856;
+  box-shadow: 0 0 0 3px rgba(182, 152, 86, 0.18);
+}
+
+.workiz-cart__row--seats {
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+}
+
+.workiz-cart__seats-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  background: rgba(16, 40, 70, 0.06);
+  color: #102846;
+}
+
+.workiz-seat-slider__input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(16, 40, 70, 0.12);
+  outline: none;
+  cursor: pointer;
+}
+
+.workiz-seat-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #102846;
+  border: 3px solid #b69856;
+  box-shadow: 0 4px 12px rgba(16, 40, 70, 0.25);
+  cursor: grab;
+}
+
+.workiz-seat-slider__input::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #102846;
+  border: 3px solid #b69856;
+  box-shadow: 0 4px 12px rgba(16, 40, 70, 0.25);
+  cursor: grab;
+}
+
+.workiz-seat-slider__input:active::-webkit-slider-thumb,
+.workiz-seat-slider__input:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+
+.workiz-cart__continue,
+.workiz-cart__company {
+  display: block;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+.workiz-cart__continue {
+  margin-bottom: 10px;
+  color: #102846 !important;
+}
+
+.workiz-cart__company {
+  color: #b69856 !important;
+}
+
+@media (max-width: 991px) {
+  .workiz-cart__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .workiz-cart__summary {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .workiz-cart {
+    padding: 28px 0 56px;
+  }
+
+  .workiz-cart__row {
+    grid-template-columns: 72px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .workiz-cart__thumb img {
+    height: 64px;
+  }
+
+  .workiz-cart__price {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .workiz-cart__checkout,
+  .workiz-cart__primary {
+    width: 100%;
+  }
+
+  .workiz-cart__auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .workiz-help {
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+
+

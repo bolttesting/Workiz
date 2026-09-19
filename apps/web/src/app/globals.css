@@ -21,8 +21,12 @@
   --accent: #f3e6c8;
   --accent-foreground: #102846;
   --border: rgba(16, 40, 70, 0.14);
+  --input: rgba(16, 40, 70, 0.14);
   --ring: #b69856;
   --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --popover: #ffffff;
+  --popover-foreground: #102846;
 }
 
 html {
@@ -90,8 +94,12 @@ html {
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
+  --color-input: var(--input);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --font-sans: Outfit, ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -671,6 +679,7 @@ section.course-sign-form-area,
 .workiz-scroll-top {
   position: fixed;
   right: 22px;
+  left: auto;
   bottom: 28px;
   z-index: 99990;
   width: 52px;
@@ -723,5 +732,28 @@ section.course-sign-form-area,
 
   .workiz-scroll-top.is-visible {
     transform: none;
+  }
+}
+/*
+  ---break---
+*/
+@layer base {
+  .maplibregl-popup-content {
+    @apply bg-transparent! shadow-none! p-0! rounded-none!;
+  }
+  .maplibregl-popup-tip {
+    @apply hidden!;
+  }
+  .maplibregl-ctrl-attrib {
+    @apply bg-background! text-muted-foreground! border-border! rounded-md! border! shadow-sm!;
+  }
+  .maplibregl-ctrl-attrib a {
+    @apply text-muted-foreground!;
+  }
+  .maplibregl-ctrl-attrib a:hover {
+    @apply text-foreground!;
+  }
+  .maplibregl-ctrl-attrib-button {
+    @apply bg-transparent! dark:invert;
   }
 }

@@ -23,9 +23,7 @@ export function BlogCard({ post }: { post: BlogPost }) {
           </h3>
         </div>
         <div className="blog-btn">
-          <Link href={`/blog/${post.slug}`}>
-            Continue Reading <img src={post.icon} alt="" />
-          </Link>
+          <Link href={`/blog/${post.slug}`}>Continue Reading</Link>
         </div>
       </div>
     </div>

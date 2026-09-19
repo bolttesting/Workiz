@@ -14,6 +14,7 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
+import { CartNavLink } from "@/components/CartNavLink";
 
 const learn = process.env.NEXT_PUBLIC_LEARN_URL ?? "http://localhost:3001";
 const admin = process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3002";
@@ -77,13 +78,17 @@ export function SiteHeader() {
         <NavBody>
           <NavbarLogo />
           <NavItems items={NAV_ITEMS} />
-          <div className="relative z-20 flex shrink-0 items-center gap-1.5">{desktopAuth}</div>
+          <div className="relative z-20 flex shrink-0 items-center gap-1.5">
+            <CartNavLink />
+            {desktopAuth}
+          </div>
         </NavBody>
 
         <MobileNav>
           <MobileNavHeader>
             <NavbarLogo />
             <div className="flex items-center gap-2">
+              <CartNavLink />
               {!email ? (
                 <NavbarButton href="/sign-in" variant="ghost" className="!px-3 !py-1.5 text-[15px]">
                   Login
@@ -108,6 +113,13 @@ export function SiteHeader() {
               </Link>
             ))}
             <div className="mt-2 flex w-full flex-col gap-2 border-t border-[#102846]/10 pt-3">
+              <Link
+                href="/cart"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full rounded-xl px-3 py-3 text-[17px] font-medium text-[#102846] no-underline transition hover:bg-[#102846]/[0.05]"
+              >
+                Cart
+              </Link>
               {email ? (
                 <>
                   <NavbarButton
@@ -288,19 +300,15 @@ export function SiteFooter() {
                 <div className="footer-widget-menu">
                   <ul>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/courses">Courses</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/instructors">Instructors</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/pricing">Company seats</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/sign-in">Sign in</Link>
                     </li>
                   </ul>
@@ -315,23 +323,18 @@ export function SiteFooter() {
                 <div className="footer-widget-menu">
                   <ul>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/about">About</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/faq">FAQ</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/contact">Contact Us</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/sign-up">Register</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/blog">Blog</Link>
                     </li>
                   </ul>
@@ -346,15 +349,12 @@ export function SiteFooter() {
                 <div className="footer-widget-menu">
                   <ul>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/privacy">Privacy Policy</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/terms">Terms of Service</Link>
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/footer-icon.png" alt="" />
                       <Link href="/cookies">Cookie Policy</Link>
                     </li>
                   </ul>
@@ -469,7 +469,7 @@ export function Breadcrumb({ title, crumb }: { title: string; crumb: string }) {
               </div>
               <ul>
                 <li>
-                  <Link href="/">
+                      <Link href="/">
                     Home{" "}
                     <span>
                       <i className="fa-solid fa-arrow-right-long" />

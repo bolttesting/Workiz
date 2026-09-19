@@ -10,7 +10,7 @@ values
     7900,
     true,
     180,
-    'beginner'
+    'Leadership'
   ),
   (
     'product-thinking',
@@ -21,7 +21,7 @@ values
     9900,
     true,
     240,
-    'intermediate'
+    'Product'
   ),
   (
     'workplace-communication',
@@ -32,6 +32,13 @@ values
     5900,
     true,
     120,
-    'beginner'
+    'Communication'
   )
-on conflict (slug) do nothing;
+on conflict (slug) do update set
+  level = excluded.level,
+  title = excluded.title,
+  subtitle = excluded.subtitle,
+  description = excluded.description,
+  price_cents = excluded.price_cents,
+  duration_minutes = excluded.duration_minutes,
+  published = excluded.published;

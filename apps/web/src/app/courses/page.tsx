@@ -1,6 +1,6 @@
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
+import { CoursesCatalog } from "@/components/CoursesCatalog";
 import { publicApi } from "@/lib/session";
-import { CourseCard } from "@/components/CourseCard";
 import type { Course } from "@workix/db/types";
 
 async function loadCourses(): Promise<Course[]> {
@@ -16,29 +16,34 @@ async function loadCourses(): Promise<Course[]> {
 
 export default async function CoursesPage() {
   const courses = await loadCourses();
+
   return (
     <>
       <SiteHeader />
-      <Breadcrumb title="All courses" crumb="Courses" />
-      <div className="educate-details-course-area style-inner">
+      <Breadcrumb title="Courses" crumb="Courses" />
+
+      <section className="workiz-courses-page">
         <div className="container">
-          <div className="row align-items-center section-title-space">
-            <div className="col-lg-12">
-              <div className="section_title text-center">
-                <h1>Browse My all Course</h1>
-              </div>
+          <div className="workiz-courses-page__intro">
+            <p className="workiz-courses-page__eyebrow">COURSE CATALOG</p>
+            <h1 className="workiz-courses-page__title">Training built for modern teams</h1>
+            <p className="workiz-courses-page__lede">
+              Practical programs your company can assign by role or department — language, culture,
+              professional skills, and specialized training.
+            </p>
+          </div>
+
+          {courses.length ? (
+            <CoursesCatalog courses={courses} />
+          ) : (
+            <div className="workiz-courses__empty">
+              <h3>No published courses yet</h3>
+              <p>New programs will appear here once they are published in admin.</p>
             </div>
-          </div>
-          <div className="row">
-            {courses.map((course) => (
-              <div className="col-xl-4 col-lg-6 col-md-6" key={course.id}>
-                <CourseCard course={course} />
-              </div>
-            ))}
-            {courses.length === 0 ? <p>No published courses yet.</p> : null}
-          </div>
+          )}
         </div>
-      </div>
+      </section>
+
       <SiteFooter />
     </>
   );

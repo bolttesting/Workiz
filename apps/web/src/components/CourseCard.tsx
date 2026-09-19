@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { formatMoney } from "@workix/config";
+import { ArrowUpRight, Clock3, Play } from "lucide-react";
+import { courseDepartment, formatMoney } from "@workix/config";
 import type { Course } from "@workix/db/types";
 
 function resolveThumb(url: string | null, fallback: string) {
@@ -7,123 +8,63 @@ function resolveThumb(url: string | null, fallback: string) {
   return url;
 }
 
-function Stars() {
-  return (
-    <ul>
-      <li>
-        <i className="fa-solid fa-star" />
-      </li>
-      <li>
-        <i className="fa-solid fa-star" />
-      </li>
-      <li>
-        <i className="fa-solid fa-star" />
-      </li>
-      <li>
-        <i className="fa-solid fa-star" />
-      </li>
-      <li>
-        <i className="fa-classic fa-solid fa-star-half-stroke fa-fw" />
-      </li>
-    </ul>
-  );
+function formatDuration(minutes: number | null) {
+  if (!minutes || minutes <= 0) return "Self-paced";
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
 }
 
 export function CourseCard({ course }: { course: Course }) {
   const thumb = resolveThumb(course.thumbnail_url, "/assets/images/inner-img/course-thumb1.png");
-  return (
-    <div className="course-details-box">
-      <div className="course-details-thumb">
-        <img src={thumb} alt="" />
-        <div className="course-meta-top">
-          <span>{course.level || "Course"}</span>
-        </div>
-      </div>
-      <div className="course-details-content">
-        <h4>
-          <Link href={`/courses/${course.slug}`}>{course.title}</Link>
-        </h4>
-        <div className="course-rating">
-          <Stars />
-          <div className="course-rating-num">
-            <span>(4.5 Ratings)</span>
-          </div>
-          <div className="course-price">
-            <h3>{formatMoney(course.price_cents, course.currency)}</h3>
-          </div>
-        </div>
-        <div className="course-details-list">
-          <div className="course-lesson">
-            <span>
-              <i className="fa-regular fa-file-lines" /> {course.duration_minutes ?? 0} min
-            </span>
-          </div>
-          <div className="course-student">
-            <span>
-              <i className="fa-regular fa-user" /> Recorded
-            </span>
-          </div>
-        </div>
-        <div className="course-btn">
-          <Link href={`/courses/${course.slug}`}>
-            Enroll Now <i className="flaticon flaticon-right-arrow" />
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
+  const blurb = course.subtitle || course.description || "Practical training for professional teams.";
+  const duration = formatDuration(course.duration_minutes);
+  const department = courseDepartment(course);
 
-export function HomeCourseCard({ course, index }: { course: Course; index: number }) {
-  const box = index % 3 === 0 ? "" : index % 3 === 1 ? " box-2" : " box-3";
-  const thumb = resolveThumb(course.thumbnail_url, `/assets/images/home-one/case-thumb${(index % 3) + 1}.jpg`);
-  const autor = `/assets/images/home-one/case-autor${index % 3 === 0 ? "" : index % 3 === 1 ? "2" : "3"}.png`;
   return (
-    <div className={`case-study-single-box${box}`}>
-      <div className="case-study-thumb">
+    <article className="workiz-course-card">
+      <Link href={`/courses/${course.slug}`} className="workiz-course-card__media">
         <img src={thumb} alt="" />
-        <div className="case-meta-top">
-          <span>{formatMoney(course.price_cents, course.currency)}</span>
+        <span className="workiz-course-card__scrim" aria-hidden="true" />
+        <span className="workiz-course-card__dept">{department}</span>
+        <span className="workiz-course-card__duration">
+          <Clock3 size={13} strokeWidth={2.2} aria-hidden="true" />
+          {duration}
+        </span>
+      </Link>
+
+      <div className="workiz-course-card__body">
+        <div className="workiz-course-card__copy">
+          <h3 className="workiz-course-card__title">
+            <Link href={`/courses/${course.slug}`}>{course.title}</Link>
+          </h3>
+          <p className="workiz-course-card__blurb">{blurb}</p>
         </div>
-      </div>
-      <div className="case-study-content">
-        <h5>{course.level || "Course"}</h5>
-        <h4>
-          <Link href={`/courses/${course.slug}`}>{course.title}</Link>
-        </h4>
-        <div className="case-rating">
-          <Stars />
-          <div className="case-rating-num">
-            <span>(4.5 Ratings)</span>
-          </div>
+
+        <div className="workiz-course-card__meta">
+          <span className="workiz-course-card__chip workiz-course-card__chip--dept">
+            {department}
+          </span>
+          <span className="workiz-course-card__chip">
+            <Play size={12} strokeWidth={2.4} aria-hidden="true" />
+            On-demand
+          </span>
         </div>
-        <div className="case-autor-box">
-          <div className="case-autor-img">
-            <img src={autor} alt="" />
+
+        <div className="workiz-course-card__footer">
+          <div className="workiz-course-card__price-wrap">
+            <span className="workiz-course-card__price-label">Price</span>
+            <strong className="workiz-course-card__price">
+              {formatMoney(course.price_cents, course.currency)}
+            </strong>
           </div>
-          <div className="case-autor-content">
-            <h3>Workiz Instructor</h3>
-            <p>Instructor</p>
-          </div>
-        </div>
-        <div className="case-course-content">
-          <div className="course-lesson">
-            <span>
-              <i className="fa-regular fa-file-lines" /> {course.duration_minutes ?? 0} min
-            </span>
-          </div>
-          <div className="course-student">
-            <span>
-              <i className="fa-regular fa-user" /> Catalog
-            </span>
-          </div>
-        </div>
-        <div className="course-btn">
-          <Link href={`/courses/${course.slug}`}>
-            View course <i className="flaticon flaticon-right-arrow" />
+          <Link href={`/courses/${course.slug}`} className="workiz-course-card__cta">
+            View
+            <ArrowUpRight size={16} strokeWidth={2.4} aria-hidden="true" />
           </Link>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

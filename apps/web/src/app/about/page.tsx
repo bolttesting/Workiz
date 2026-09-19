@@ -1,13 +1,43 @@
 import Link from "next/link";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
 
+const HIGHLIGHTS = [
+  "Based in Dubai Silicon Oasis, Dubai, UAE",
+  "Practical programs for professional teams",
+  "Flexible online learning with experienced trainers",
+];
+
 const TRAINING_AREAS = [
-  "Language Training",
-  "Financial Training",
-  "Professional Skills Development",
-  "Cultural Training",
-  "Personal and Career Development",
-  "Other Specialized Training Programs",
+  {
+    title: "Language Training",
+    blurb: "Workplace language programs teams can assign by department and role.",
+    image: "/assets/images/home-one/case-thumb1.jpg",
+  },
+  {
+    title: "Financial Training",
+    blurb: "Practical finance skills for operators, managers, and growing teams.",
+    image: "/assets/images/home-one/case-thumb2.jpg",
+  },
+  {
+    title: "Professional Skills",
+    blurb: "Leadership, communication, and delivery skills for modern workplaces.",
+    image: "/assets/images/home-one/case-thumb3.jpg",
+  },
+  {
+    title: "Cultural Training",
+    blurb: "Cross-cultural readiness for teams working across markets and regions.",
+    image: "/assets/images/home-one/blog-thumb1.png",
+  },
+  {
+    title: "Career Development",
+    blurb: "Personal growth paths admins can assign to high-potential employees.",
+    image: "/assets/images/home-one/blog-thumb2.png",
+  },
+  {
+    title: "Specialized Programs",
+    blurb: "Trade, technical, and niche training tailored to your workforce plan.",
+    image: "/assets/images/home-one/blog-thumb3.png",
+  },
 ];
 
 export default function AboutPage() {
@@ -16,51 +46,21 @@ export default function AboutPage() {
       <SiteHeader />
       <Breadcrumb title="About Us" crumb="About Us" />
 
-      {/* Theme: educate About Area style-three inner */}
-      <section className="about-area style-three inner">
+      {/* Theme: educate About Area style-three — cleaned (no floating boxes) */}
+      <section className="about-area style-three inner workiz-about-theme">
         <div className="container">
-          <div className="row">
+          <div className="row align-items-center">
             <div className="col-xl-6 col-lg-12">
-              <div className="about-thumb-wrapper">
-                <div className="about-learn-box">
-                  <div className="about-learn-icon">
-                    <img src="/assets/images/home-three/learn-icon.png" alt="" />
-                  </div>
-                  <div className="learn-title">
-                    <h5>
-                      Learn. Develop.
-                      <br />
-                      Grow.
-                    </h5>
-                  </div>
-                </div>
+              <div className="about-thumb-wrapper workiz-about-theme__media">
                 <div className="about-thumb">
-                  <img src="/assets/images/home-three/about-thumb31.png" alt="About Workiz" />
-                </div>
-                <div className="about-experience-box">
-                  <div className="about-experience-count">
-                    <h3>UAE</h3>
-                  </div>
-                  <div className="about-experience-desc">
-                    <p>
-                      Dubai Silicon
-                      <br />
-                      Oasis
-                    </p>
-                  </div>
-                </div>
-                <div className="about-shape32">
-                  <img src="/assets/images/home-three/about-shape32.png" alt="" />
+                  <img src="/assets/images/home-one/about-thumb1.png" alt="About Workiz" />
                 </div>
               </div>
             </div>
             <div className="col-xl-6 col-lg-12">
               <div className="about_content">
                 <div className="section-sub-title three">
-                  <h6>
-                    <img src="/assets/images/inner-img/sub-title2.png" alt="" />
-                    ABOUT US
-                  </h6>
+                  <h6>ABOUT US</h6>
                 </div>
                 <div className="section_title">
                   <h1>Workiz Support Solutions</h1>
@@ -75,26 +75,14 @@ export default function AboutPage() {
                 </div>
                 <div className="about-iteam-list">
                   <ul>
-                    <li>
-                      <img src="/assets/images/home-three/about-icon31.png" alt="" />
-                      Based in Dubai Silicon Oasis, Dubai, UAE
-                    </li>
-                    <li>
-                      <img src="/assets/images/home-three/about-icon31.png" alt="" />
-                      Practical programs for professional teams
-                    </li>
-                    <li>
-                      <img src="/assets/images/home-three/about-icon31.png" alt="" />
-                      Flexible online learning with experienced trainers
-                    </li>
+                    {HIGHLIGHTS.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
                   </ul>
                 </div>
                 <div className="about-iteam-phone">
                   <p>
-                    <span>
-                      <img src="/assets/images/home-three/about-call.png" alt="" />
-                    </span>
-                    hello@workiz.com
+                    <a href="mailto:hello@workiz.com">hello@workiz.com</a>
                   </p>
                 </div>
                 <div className="about-btn">
@@ -103,91 +91,95 @@ export default function AboutPage() {
                     <i className="flaticon flaticon-right-arrow" />
                   </Link>
                 </div>
-                <div className="about-education-box">
-                  <div className="education-icon">
-                    <span>
-                      <i className="bi bi-check-lg" />
-                    </span>
-                  </div>
-                  <div className="education-content">
-                    <p>
-                      Led by
-                      <br />
-                      Mr. Anirban Basu
-                      <br />
-                      General Manager
-                    </p>
-                    <span>Workiz Support Solutions - FZCO</span>
-                  </div>
-                </div>
               </div>
             </div>
-          </div>
-          <div className="about-shape31">
-            <img src="/assets/images/home-three/about-shape31.png" alt="" />
           </div>
         </div>
       </section>
 
-      {/* Mission + portfolio */}
-      <section className="course-sign-form-area" style={{ paddingTop: 40, paddingBottom: 20 }}>
-        <div className="container" style={{ maxWidth: 920 }}>
+      {/* Objective — image + copy */}
+      <section className="workiz-about-theme__objective">
+        <div className="container">
+          <div className="workiz-objective">
+            <div className="workiz-objective__media">
+              <img src="/assets/images/home-one/case-thumb2.jpg" alt="" />
+            </div>
+            <div className="workiz-objective__copy">
+              <p className="workiz-objective__eyebrow">Our objective</p>
+              <h2 className="workiz-objective__title">
+                Meaningful learning —
+                <span> accessible, relevant, useful.</span>
+              </h2>
+              <p>
+                Through flexible online learning, experienced trainers, and practical course content, Workiz Support
+                Solutions - FZCO aims to help learners build knowledge, develop new skills, and enhance their
+                professional and personal capabilities.
+              </p>
+              <p>
+                We believe learning should not be limited by location, age, or professional background.
+              </p>
+              <ul className="workiz-objective__pillars">
+                <li>
+                  <strong>Accessible</strong>
+                  <span>Online programs your teams can take anywhere</span>
+                </li>
+                <li>
+                  <strong>Relevant</strong>
+                  <span>Built for real workplace roles and departments</span>
+                </li>
+                <li>
+                  <strong>Useful</strong>
+                  <span>Skills people apply the same week they learn</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Training portfolio with images */}
+      <section className="workiz-about-theme__portfolio">
+        <div className="container">
           <div className="section-sub-title three text-center">
-            <h6>
-              <img src="/assets/images/inner-img/sub-title2.png" alt="" />
-              OUR OBJECTIVE
-            </h6>
+            <h6>TRAINING PORTFOLIO</h6>
           </div>
-          <div className="section_title text-center" style={{ marginBottom: 24 }}>
-            <h1>Meaningful learning — accessible, relevant, useful</h1>
+          <div className="section_title text-center">
+            <h1>Programs companies assign by role</h1>
           </div>
-          <p style={{ color: "#3f4a57", fontSize: 16, lineHeight: 1.75, textAlign: "center", marginBottom: 28 }}>
-            Through flexible online learning, experienced trainers, and practical course content, Workiz Support
-            Solutions - FZCO aims to help learners build knowledge, develop new skills, and enhance their professional
-            and personal capabilities. We believe learning should not be limited by location, age, or professional
-            background.
-          </p>
-          <div className="section-sub-title three text-center" style={{ marginTop: 40 }}>
-            <h6>
-              <img src="/assets/images/inner-img/sub-title2.png" alt="" />
-              TRAINING PORTFOLIO
-            </h6>
-          </div>
-          <div className="row" style={{ marginTop: 12 }}>
-            {TRAINING_AREAS.map((area) => (
-              <div key={area} className="col-md-6" style={{ marginBottom: 14 }}>
-                <div
-                  style={{
-                    border: "1px solid rgba(16,40,70,0.12)",
-                    borderRadius: 12,
-                    padding: "16px 18px",
-                    background: "#faf8f4",
-                    color: "#102846",
-                    fontWeight: 600,
-                    fontFamily: "Outfit, sans-serif",
-                  }}
-                >
-                  <img
-                    src="/assets/images/home-three/about-icon31.png"
-                    alt=""
-                    style={{ width: 22, height: 22, marginRight: 10, verticalAlign: "middle" }}
-                  />
-                  {area}
-                </div>
+          <div className="row workiz-about-theme__portfolio-grid">
+            {TRAINING_AREAS.map((area, index) => (
+              <div key={area.title} className="col-lg-4 col-md-6">
+                <article className="workiz-portfolio-card">
+                  <div className="workiz-portfolio-card__media">
+                    <img src={area.image} alt="" />
+                    <span className="workiz-portfolio-card__scrim" aria-hidden="true" />
+                    <span className="workiz-portfolio-card__index">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <div className="workiz-portfolio-card__body">
+                    <h3>{area.title}</h3>
+                    <p>{area.blurb}</p>
+                    <Link href="/courses" className="workiz-portfolio-card__link">
+                      Browse courses
+                      <i className="flaticon flaticon-right-arrow" />
+                    </Link>
+                  </div>
+                </article>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Theme: feature Area style-two — professional / company model */}
-      <section className="feature-area style-two">
+      {/* Theme: feature Area style-two — company model */}
+      <section className="feature-area style-two workiz-about-theme__features">
         <div className="container">
           <div className="row">
             <div className="col-xl-4 col-lg-6 col-md-6">
               <div className="single-feature-box box-1">
-                <div className="feature-icon">
-                  <img src="/assets/images/home-three/feature-icon21.png" alt="" />
+                <div className="workiz-about-theme__feature-media">
+                  <img src="/assets/images/home-one/case-thumb1.jpg" alt="" />
                 </div>
                 <div className="feature-content">
                   <h4 className="feature-title">Company Contracts</h4>
@@ -199,8 +191,8 @@ export default function AboutPage() {
             </div>
             <div className="col-xl-4 col-lg-6 col-md-6">
               <div className="single-feature-box box-2">
-                <div className="feature-icon">
-                  <img src="/assets/images/home-three/feature-icon22.png" alt="" />
+                <div className="workiz-about-theme__feature-media">
+                  <img src="/assets/images/home-one/case-thumb2.jpg" alt="" />
                 </div>
                 <div className="feature-content">
                   <h4 className="feature-title">Admin Assignment</h4>
@@ -212,8 +204,8 @@ export default function AboutPage() {
             </div>
             <div className="col-xl-4 col-lg-6 col-md-6">
               <div className="single-feature-box box-3">
-                <div className="feature-icon">
-                  <img src="/assets/images/home-three/feature-icon23.png" alt="" />
+                <div className="workiz-about-theme__feature-media">
+                  <img src="/assets/images/home-one/case-thumb3.jpg" alt="" />
                 </div>
                 <div className="feature-content">
                   <h4 className="feature-title">Professional Training</h4>
@@ -224,14 +216,11 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-          <div className="feature-shape21">
-            <img src="/assets/images/home-three/feature-shape21.png" alt="" />
-          </div>
         </div>
       </section>
 
-      {/* Theme: call to action style-two */}
-      <div className="call-to-action style-two">
+      {/* Theme: call to action — white */}
+      <div className="call-to-action style-two workiz-about-theme__cta">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
@@ -248,9 +237,6 @@ export default function AboutPage() {
                 </Link>
               </div>
             </div>
-          </div>
-          <div className="call-to-shape31">
-            <img src="/assets/images/home-three/call-to-arrow2.png" alt="" />
           </div>
         </div>
       </div>

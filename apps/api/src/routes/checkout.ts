@@ -39,6 +39,7 @@ checkout.post("/course", async (c) => {
       kind: "course",
       userId: auth.userId,
       courseId: course.id,
+      courseIds: course.id,
     },
   });
 
@@ -48,6 +49,74 @@ checkout.post("/course", async (c) => {
     course_id: course.id,
     amount_cents: course.price_cents,
     currency: course.currency,
+    status: "pending",
+    stripe_checkout_session_id: session.id,
+  });
+
+  return c.json({ url: session.url });
+});
+
+checkout.post("/cart", async (c) => {
+  const auth = c.get("auth");
+  const { courseIds } = z
+    .object({ courseIds: z.array(z.string().uuid()).min(1).max(20) })
+    .parse(await c.req.json());
+
+  const uniqueIds = Array.from(new Set(courseIds));
+  const { data: courses } = await adminDb
+    .from("courses")
+    .select("*")
+    .in("id", uniqueIds)
+    .eq("published", true);
+
+  if (!courses?.length) return c.json({ error: "No purchasable courses in cart" }, 404);
+
+  const { data: enrolled } = await adminDb
+    .from("enrollments")
+    .select("course_id")
+    .eq("user_id", auth.userId)
+    .in(
+      "course_id",
+      courses.map((row) => row.id),
+    );
+
+  const enrolledSet = new Set((enrolled ?? []).map((row) => row.course_id));
+  const purchasable = courses.filter((row) => !enrolledSet.has(row.id));
+  if (!purchasable.length) {
+    return c.json({ error: "You are already enrolled in these courses", learnUrl: urls().learn }, 409);
+  }
+
+  const amount = purchasable.reduce((sum, row) => sum + row.price_cents, 0);
+  const currency = purchasable[0]?.currency ?? "usd";
+  const ids = purchasable.map((row) => row.id);
+
+  const session = await stripe().checkout.sessions.create({
+    mode: "payment",
+    customer_email: auth.email,
+    line_items: purchasable.map((course) => ({
+      quantity: 1,
+      price_data: {
+        currency: course.currency,
+        unit_amount: course.price_cents,
+        product_data: { name: course.title, description: course.subtitle ?? undefined },
+      },
+    })),
+    success_url: `${urls().learn}?purchased=1`,
+    cancel_url: `${urls().web}/cart`,
+    metadata: {
+      kind: "cart",
+      userId: auth.userId,
+      courseId: ids[0] ?? "",
+      courseIds: ids.join(","),
+    },
+  });
+
+  await adminDb.from("orders").insert({
+    user_id: auth.userId,
+    kind: "course",
+    course_id: ids[0],
+    amount_cents: amount,
+    currency,
     status: "pending",
     stripe_checkout_session_id: session.id,
   });

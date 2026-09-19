@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Course } from "@workix/db/types";
-import { HomeCourseCard } from "@/components/CourseCard";
+import { CourseCard } from "@/components/CourseCard";
 
 const AUTO_MS = 4500;
 
@@ -23,7 +23,7 @@ export function HomeCoursesCarousel({ courses }: { courses: Course[] }) {
     const updateActive = () => {
       const slide = track.querySelector<HTMLElement>(".workiz-course-slide");
       if (!slide) return;
-      const step = slide.offsetWidth + 16;
+      const step = slide.offsetWidth + 24;
       const index = Math.round(track.scrollLeft / Math.max(step, 1));
       setActive(Math.max(0, Math.min(courses.length - 1, index)));
     };
@@ -41,7 +41,7 @@ export function HomeCoursesCarousel({ courses }: { courses: Course[] }) {
     const track = trackRef.current;
     if (!track) return;
     const slide = track.querySelector<HTMLElement>(".workiz-course-slide");
-    const step = slide ? slide.offsetWidth + 16 : track.clientWidth;
+    const step = slide ? slide.offsetWidth + 24 : track.clientWidth;
     const next = ((index % courses.length) + courses.length) % courses.length;
     track.scrollTo({ left: next * step, behavior: "smooth" });
     setActive(next);
@@ -82,7 +82,7 @@ export function HomeCoursesCarousel({ courses }: { courses: Course[] }) {
       <div ref={trackRef} className="workiz-courses-carousel__track">
         {courses.map((course, index) => (
           <div key={course.id} className="workiz-course-slide">
-            <HomeCourseCard course={course} index={index} />
+            <CourseCard course={course} />
           </div>
         ))}
       </div>

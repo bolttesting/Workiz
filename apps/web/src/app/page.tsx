@@ -18,7 +18,7 @@ const fallbackCourses: Course[] = [
     currency: "usd",
     published: true,
     duration_minutes: 180,
-    level: "Business",
+    level: "Leadership",
   },
   {
     id: "demo-2",
@@ -153,7 +153,7 @@ export default async function HomePage() {
                   </div>
                   <div className="hero-course-btn">
                     <Link href="/courses">
-                      VIEW COURSES <i className="flaticon flaticon-right-arrow" />
+                      FOR INDIVIDUALS <i className="flaticon flaticon-right-arrow" />
                     </Link>
                   </div>
                 </div>

@@ -43,11 +43,21 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
     .select("*")
     .maybeSingle();
 
-  if (kind === "course" && session.metadata?.userId && session.metadata.courseId) {
-    await adminDb.from("enrollments").upsert(
-      { user_id: session.metadata.userId, course_id: session.metadata.courseId, source: "purchase" },
-      { onConflict: "user_id,course_id" },
-    );
+  if (
+    (kind === "course" || kind === "cart") &&
+    session.metadata?.userId &&
+    (session.metadata.courseIds || session.metadata.courseId)
+  ) {
+    const ids = (session.metadata.courseIds || session.metadata.courseId || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+    for (const courseId of ids) {
+      await adminDb.from("enrollments").upsert(
+        { user_id: session.metadata.userId, course_id: courseId, source: "purchase" },
+        { onConflict: "user_id,course_id" },
+      );
+    }
   }
 
   if (kind === "seats" && session.metadata?.organizationId) {

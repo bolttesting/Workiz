@@ -261,8 +261,11 @@ export function SiteFooter() {
             <div className="col-lg-4 col-md-12">
               <div className="footer-subcribe-title">
                 <h3>
-                  SUBSCRIBE <span>NEWSLETTER</span>
+                  SUBSCRIBE TO OUR <span>NEWSLETTER</span>
                 </h3>
+                <p className="workiz-newsletter-lede">
+                  Get useful learning insights, training updates, and new course announcements in your inbox.
+                </p>
               </div>
             </div>
             <div className="col-lg-4 col-md-12">
@@ -384,8 +387,11 @@ export function SiteFooter() {
         <div className="container">
           <div className="workiz-footer__subscribe">
             <div className="workiz-footer__subscribe-title">
-              SUBSCRIBE <span>NEWSLETTER</span>
+              SUBSCRIBE TO OUR <span>NEWSLETTER</span>
             </div>
+            <p className="workiz-newsletter-lede">
+              Get useful learning insights, training updates, and new course announcements in your inbox.
+            </p>
             <form className="workiz-footer__subscribe-form" action="/contact">
               <span className="workiz-footer__subscribe-icon" aria-hidden="true">
                 <i className="fa-classic fa-regular fa-envelope fa-fw" />

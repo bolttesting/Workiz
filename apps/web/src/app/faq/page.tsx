@@ -7,27 +7,27 @@ import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
 const FAQS = [
   {
     q: "Who is Workiz for?",
-    a: "Workiz Support Solutions - FZCO serves professionals and organizations. Companies contract learning seats for employees; company admins create accounts and assign the right courses by department or role.",
+    a: "Workiz supports individuals, professionals, and organizations through practical online training. Companies can create employee accounts and assign courses based on departments, roles, and development needs.",
   },
   {
     q: "How do company seat contracts work?",
-    a: "Your organization contracts a number of seats — for example 100 employees across four departments. The company admin account manages those seats, creates learner logins, and assigns courses such as cultural training, professional skills, or specialized programs.",
+    a: "Companies can arrange training access for their teams based on workforce requirements. Administrators can manage employee accounts and assign relevant courses across departments.",
   },
   {
     q: "What training areas do you cover?",
-    a: "Our portfolio includes Language Training, Financial Training, Professional Skills Development, Cultural Training, Personal and Career Development, and other specialized programs.",
+    a: "Our training areas include language learning, financial awareness, professional skills, cultural adaptation, career development, and specialized programs.",
   },
   {
     q: "Where is Workiz based?",
-    a: "Workiz Support Solutions - FZCO is based in Dubai Silicon Oasis, Dubai, UAE, and delivers flexible online learning for today’s changing workplace.",
+    a: "Workiz is based in Dubai Silicon Oasis, Dubai, UAE, and provides flexible online training opportunities for learners and organizations.",
   },
   {
     q: "How do I reset my password?",
-    a: "Use Forgot password on the sign-in page. If that email has an account, we send a secure reset link.",
+    a: "Having trouble accessing your account? Follow the password recovery steps on the Sign In page to set up access again. For additional support, reach out to our team.",
   },
   {
     q: "Who do I contact for company onboarding?",
-    a: "Email hello@workiz.com or use the Contact page. We can walk through contracts, seats, admin setup, and assigning courses to your teams.",
+    a: "Our team can help you explore company training options and onboarding requirements. Visit the Contact Us page to discuss your organization’s needs.",
   },
 ];
 
@@ -37,83 +37,85 @@ export default function FaqPage() {
   return (
     <>
       <SiteHeader />
-      <Breadcrumb title="Faq" crumb="Faq" />
+      <Breadcrumb title="FAQ" crumb="FAQ" />
 
-      <div className="faq-area style-one workiz-faq">
+      <section className="workiz-faq">
         <div className="container">
-          <div className="row align-items-center">
-            <div className="col-xl-6 col-lg-12">
-              <div className="workiz-faq__media">
-                <img
-                  src="/assets/images/home-one/about-thumb1.png"
-                  alt="Workiz support and learning"
-                />
-              </div>
-            </div>
-            <div className="col-xl-6 col-lg-12">
-              <div className="section-sub-title three">
-                <h6>frequently asked questions</h6>
-              </div>
-              <div className="section_title">
-                <h1>What you want to know about</h1>
-                <h1>Workiz Platform</h1>
-              </div>
+          <header className="workiz-faq__head">
+            <p className="workiz-faq__eyebrow">FREQUENTLY ASKED QUESTIONS</p>
+            <h1 className="workiz-faq__title">Frequently Asked Queries Regarding Workiz</h1>
+            <p className="workiz-faq__lede">
+              Find clear answers about who Workiz is for, how company training works, and how to get started with our
+              online programs.
+            </p>
+          </header>
 
-              <div className="tab_container">
-                <div id="tab1" className="tab_content">
-                  <ul className="faq-accordion">
-                    {FAQS.map((item, i) => {
-                      const active = open === i;
-                      return (
-                        <li key={item.q}>
-                          <a
-                            href="#faq"
-                            className={active ? "active" : undefined}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setOpen(active ? -1 : i);
-                            }}
-                          >
-                            <span />
-                            {item.q}
-                          </a>
-                          <p style={{ display: active ? "block" : "none" }}>
-                            <strong>Answer :</strong> {item.a}
-                          </p>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+          <div className="workiz-faq__layout">
+            <aside className="workiz-faq__aside">
+              <div className="workiz-faq__aside-media">
+                <img src="/assets/images/home-one/faq-intro.png" alt="Workiz learner ready to help with questions" />
               </div>
+            </aside>
 
-              <div className="faq-button">
-                <Link href="/contact">
-                  Contact us
-                  <i className="flaticon flaticon-right-arrow" />
-                </Link>
-              </div>
+            <div className="workiz-faq__list" role="list">
+              {FAQS.map((item, i) => {
+                const active = open === i;
+                const panelId = `faq-panel-${i}`;
+                const buttonId = `faq-button-${i}`;
+                return (
+                  <article
+                    key={item.q}
+                    className={`workiz-faq__item${active ? " is-open" : ""}`}
+                    role="listitem"
+                  >
+                    <button
+                      type="button"
+                      id={buttonId}
+                      className="workiz-faq__question"
+                      aria-expanded={active}
+                      aria-controls={panelId}
+                      onClick={() => setOpen(active ? -1 : i)}
+                    >
+                      <span className="workiz-faq__index">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="workiz-faq__question-text">{item.q}</span>
+                      <span className="workiz-faq__toggle" aria-hidden="true" />
+                    </button>
+                    <div
+                      id={panelId}
+                      role="region"
+                      aria-labelledby={buttonId}
+                      className="workiz-faq__answer"
+                      hidden={!active}
+                    >
+                      <p>{item.a}</p>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="call-to-action style-two workiz-about-theme__cta">
+      <div className="workiz-about-theme__cta">
         <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              <div className="call-to-title">
-                <h3>Your learning journey begins here</h3>
-                <h3>Explore all programs today</h3>
-              </div>
+          <div className="workiz-faq-cta">
+            <div className="workiz-faq-cta__main">
+              <p className="workiz-faq-cta__eyebrow">Need more help?</p>
+              <h3>Still have questions?</h3>
+              <p className="workiz-faq-cta__text">
+                Our team can help with company onboarding, course access, and learning support.
+              </p>
             </div>
-            <div className="col-lg-6">
-              <div className="call-to-btn">
-                <Link href="/courses">
-                  View courses
-                  <i className="flaticon flaticon-right-arrow" />
-                </Link>
-              </div>
+            <div className="workiz-faq-cta__actions">
+              <Link href="/contact" className="workiz-about-cta workiz-about-cta--light">
+                Contact Us
+                <i className="flaticon flaticon-right-arrow" />
+              </Link>
+              <Link href="/courses" className="workiz-faq-cta__secondary">
+                View Courses
+                <i className="flaticon flaticon-right-arrow" />
+              </Link>
             </div>
           </div>
         </div>

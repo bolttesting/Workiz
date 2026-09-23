@@ -5,29 +5,58 @@ export default function PrivacyPolicyPage() {
     <LegalPage
       title="Privacy Policy"
       crumb="Privacy Policy"
-      intro="This Privacy Policy explains how WORKIZ collects, uses, and protects personal information when you use our learning platform, websites, and related services."
+      intro="Workiz values the privacy of its learners, company administrators, and website visitors. This Privacy Policy explains how we handle information collected through our website, learning platform, and related services."
       sections={[
         {
-          heading: "Information we collect",
-          body: "We may collect account details (such as name, email, department, and company), learning activity (course progress, quiz results, certificates), billing information for company seat contracts, and technical data such as device, browser, and usage logs needed to operate and secure the platform.",
+          heading: "Information We Collect",
+          body: [
+            "We may collect information you provide when creating an account, joining a company training program, or contacting our team. This may include your name, email address, company details, and account information.",
+            "We may also collect learning activity, course progress, and technical information needed to operate and maintain the platform.",
+          ],
         },
         {
-          heading: "How we use information",
-          body: "We use personal information to deliver assigned courses, support company admin account management, process seat contracts, issue certificates, improve product performance, communicate service updates, and meet legal or compliance obligations.",
+          heading: "How We Use Information",
+          body: "The information we collect helps us to:",
+          bullets: [
+            "Create and manage user accounts.",
+            "Provide access to courses and assigned training.",
+            "Support company administrators with employee learning.",
+            "Process company seat arrangements and related services.",
+            "Monitor platform performance and improve user experience.",
+            "Respond to enquiries and provide account support.",
+            "Meet applicable legal and security requirements.",
+          ],
         },
         {
-          heading: "Sharing",
-          body: "We do not sell personal data. We may share information with trusted processors (for example payment, hosting, and email providers) under contract, with your company administrators when you learn under a company seat, or when required by law.",
+          heading: "Sharing Information",
+          body: [
+            "Workiz does not sell personal information.",
+            "We may share relevant information with service providers that support platform operations, such as hosting, payment processing, and email services. Where learning is provided through a company account, authorised company administrators may access relevant employee account and learning information.",
+            "We may also disclose information when required by law or when necessary to protect the security and rights of our users and platform.",
+          ],
         },
         {
-          heading: "Data retention & security",
-          body: "We retain information only as long as needed for the purposes described above or as required by law. We apply administrative and technical safeguards designed to protect account and learning data against unauthorized access.",
+          heading: "Data Retention & Security",
+          body: [
+            "We retain personal information for as long as it is needed to provide our services, fulfil legitimate business requirements, or meet applicable legal obligations.",
+            "We use reasonable administrative and technical measures to help protect personal and learning information from unauthorised access, misuse, or disclosure. However, no online system can guarantee complete security.",
+          ],
         },
         {
-          heading: "Your choices",
-          body: "You may request access, correction, or deletion of personal data where applicable by contacting hello@workiz.com. You can also update profile details from your account settings when signed in.",
+          heading: "Your Choices",
+          body: [
+            "Depending on applicable law, you may have the right to request access to, correction of, or deletion of your personal information.",
+            "You can also update certain account details through your profile settings. For privacy-related requests or questions, please contact our team.",
+          ],
         },
       ]}
+      contact={{
+        email: "hello@workiz.com",
+        phone: "+971 4 320 8888",
+        address: "Workiz Support Solutions - FZCO, Dubai Silicon Oasis, Dubai, United Arab Emirates",
+      }}
+      contactIntro="For questions about this Privacy Policy or how your information is handled, contact us at:"
+      contactHeading="Contact Us"
     />
   );
 }

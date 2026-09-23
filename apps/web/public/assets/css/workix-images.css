@@ -15,6 +15,40 @@ section.hero_area.style-one .hero-thumb img {
   margin-left: auto;
 }
 
+/* New Workiz hero portrait — full composed asset */
+section.hero_area.style-one .workiz-hero-media {
+  overflow: visible;
+}
+
+section.hero_area.style-one .workiz-hero-media .hero-thumb {
+  overflow: visible;
+  background: transparent;
+}
+
+section.hero_area.style-one .workiz-hero-media .hero-thumb img {
+  width: min(100%, 560px);
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center center;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+section.hero_area.style-one .workiz-hero-media .hero-shape1,
+section.hero_area.style-one .workiz-hero-media .hero-arrow-shape,
+section.hero_area.style-one .workiz-hero-media .hero-dot-shape,
+section.hero_area.style-one .workiz-hero-media .hero-shape3,
+section.hero_area.style-one .workiz-hero-media .hero-autor-box {
+  z-index: 3;
+  pointer-events: none;
+}
+
+section.hero_area.style-one .workiz-hero-media .hero-autor-box {
+  pointer-events: auto;
+}
+
 .style-one .about-thumb {
   overflow: visible;
 }
@@ -27,6 +61,55 @@ section.hero_area.style-one .hero-thumb img {
   object-fit: contain;
   object-position: center bottom;
   display: block;
+}
+
+/* Home about portrait — fill column, never spill into copy */
+.style-one .workiz-about-home-media {
+  margin-left: 0 !important;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.style-one .workiz-about-home-media .about-thumb {
+  overflow: hidden;
+  background: transparent;
+  max-width: 100%;
+  left: 0 !important;
+  position: relative;
+}
+
+.style-one .workiz-about-home-media .about-thumb img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center center;
+  background: transparent;
+  display: block;
+}
+
+section.about-area.style-one .workiz-about-home-copy {
+  position: relative;
+  z-index: 2;
+  padding-left: 8px;
+}
+
+@media (min-width: 1200px) {
+  section.about-area.style-one .row {
+    align-items: center;
+    --bs-gutter-x: 2.5rem;
+  }
+
+  section.about-area.style-one .workiz-about-home-copy {
+    padding-left: 20px;
+  }
+}
+
+.workiz-about-theme__media .about-thumb img[src*="about-workiz"] {
+  object-fit: contain !important;
+  object-position: center center;
+  background: transparent;
 }
 
 .style-one .case-study-thumb {
@@ -74,6 +157,16 @@ section.hero_area.style-one .hero-thumb img {
   display: block;
   border-radius: 0;
   background: transparent;
+}
+
+.style-one .workiz-choose-media > img {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center;
+  margin-left: auto;
+  margin-right: 0;
 }
 
 .style-one .choose-thumb .choose-shape-star img,
@@ -186,6 +279,13 @@ section.hero_area.style-one .hero-thumb img {
   display: block;
   margin: 0 auto;
   background: transparent;
+}
+
+.style-one .workiz-testi-media .testimonial-thumb img {
+  width: min(100%, 520px);
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center;
 }
 
 .style-inner .course-details-thumb {

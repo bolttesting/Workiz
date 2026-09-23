@@ -9,81 +9,44 @@ import type { Course } from "@workix/db/types";
 const fallbackCourses: Course[] = [
   {
     id: "demo-1",
-    slug: "leadership-foundations",
-    title: "Leadership Foundations",
-    subtitle: "Lead teams with clarity and calm.",
+    slug: "professional-skills",
+    title: "Professional Skills for Modern Workplaces",
+    subtitle:
+      "Build practical workplace skills through focused lessons on communication, collaboration, and professional effectiveness.",
     description: null,
     thumbnail_url: "/assets/images/home-one/case-thumb1.jpg",
-    price_cents: 7900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 180,
-    level: "Leadership",
-  },
-  {
-    id: "demo-2",
-    slug: "product-thinking",
-    title: "Product Thinking for Operators",
-    subtitle: "Ship work that customers actually want.",
-    description: null,
-    thumbnail_url: "/assets/images/home-one/case-thumb2.jpg",
-    price_cents: 9900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 240,
-    level: "Product",
-  },
-  {
-    id: "demo-3",
-    slug: "workplace-communication",
-    title: "Workplace Communication",
-    subtitle: "Write and speak so people act.",
-    description: null,
-    thumbnail_url: "/assets/images/home-one/case-thumb3.jpg",
     price_cents: 5900,
     currency: "usd",
     published: true,
-    duration_minutes: 120,
+    duration_minutes: 1680,
+    level: "Skills",
+  },
+  {
+    id: "demo-2",
+    slug: "workplace-communication",
+    title: "Workplace Communication",
+    subtitle: "Develop clearer communication habits and strengthen your ability to work effectively with others.",
+    description: null,
+    thumbnail_url: "/assets/images/home-one/case-thumb3.jpg",
+    price_cents: 4900,
+    currency: "usd",
+    published: true,
+    duration_minutes: 1260,
     level: "Communication",
   },
   {
-    id: "demo-4",
+    id: "demo-3",
     slug: "cultural-awareness",
     title: "Cultural Awareness at Work",
-    subtitle: "Build inclusive teams across cultures.",
+    subtitle:
+      "Explore cultural awareness, everyday workplace expectations, and the value of respectful communication.",
     description: null,
     thumbnail_url: "/assets/images/home-one/case-thumb1.jpg",
-    price_cents: 6900,
+    price_cents: 3900,
     currency: "usd",
     published: true,
-    duration_minutes: 150,
+    duration_minutes: 840,
     level: "Culture",
-  },
-  {
-    id: "demo-5",
-    slug: "financial-literacy",
-    title: "Financial Literacy Essentials",
-    subtitle: "Practical money skills for professionals.",
-    description: null,
-    thumbnail_url: "/assets/images/home-one/case-thumb2.jpg",
-    price_cents: 8900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 200,
-    level: "Finance",
-  },
-  {
-    id: "demo-6",
-    slug: "professional-skills",
-    title: "Professional Skills Development",
-    subtitle: "Habits that raise workplace performance.",
-    description: null,
-    thumbnail_url: "/assets/images/home-one/case-thumb3.jpg",
-    price_cents: 7500,
-    currency: "usd",
-    published: true,
-    duration_minutes: 165,
-    level: "Skills",
   },
 ];
 
@@ -137,65 +100,45 @@ export default async function HomePage() {
             <div className="col-lg-6">
               <div className="hero_content">
                 <h5>
-                  <i className="bi bi-check2" /> 100% Satisfaction Guarantee
+                  <i className="bi bi-check2" /> ONLINE LEARNING PLATFORM
                 </h5>
                 <h1>Professional Training</h1>
                 <h1>for Modern Teams</h1>
                 <p>
-                  <strong>Workiz Support Solutions - FZCO</strong> delivers practical online learning for organizations.
-                  Contract seats, let your company admin create employee accounts, and assign courses by department.
+                  Give your team access to practical online training that builds useful skills, strengthens workplace
+                  performance, and supports continuous development.
                 </p>
                 <div className="hero-button">
                   <div className="hero-btn">
-                    <Link href="/pricing">
-                      FOR COMPANIES <i className="flaticon flaticon-right-arrow" />
+                    <Link href="/courses">
+                      Explore Courses <i className="flaticon flaticon-right-arrow" />
                     </Link>
                   </div>
                   <div className="hero-course-btn">
-                    <Link href="/courses">
-                      FOR INDIVIDUALS <i className="flaticon flaticon-right-arrow" />
+                    <Link href="/pricing">
+                      For Companies <i className="flaticon flaticon-right-arrow" />
                     </Link>
                   </div>
                 </div>
+                <p className="hero-tagline">Flexible learning. Practical knowledge. Skills you can put to work.</p>
               </div>
-              <div className="hero-rating-box">
-                <div className="hero-rating-icon">
-                  <img src="/assets/images/home-one/star-icon.png" alt="star" />
-                  <span>1k+</span>
+              <div className="hero-rating-box workiz-hero-stats">
+                <div className="workiz-hero-stat">
+                  <strong className="counter">1200</strong>
+                  <span>+</span>
+                  <p>Learners</p>
                 </div>
-                <div className="hero-rating-item-box">
-                  <div className="hero-star-icon">
-                    <ul>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="hero-rating-num">
-                    <span>(4.7 Ratings)</span>
-                  </div>
-                  <div className="hero-rating-des">
-                    <p>Students learn daily with Workiz platform</p>
-                  </div>
+                <div className="workiz-hero-stat">
+                  <strong className="counter">97</strong>
+                  <span>%</span>
+                  <p>Satisfaction</p>
                 </div>
               </div>
             </div>
             <div className="col-lg-6">
-              <div className="hero-thumb-wrapper">
+              <div className="hero-thumb-wrapper workiz-hero-media">
                 <div className="hero-thumb">
-                  <img src="/assets/images/home-one/hero-thumb1.png" alt="Learner" />
+                  <img src="/assets/images/home-one/hero-workiz.png" alt="Workiz professional training" />
                 </div>
                 <div className="hero-shape1 rotateme">
                   <img src="/assets/images/home-one/hero-shape1.png" alt="" />
@@ -214,9 +157,9 @@ export default async function HomePage() {
                     <img src="/assets/images/home-one/hero-autor.png" alt="" />
                   </div>
                   <div className="hero-autor-content">
-                    <h3 className="counter">130</h3>
+                    <h3 className="counter">1200</h3>
                     <span>+</span>
-                    <p>Expert Instructor</p>
+                    <p>Learners</p>
                   </div>
                 </div>
               </div>
@@ -225,18 +168,84 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <div className="marquee-section workiz-trust-strip">
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="marquee">
+                <div className="marquee-block">
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    learning innovation
+                  </h3>
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    worldwide learners
+                  </h3>
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    practical development
+                  </h3>
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    continuous growth
+                  </h3>
+                </div>
+                <div className="marquee-block">
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    learning innovation
+                  </h3>
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    worldwide learners
+                  </h3>
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    practical development
+                  </h3>
+                  <h3>
+                    <span>
+                      <img src="/assets/images/home-one/marquee-icon.png" alt="" />
+                    </span>
+                    continuous growth
+                  </h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <section className="feature-area style-one">
         <div className="container">
           <div className="row align-items-center section-title-space" data-reveal>
             <div className="col-lg-6">
               <div className="section-sub-title">
-                <h6>core features</h6>
+                <h6>FEATURES</h6>
               </div>
             </div>
             <div className="col-lg-6">
               <div className="section_title">
                 <h1>Interactive Online Learning</h1>
-                <h1>Key Features & Benefits</h1>
+                <p className="workiz-section-lede">
+                  Learn through practical content, flexible access, and a structured training experience built around
+                  your goals.
+                </p>
               </div>
             </div>
           </div>
@@ -247,8 +256,10 @@ export default async function HomePage() {
                   <img src="/assets/images/home-one/feature-icon1.png" alt="" />
                 </div>
                 <div className="feature-content">
-                  <h4 className="feature-title">Learning Experiences</h4>
-                  <p className="feature-desc">Recorded lessons, quizzes, and certificates built for busy professionals.</p>
+                  <h4 className="feature-title">Learn at Your Own Pace</h4>
+                  <p className="feature-desc">
+                    Access course materials online and learn at a pace that fits your schedule.
+                  </p>
                 </div>
                 <div className="educate-hover-box hover-bx" />
                 <div className="educate-hover-box hover-bx2" />
@@ -262,8 +273,10 @@ export default async function HomePage() {
                   <img src="/assets/images/home-one/feature-icon2.png" alt="" />
                 </div>
                 <div className="feature-content">
-                  <h4 className="feature-title">Professional Instructor</h4>
-                  <p className="feature-desc">Experienced trainers delivering practical programs for workplace teams.</p>
+                  <h4 className="feature-title">Practical Skills for Real Work</h4>
+                  <p className="feature-desc">
+                    Build useful knowledge through training designed around workplace needs and everyday challenges.
+                  </p>
                 </div>
                 <div className="educate-hover-box hover-bx" />
                 <div className="educate-hover-box hover-bx2" />
@@ -277,9 +290,9 @@ export default async function HomePage() {
                   <img src="/assets/images/home-one/feature-icon3.png" alt="" />
                 </div>
                 <div className="feature-content">
-                  <h4 className="feature-title">Company Seat Licenses</h4>
+                  <h4 className="feature-title">Training That Supports Growth</h4>
                   <p className="feature-desc">
-                    Contract seats for your workforce. Admins create accounts and assign the right courses.
+                    Explore learning opportunities that help you strengthen existing skills and develop new ones.
                   </p>
                 </div>
                 <div className="educate-hover-box hover-bx" />
@@ -302,34 +315,34 @@ export default async function HomePage() {
         <div className="container">
           <div className="row">
             <div className="col-xl-6 col-lg-12" data-reveal>
-              <div className="about-thumb-wrapper">
+              <div className="about-thumb-wrapper workiz-about-home-media">
                 <div className="about-thumb">
-                  <img src="/assets/images/home-one/about-thumb1.png" alt="" />
-                </div>
-                <div className="about-thumb-shape1 bounce-animate-3">
-                  <img src="/assets/images/home-one/about-shape1.png" alt="" />
-                </div>
-                <div className="about-thumb-shape2 rotateme">
-                  <img src="/assets/images/home-one/about-shape2.png" alt="" />
-                </div>
-                <div className="about-thumb-shape3">
-                  <img src="/assets/images/home-one/about-shape3.png" alt="" />
+                  <img src="/assets/images/home-one/about-workiz.png" alt="Workiz learners" />
                 </div>
               </div>
             </div>
             <div className="col-xl-6 col-lg-12" data-reveal style={{ ["--reveal-delay" as string]: "100ms" }}>
-              <div className="about_content">
+              <div className="about_content workiz-about-home-copy">
                 <div className="section-sub-title">
                   <h6>ABOUT US</h6>
                 </div>
                 <div className="section_title">
-                  <h1>Who We Are – Workiz Support</h1>
-                  <h1>Solutions FZCO, Dubai</h1>
+                  <h1>Meet Workiz</h1>
+                  <h1>Training &amp; Development, Dubai</h1>
                 </div>
                 <div className="section-title-desc">
                   <p>
-                    A Dubai Silicon Oasis training company delivering practical online learning for professionals.
-                    Companies contract seats; admins create employee accounts and assign courses by department.
+                    Workiz is a Dubai-based training and development company focused on making practical learning
+                    accessible to individuals and professionals.
+                  </p>
+                  <p>
+                    Our programs cover professional skills, language learning, financial awareness, cultural
+                    understanding, and personal development. We aim to help learners gain useful knowledge and prepare
+                    for the challenges of work and everyday life.
+                  </p>
+                  <p>
+                    Whether you want to strengthen your skills, prepare for a new opportunity, or continue learning,
+                    Workiz brings relevant training into one accessible online platform.
                   </p>
                 </div>
                 <div className="row">
@@ -352,33 +365,29 @@ export default async function HomePage() {
                   <div className="col-lg-6">
                     <div className="about-item-box">
                       <div className="about-item-count">
-                        <h3 className="counter">30</h3>
+                        <h3 className="counter">1200</h3>
                         <span>+</span>
                       </div>
                       <div className="about-item-desc">
-                        <p>Expert and Professional all Instructor</p>
+                        <p>Learners</p>
                       </div>
                     </div>
                   </div>
                   <div className="col-lg-6">
                     <div className="about-item-box two">
                       <div className="about-iteam-count">
-                        <h3 className="counter">6</h3>
-                        <span>k+</span>
+                        <h3 className="counter">1000</h3>
+                        <span>+</span>
                       </div>
                       <div className="about-item-desc last">
-                        <p>
-                          Enrolled Students all
-                          <br />
-                          Over the World
-                        </p>
+                        <p>Courses</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="about-btn">
                   <Link href="/about">
-                    more about <i className="flaticon flaticon-right-arrow" />
+                    Read More <i className="flaticon flaticon-right-arrow" />
                   </Link>
                 </div>
               </div>
@@ -412,13 +421,13 @@ export default async function HomePage() {
                     <span>
                       <img src="/assets/images/home-one/marquee-icon.png" alt="" />
                     </span>
-                    unique knowledge
+                    practical development
                   </h3>
                   <h3>
                     <span>
                       <img src="/assets/images/home-one/marquee-icon.png" alt="" />
                     </span>
-                    dream today
+                    unique knowledge
                   </h3>
                 </div>
                 <div className="marquee-block">
@@ -438,13 +447,13 @@ export default async function HomePage() {
                     <span>
                       <img src="/assets/images/home-one/marquee-icon.png" alt="" />
                     </span>
-                    unique knowledge
+                    practical development
                   </h3>
                   <h3>
                     <span>
                       <img src="/assets/images/home-one/marquee-icon.png" alt="" />
                     </span>
-                    dream today
+                    unique knowledge
                   </h3>
                 </div>
               </div>
@@ -463,8 +472,12 @@ export default async function HomePage() {
             </div>
             <div className="col-lg-6">
               <div className="section_title">
-                <h1>Our Courses – Comprehensive</h1>
-                <h1>Available all programs</h1>
+                <h1>Comprehensive Learning</h1>
+                <h1>for Every Stage</h1>
+                <p className="workiz-section-lede">
+                  Explore courses designed to build practical skills, improve professional knowledge, and support
+                  continuous learning.
+                </p>
               </div>
             </div>
           </div>
@@ -473,7 +486,7 @@ export default async function HomePage() {
           <HomeCoursesCarousel courses={courses} />
           <div className="text-center mt-4 mb-2">
             <Link href="/courses" className="btn btn_primary">
-              View all courses <i className="flaticon flaticon-right-arrow" />
+              View All Courses <i className="flaticon flaticon-right-arrow" />
             </Link>
           </div>
         </div>
@@ -485,56 +498,56 @@ export default async function HomePage() {
             <div className="col-lg-7" data-reveal>
               <div className="choose-content">
                 <div className="section-sub-title">
-                  <h6>why choose us?</h6>
+                  <h6>WHY CHOOSE US</h6>
                 </div>
                 <div className="section_title">
-                  <h1>Innovative and effective</h1>
-                  <h1>learning approaches</h1>
+                  <h1>Innovative and Effective</h1>
+                  <h1>Learning Approaches</h1>
                 </div>
                 <div className="section-title-desc">
                   <p>
-                    Contract seats for your workforce. Company admins create learner accounts, assign courses by
-                    department, and track progress — language, cultural, financial, and specialized professional
-                    programs.
+                    Training should lead to something useful. Understand new ideas, practise your skills, and put your
+                    learning into action.
+                  </p>
+                  <p>
+                    At Workiz, we focus on practical online learning that supports professional development, workplace
+                    effectiveness, and everyday confidence.
                   </p>
                 </div>
                 <div className="choose-item-menu">
                   <ul>
                     <li>
-                      <img src="/assets/images/home-one/choose-icon1.png" alt="" /> Admin Course Assignment
+                      <img src="/assets/images/home-one/choose-icon1.png" alt="" /> Practical Learning Experience
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/choose-icon2.png" alt="" /> Department Progress Tracking
+                      <img src="/assets/images/home-one/choose-icon2.png" alt="" /> Professional Skills Development
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/choose-icon3.png" alt="" /> Recorded Video Lessons
+                      <img src="/assets/images/home-one/choose-icon3.png" alt="" /> Flexible Online Access
                     </li>
                     <li>
-                      <img src="/assets/images/home-one/choose-icon4.png" alt="" /> Quiz and Certificates
+                      <img src="/assets/images/home-one/choose-icon4.png" alt="" /> Learning for Different Goals
                     </li>
                   </ul>
                 </div>
-                <p className="choose-suport-des">
-                  <img src="/assets/images/home-one/top-star.png" alt="" /> 24/7 Hrs Ready to our support team
-                </p>
                 <div className="choose-btn">
-                  <Link href="/pricing">
-                    FOR COMPANIES <i className="flaticon flaticon-right-arrow" />
+                  <Link href="/courses">
+                    Explore Learning <i className="flaticon flaticon-right-arrow" />
                   </Link>
                 </div>
               </div>
             </div>
             <div className="col-lg-5" data-reveal style={{ ["--reveal-delay" as string]: "120ms" }}>
-              <div className="choose-thumb">
-                <img src="/assets/images/home-one/choose-thumb1.png" alt="" />
+              <div className="choose-thumb workiz-choose-media">
+                <img src="/assets/images/home-one/why-choose-workiz.png" alt="Why choose Workiz" />
                 <div className="choose-skill-box">
                   <div className="choose-skill-icon">
                     <img src="/assets/images/home-one/choose-rat-icon.png" alt="" />
                   </div>
                   <div className="choose-skill-content">
-                    <h3 className="counter">26</h3>
+                    <h3 className="counter">500</h3>
                     <span>+</span>
-                    <p>Years of Experiences</p>
+                    <p>Practical learning opportunities</p>
                   </div>
                 </div>
                 <div className="choose-shape-dot">
@@ -576,42 +589,20 @@ export default async function HomePage() {
             <div className="col-lg-6">
               <div className="single-course-offer-box">
                 <div className="course-offer-content">
-                  <h6>Designing</h6>
-                  <h4>Creative Graphic Design</h4>
-                  <h4>With Adobe Suite</h4>
-                  <div className="offer-rating">
-                    <ul>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-classic fa-solid fa-star-half-stroke fa-fw" />
-                      </li>
-                    </ul>
-                    <div className="offer-rating-rate">
-                      <span>(4.5/3 Ratings)</span>
-                    </div>
-                    <div className="course-offer-price">
-                      <span>Company training</span>
-                    </div>
-                  </div>
+                  <h6>COMPANY TRAINING</h6>
+                  <h4>Professional &amp; Workplace Skills</h4>
+                  <p className="workiz-offer-lede">
+                    Build essential workplace skills through training in communication, teamwork, professional
+                    behaviour, and effective collaboration.
+                  </p>
                   <div className="course-offer-btn">
                     <Link href="/courses">
-                      View courses <i className="flaticon flaticon-right-arrow" />
+                      Explore Courses <i className="flaticon flaticon-right-arrow" />
                     </Link>
                   </div>
                 </div>
-                <div className="offer-thumb">
-                  <img src="/assets/images/home-one/offer-thumb.png" alt="" />
+                <div className="offer-thumb workiz-offer-thumb">
+                  <img src="/assets/images/home-one/company-training-workiz.png" alt="Company training" />
                 </div>
               </div>
             </div>
@@ -624,13 +615,17 @@ export default async function HomePage() {
           <div className="row section-title-space" data-reveal>
             <div className="col-lg-6">
               <div className="section-sub-title">
-                <h6>INSTRUCTOR</h6>
+                <h6>INSTRUCTORS</h6>
               </div>
             </div>
             <div className="col-lg-6">
               <div className="section_title">
-                <h1>Introducing the Educators and</h1>
-                <h1>Professional Instructor</h1>
+                <h1>Introducing the Educators &amp;</h1>
+                <h1>Professional Instructors</h1>
+                <p className="workiz-section-lede">
+                  Meet the people behind our learning experience. Workiz brings together instructors who help learners
+                  develop knowledge and practical skills through focused training.
+                </p>
               </div>
             </div>
           </div>
@@ -698,90 +693,90 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+          <div className="text-center mt-4" data-reveal>
+            <Link href="/instructors" className="btn btn_primary">
+              View All Instructors <i className="flaticon flaticon-right-arrow" />
+            </Link>
+          </div>
           <div className="team-shape1">
             <img src="/assets/images/home-one/team-shape1.png" alt="" />
           </div>
         </div>
       </div>
 
-      <div className="testimonial-area style-one">
+      <section className="workiz-testimonials">
         <div className="container">
-          <div className="row section-title-space align-items-center" data-reveal>
-            <div className="col-lg-6">
-              <div className="section-sub-title">
-                <h6>TESTIMONIALS</h6>
+          <header className="workiz-testimonials__head" data-reveal>
+            <p className="workiz-testimonials__eyebrow">TESTIMONIALS</p>
+            <h2 className="workiz-testimonials__title">Real Experiences from Our Dedicated Learners</h2>
+            <p className="workiz-testimonials__lede">
+              Learning is personal. We value feedback from people who take our courses and use what they learn in their
+              professional and everyday lives.
+            </p>
+          </header>
+
+          <div className="workiz-testimonials__layout">
+            <div className="workiz-testimonials__media" data-reveal>
+              <img src="/assets/images/home-one/testimonial-workiz.png" alt="Workiz learner testimonials" />
+              <div className="testi-dot-shape">
+                <img src="/assets/images/home-one/testi-dot.png" alt="" />
+              </div>
+              <div className="testi-map-shape">
+                <img src="/assets/images/home-one/testi-map.png" alt="" />
               </div>
             </div>
-            <div className="col-lg-6">
-              <div className="section_title">
-                <h1>Real Experiences From Our</h1>
-                <h1>Dedicated Learners</h1>
-              </div>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-lg-6" data-reveal>
-              <div className="testi-thumb-wrapper">
-                <div className="testimonial-thumb">
-                  <img src="/assets/images/home-one/testi-thumb.png" alt="" />
+
+            <div className="workiz-testimonials__quotes" data-reveal style={{ ["--reveal-delay" as string]: "100ms" }}>
+              <article className="workiz-quote-card workiz-quote-card--featured">
+                <div className="workiz-quote-card__mark" aria-hidden="true">
+                  “
                 </div>
-                <div className="testi-dot-shape">
-                  <img src="/assets/images/home-one/testi-dot.png" alt="" />
-                </div>
-                <div className="testi-map-shape">
-                  <img src="/assets/images/home-one/testi-map.png" alt="" />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6" data-reveal style={{ ["--reveal-delay" as string]: "100ms" }}>
-              <div className="testi-box">
-                <div className="single-testi-box">
-                  <div className="testi-quote">
-                    <img src="/assets/images/home-one/testi-quote.png" alt="" />
+                <h3>Practical and Useful</h3>
+                <p>
+                  The courses were clear, flexible, and easy to apply at work. I gained confidence in communication and
+                  cultural awareness that I use every day.
+                </p>
+                <div className="workiz-quote-card__meta">
+                  <div className="workiz-quote-card__stars" aria-label="4.5 out of 5 stars">
+                    <i className="fa-solid fa-star" />
+                    <i className="fa-solid fa-star" />
+                    <i className="fa-solid fa-star" />
+                    <i className="fa-solid fa-star" />
+                    <i className="fa-classic fa-solid fa-star-half-stroke fa-fw" />
                   </div>
-                  <div className="testi-title">
-                    <h3>Impresive Learning!</h3>
-                  </div>
-                  <div className="testi-desc">
-                    <p>
-                      Our company admin created accounts for every department and assigned cultural and skills courses
-                      in minutes. Progress and certificates stay visible in one place.
-                    </p>
-                  </div>
-                  <div className="testi-ratting">
-                    <ul>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-star" />
-                      </li>
-                      <li>
-                        <i className="fa-classic fa-solid fa-star-half-stroke fa-fw" />
-                      </li>
-                    </ul>
+                  <div>
+                    <strong>Sonia Sara</strong>
+                    <span>Learner</span>
                   </div>
                 </div>
-                <div className="testi-autor-box">
-                  <div className="testi-autor">
-                    <img src="/assets/images/home-one/testi-autor1.png" alt="" />
+              </article>
+
+              <div className="workiz-testimonials__grid">
+                <article className="workiz-quote-card">
+                  <p>
+                    Flexible online access made it easy to learn around my schedule while still building skills I could
+                    use at work right away.
+                  </p>
+                  <div className="workiz-quote-card__meta">
+                    <strong>Amira K.</strong>
+                    <span>Professional Skills</span>
                   </div>
-                  <div className="testi-autor-content">
-                    <h5 className="autor-title">Sonia Sara</h5>
-                    <p className="autor-desi">Students</p>
+                </article>
+                <article className="workiz-quote-card">
+                  <p>
+                    The cultural awareness training helped our team communicate with more confidence across different
+                    workplaces.
+                  </p>
+                  <div className="workiz-quote-card__meta">
+                    <strong>James R.</strong>
+                    <span>Company Learner</span>
                   </div>
-                </div>
+                </article>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="blog-area style-one">
         <div className="container">
@@ -793,8 +788,12 @@ export default async function HomePage() {
             </div>
             <div className="col-lg-6">
               <div className="section_title">
-                <h1>Read the Latest Insights and</h1>
-                <h1>Updates from WORKIZ</h1>
+                <h1>Read the Latest Insights &amp;</h1>
+                <h1>Updates from Workiz</h1>
+                <p className="workiz-section-lede">
+                  Explore useful insights on learning, professional development, workplace skills, and adapting to a
+                  changing world.
+                </p>
               </div>
             </div>
           </div>

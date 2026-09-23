@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Eye, EyeOff, Home } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, EyeOff } from "lucide-react";
 
 // --- TYPE DEFINITIONS ---
 
@@ -155,18 +155,16 @@ export const SignInPage: React.FC<SignInPageProps> = ({
     <div className="workiz-signin flex h-[100dvh] w-[100dvw] flex-col font-[Outfit,ui-sans-serif,system-ui,sans-serif] md:flex-row">
       {/* Left column: form */}
       <section className="relative flex flex-1 items-center justify-center p-8">
-        <Link
-          href="/"
-          className="workiz-signin__home absolute left-6 top-6 z-10 inline-flex items-center gap-2 rounded-full border border-[#d0d5dd] bg-white/90 px-4 py-2 text-sm font-semibold text-[#102846] shadow-sm backdrop-blur-sm transition-colors hover:bg-white hover:text-[#102846]"
-        >
-          <Home className="h-4 w-4" strokeWidth={2} />
-          Home
-        </Link>
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">
-            <h1 className="animate-element animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">
-              {title}
-            </h1>
+            <div className="animate-element workiz-signin__brand-row flex flex-col items-center gap-4 text-center">
+              <Link href="/" className="workiz-signin__logo inline-flex shrink-0 items-center">
+                <img src="/assets/images/logo.png" alt="Workiz" />
+              </Link>
+              <h1 className="workiz-signin__title animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">
+                {title}
+              </h1>
+            </div>
             <p className="animate-element animate-delay-200 text-muted-foreground">{description}</p>
 
             <form className="space-y-5" onSubmit={onSignIn}>
@@ -233,9 +231,11 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
               {mode === "sign-in" ? (
                 <div className="animate-element animate-delay-500 flex items-center justify-between text-sm">
-                  <label className="flex cursor-pointer items-center gap-3">
+                  <label className="workiz-signin__remember flex cursor-pointer items-center">
                     <input type="checkbox" name="rememberMe" className="custom-checkbox" />
-                    <span className="text-foreground/90">Keep me signed in</span>
+                    <span className="workiz-signin__remember-label text-foreground/90">
+                      Keep me signed in
+                    </span>
                   </label>
                   <a
                     href="/forgot"
@@ -273,7 +273,8 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               </button>
             </form>
 
-            <p className="animate-element animate-delay-700 text-center text-sm text-muted-foreground">
+            <div className="animate-element animate-delay-700 flex flex-col items-center gap-2.5 text-center text-sm text-muted-foreground">
+              <p className="m-0">
               {isSignUp ? (
                 <>
                   Already have an account?{" "}
@@ -317,7 +318,11 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                   </a>
                 </>
               )}
-            </p>
+              </p>
+              <Link href="/" className="workiz-signin__home-link">
+                Home
+              </Link>
+            </div>
           </div>
         </div>
       </section>

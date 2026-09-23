@@ -242,15 +242,57 @@ html {
   text-decoration: none !important;
 }
 
-.workiz-signin a.workiz-signin__home {
-  color: #102846 !important;
+.workiz-signin a.workiz-signin__home-link {
+  color: #8f7338 !important;
+  font-weight: 600;
   text-decoration: none !important;
 }
 
-.workiz-signin a.workiz-signin__home:hover,
-.workiz-signin a.workiz-signin__home:focus-visible {
+.workiz-signin a.workiz-signin__home-link:hover,
+.workiz-signin a.workiz-signin__home-link:focus-visible {
   color: #102846 !important;
-  background: #fff !important;
+  text-decoration: underline !important;
+}
+
+.workiz-signin__brand-row {
+  gap: 1rem;
+}
+
+.workiz-signin__logo img {
+  display: block;
+  height: 4.25rem;
+  width: auto;
+}
+
+.workiz-signin__title {
+  margin: 0;
+}
+
+.workiz-signin__remember {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+.workiz-signin__remember .custom-checkbox {
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.workiz-signin__remember-label {
+  display: inline-block !important;
+  margin: 0 0 0 0.875rem !important;
+  padding: 0 !important;
+}
+
+@media (min-width: 640px) {
+  .workiz-signin__logo img {
+    height: 5rem;
+  }
+
+  .workiz-signin__brand-row {
+    gap: 1.15rem;
+  }
 }
 
 .workiz-signin__accent {

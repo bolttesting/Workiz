@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock3, Play } from "lucide-react";
-import { courseDepartment, formatMoney } from "@workix/config";
+import { courseDepartment } from "@workix/config";
 import type { Course } from "@workix/db/types";
+import { Money } from "@/components/Money";
 
 function resolveThumb(url: string | null, fallback: string) {
   if (!url) return fallback;
@@ -56,7 +57,7 @@ export function CourseCard({ course }: { course: Course }) {
           <div className="workiz-course-card__price-wrap">
             <span className="workiz-course-card__price-label">Price</span>
             <strong className="workiz-course-card__price">
-              {formatMoney(course.price_cents, course.currency)}
+              <Money cents={course.price_cents} currency={course.currency} />
             </strong>
           </div>
           <Link href={`/courses/${course.slug}`} className="workiz-course-card__cta">

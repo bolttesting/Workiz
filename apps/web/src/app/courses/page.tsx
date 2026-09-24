@@ -5,7 +5,7 @@ import type { Course } from "@workix/db/types";
 
 async function loadCourses(): Promise<Course[]> {
   try {
-    const res = await fetch(`${publicApi()}/courses`, { next: { revalidate: 30 } });
+    const res = await fetch(`${publicApi()}/courses`, { cache: "no-store" });
     if (!res.ok) return [];
     const json = await res.json();
     return json.courses ?? [];

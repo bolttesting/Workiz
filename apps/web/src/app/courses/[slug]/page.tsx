@@ -8,10 +8,12 @@ import {
   Play,
   Users,
 } from "lucide-react";
-import { courseDepartment, formatMoney } from "@workix/config";
+import { courseDepartment } from "@workix/config";
+import { Money } from "@/components/Money";
 import type { Course, Lesson, ModuleRow } from "@workix/db/types";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
 import { CourseBuyActions } from "@/components/CourseBuyActions";
+import { CourseReviewsQa } from "@/components/CourseReviewsQa";
 import { publicApi } from "@/lib/session";
 
 type InstructorRow = {
@@ -32,91 +34,6 @@ type DummyModule = {
   title: string;
   lessons: DummyLesson[];
 };
-
-const DEMO_COURSES: Record<string, Course> = {
-  "leadership-foundations": {
-    id: "demo-1",
-    slug: "leadership-foundations",
-    title: "Leadership Foundations",
-    subtitle: "Lead teams with clarity and calm.",
-    description:
-      "A practical leadership program for managers who need to set direction, run focused meetings, and coach people without drama. Built for company assignment — language is clear, examples are workplace-real, and every module ends with something your team can use the same week.",
-    thumbnail_url: "/assets/images/home-one/case-thumb1.jpg",
-    price_cents: 7900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 180,
-    level: "Leadership",
-  },
-  "product-thinking": {
-    id: "demo-2",
-    slug: "product-thinking",
-    title: "Product Thinking for Operators",
-    subtitle: "Ship work that customers actually want.",
-    description:
-      "Help operators and cross-functional leads learn how strong product teams decide what to build, how to test assumptions, and how to communicate trade-offs. Ideal for companies rolling product literacy across departments.",
-    thumbnail_url: "/assets/images/home-one/case-thumb2.jpg",
-    price_cents: 9900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 240,
-    level: "Product",
-  },
-  "workplace-communication": {
-    id: "demo-3",
-    slug: "workplace-communication",
-    title: "Workplace Communication",
-    subtitle: "Write and speak so people act.",
-    description:
-      "Short, focused training on clear writing, meeting presence, and feedback. Designed for admins to assign across customer support, operations, and delivery teams.",
-    thumbnail_url: "/assets/images/home-one/case-thumb3.jpg",
-    price_cents: 5900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 120,
-    level: "Communication",
-  },
-};
-
-const DEMO_OUTCOMES: string[] = [
-  "Set clear weekly priorities your team can actually follow",
-  "Run meetings that end with owners, dates, and next steps",
-  "Give feedback that improves performance without friction",
-  "Coach new managers through their first 90 days",
-];
-
-const DEMO_AUDIENCE = ["New managers", "Team leads", "Department heads", "High-potential ICs"];
-
-const DEMO_MODULES: DummyModule[] = [
-  {
-    id: "m1",
-    title: "Module 1 — Leading with clarity",
-    lessons: [
-      { id: "l1", title: "What modern leadership looks like at work", type: "video", duration: "14 min", preview: true },
-      { id: "l2", title: "Role, authority, and trust", type: "video", duration: "18 min" },
-      { id: "l3", title: "Practice: write your team purpose in one page", type: "article", duration: "12 min" },
-      { id: "l4", title: "Checkpoint quiz", type: "quiz", duration: "8 min" },
-    ],
-  },
-  {
-    id: "m2",
-    title: "Module 2 — Meetings that move work",
-    lessons: [
-      { id: "l5", title: "Designing agendas people respect", type: "video", duration: "16 min", preview: true },
-      { id: "l6", title: "Facilitation habits that keep rooms calm", type: "video", duration: "21 min" },
-      { id: "l7", title: "Template: decision log & action tracker", type: "article", duration: "10 min" },
-    ],
-  },
-  {
-    id: "m3",
-    title: "Module 3 — Coaching and feedback",
-    lessons: [
-      { id: "l8", title: "Feedback that changes behavior", type: "video", duration: "19 min" },
-      { id: "l9", title: "1:1 structure for busy managers", type: "video", duration: "17 min" },
-      { id: "l10", title: "Final scenario assessment", type: "quiz", duration: "15 min" },
-    ],
-  },
-];
 
 const DEMO_INSTRUCTOR = {
   name: "Sara Al-Mansouri",
@@ -141,7 +58,7 @@ function lessonDurationLabel(seconds: number | null) {
 
 async function load(slug: string) {
   try {
-    const res = await fetch(`${publicApi()}/courses/${slug}`, { next: { revalidate: 15 } });
+    const res = await fetch(`${publicApi()}/courses/${slug}`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()) as {
       course: Course;
@@ -155,7 +72,7 @@ async function load(slug: string) {
 }
 
 function buildCurriculum(modules: ModuleRow[], lessons: Lesson[]): DummyModule[] {
-  if (!modules.length) return DEMO_MODULES;
+  if (!modules.length) return [];
   return modules.map((mod) => ({
     id: mod.id,
     title: mod.title,
@@ -174,16 +91,17 @@ function buildCurriculum(modules: ModuleRow[], lessons: Lesson[]): DummyModule[]
 export default async function CourseDetails({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const data = await load(slug);
-  const demo = DEMO_COURSES[slug];
 
-  if (!data && !demo) notFound();
+  if (!data?.course) notFound();
 
-  const course = data?.course ?? demo!;
-  const curriculum = buildCurriculum(data?.modules ?? [], data?.lessons ?? []);
-  const apiInstructors = data?.instructors ?? [];
-  const outcomes = DEMO_OUTCOMES;
-  const audience = DEMO_AUDIENCE;
+  const course = data.course;
+  const curriculum = buildCurriculum(data.modules ?? [], data.lessons ?? []);
+  const apiInstructors = data.instructors ?? [];
+  const outcomes = (course.learning_outcomes ?? []).filter(Boolean);
+  const audience = (course.audience ?? []).filter(Boolean);
+  const tags = (course.tags ?? []).filter(Boolean);
   const thumb = course.thumbnail_url || "/assets/images/inner-img/course-thumb1.png";
+  const coverVideo = course.cover_video_url || null;
   const blurb =
     course.description ||
     course.subtitle ||
@@ -222,12 +140,28 @@ export default async function CourseDetails({ params }: { params: Promise<{ slug
                       <Users size={14} strokeWidth={2.2} aria-hidden="true" />
                       Team ready
                     </span>
+                    {tags.map((tag) => (
+                      <span className="workiz-course-detail__chip" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </header>
 
                 <div className="workiz-course-detail__hero-media">
-                  <img src={thumb} alt="" />
-                  <span className="workiz-course-detail__hero-scrim" aria-hidden="true" />
+                  {coverVideo ? (
+                    <video
+                      className="workiz-course-detail__hero-video"
+                      src={coverVideo}
+                      poster={course.thumbnail_url || undefined}
+                      controls
+                      playsInline
+                      preload="metadata"
+                    />
+                  ) : (
+                    <img src={thumb} alt="" />
+                  )}
+                  {!coverVideo ? <span className="workiz-course-detail__hero-scrim" aria-hidden="true" /> : null}
                 </div>
 
                 <section className="workiz-course-detail__block">
@@ -240,30 +174,34 @@ export default async function CourseDetails({ params }: { params: Promise<{ slug
                   </p>
                 </section>
 
-                <section className="workiz-course-detail__block">
-                  <h2>What you&apos;ll learn</h2>
-                  <ul className="workiz-course-detail__outcomes">
-                    {outcomes.map((item) => (
-                      <li key={item}>
-                        <span className="workiz-course-detail__check" aria-hidden="true">
-                          <Check size={14} strokeWidth={2.6} />
-                        </span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                {outcomes.length ? (
+                  <section className="workiz-course-detail__block">
+                    <h2>What you&apos;ll learn</h2>
+                    <ul className="workiz-course-detail__outcomes">
+                      {outcomes.map((item) => (
+                        <li key={item}>
+                          <span className="workiz-course-detail__check" aria-hidden="true">
+                            <Check size={14} strokeWidth={2.6} />
+                          </span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
 
-                <section className="workiz-course-detail__block">
-                  <h2>Who it&apos;s for</h2>
-                  <div className="workiz-course-detail__audience">
-                    {audience.map((item) => (
-                      <span key={item} className="workiz-course-detail__pill">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </section>
+                {audience.length ? (
+                  <section className="workiz-course-detail__block">
+                    <h2>Who it&apos;s for</h2>
+                    <div className="workiz-course-detail__audience">
+                      {audience.map((item) => (
+                        <span key={item} className="workiz-course-detail__pill">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
 
                 <section className="workiz-course-detail__block">
                   <div className="workiz-course-detail__curriculum-head">
@@ -275,7 +213,8 @@ export default async function CourseDetails({ params }: { params: Promise<{ slug
                   </div>
 
                   <div className="workiz-course-detail__curriculum">
-                    {curriculum.map((mod, index) => (
+                    {curriculum.length ? (
+                      curriculum.map((mod, index) => (
                       <details key={mod.id} className="workiz-course-detail__module" open={index === 0}>
                         <summary>
                           <span className="workiz-course-detail__module-title">{mod.title}</span>
@@ -301,7 +240,10 @@ export default async function CourseDetails({ params }: { params: Promise<{ slug
                           ))}
                         </ul>
                       </details>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="mb-0">Curriculum is being prepared. Check back soon.</p>
+                    )}
                   </div>
                 </section>
 
@@ -338,6 +280,8 @@ export default async function CourseDetails({ params }: { params: Promise<{ slug
                     </div>
                   )}
                 </section>
+
+                <CourseReviewsQa slug={course.slug} />
               </div>
             </div>
 
@@ -352,7 +296,7 @@ export default async function CourseDetails({ params }: { params: Promise<{ slug
                     <div className="workiz-course-detail__price-wrap">
                       <span className="workiz-course-detail__price-label">Course price</span>
                       <strong className="workiz-course-detail__price">
-                        {formatMoney(course.price_cents, course.currency)}
+                        <Money cents={course.price_cents} currency={course.currency} />
                       </strong>
                     </div>
 

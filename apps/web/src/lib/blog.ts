@@ -7,12 +7,19 @@ export type BlogPost = {
   author: string;
   authorImage: string;
   thumb: string;
-  icon: string;
-  boxClass: string;
+  icon?: string;
+  boxClass?: string;
   category: string;
   body: string[];
   quote: string;
+  content_html?: string;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string | null;
+  og_image_url?: string | null;
 };
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export const BLOG_POSTS: BlogPost[] = [
   {
@@ -73,6 +80,54 @@ export const BLOG_POSTS: BlogPost[] = [
     quote: "Professional growth sticks when practice, feedback, and proof of completion stay in one place.",
   },
 ];
+
+function normalizePost(raw: Record<string, unknown>, index = 0): BlogPost {
+  return {
+    slug: String(raw.slug ?? ""),
+    title: String(raw.title ?? ""),
+    excerpt: String(raw.excerpt ?? ""),
+    dateLabel: String(raw.dateLabel ?? ""),
+    dateFull: String(raw.dateFull ?? ""),
+    author: String(raw.author ?? "Workiz Team"),
+    authorImage: String(raw.authorImage ?? "/assets/images/home-one/blog-autor1.png"),
+    thumb: String(raw.thumb ?? "/assets/images/home-one/blog-thumb1.png"),
+    icon: String(raw.icon ?? `/assets/images/home-one/blog-icon${(index % 3) + 1}.png`),
+    boxClass: String(raw.boxClass ?? `box-${(index % 3) + 1}`),
+    category: String(raw.category ?? "Learning"),
+    body: Array.isArray(raw.body) ? (raw.body as string[]) : [],
+    quote: String(raw.quote ?? ""),
+    content_html: raw.content_html ? String(raw.content_html) : undefined,
+    seo_title: (raw.seo_title as string | null) ?? null,
+    seo_description: (raw.seo_description as string | null) ?? null,
+    seo_keywords: (raw.seo_keywords as string | null) ?? null,
+    og_image_url: (raw.og_image_url as string | null) ?? null,
+  };
+}
+
+export async function fetchBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const res = await fetch(`${API}/blog`, { next: { revalidate: 60 } });
+    if (!res.ok) throw new Error("blog api failed");
+    const data = (await res.json()) as { posts?: Record<string, unknown>[] };
+    if (!data.posts?.length) return BLOG_POSTS;
+    return data.posts.map((post, index) => normalizePost(post, index));
+  } catch {
+    return BLOG_POSTS;
+  }
+}
+
+export async function fetchBlogPost(slug: string): Promise<BlogPost | null> {
+  try {
+    const res = await fetch(`${API}/blog/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
+    if (res.ok) {
+      const data = (await res.json()) as { post?: Record<string, unknown> };
+      if (data.post) return normalizePost(data.post);
+    }
+  } catch {
+    // fall through to static
+  }
+  return BLOG_POSTS.find((post) => post.slug === slug) ?? null;
+}
 
 export function getBlogPost(slug: string) {
   return BLOG_POSTS.find((post) => post.slug === slug);

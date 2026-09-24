@@ -11,6 +11,11 @@ function required(name: string) {
   return value;
 }
 
+/** True when S3/R2 credentials are present (videos + private files). */
+export function s3Configured() {
+  return Boolean(process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY && process.env.S3_BUCKET);
+}
+
 export function s3() {
   return new S3Client({
     region: process.env.S3_REGION || "auto",
@@ -28,6 +33,9 @@ export function bucket() {
 }
 
 export async function presignPut(key: string, contentType: string, expiresIn = 3600) {
+  if (!s3Configured()) {
+    throw new Error("S3 is not configured. Set S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and S3_BUCKET.");
+  }
   const command = new PutObjectCommand({
     Bucket: bucket(),
     Key: key,

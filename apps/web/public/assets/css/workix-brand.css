@@ -2,6 +2,36 @@
    Contrast rule: navy for text on light surfaces; gold for accents /
    fills on dark surfaces. Never use gold as body/UI text on white. */
 
+/* UAE Dirham sign (U+20C3) — not in OS fonts until Unicode 18 ships widely */
+@font-face {
+  font-family: "Dirham";
+  src: url("/assets/fonts/dirham.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20C3;
+  size-adjust: 68%;
+  ascent-override: 95%;
+  descent-override: 15%;
+}
+
+body {
+  font-family: "Dirham", "Outfit", "Open Sans", sans-serif;
+}
+
+.dirham-sign {
+  font-family: "Dirham", "Outfit", "Open Sans", sans-serif !important;
+}
+
+.dirham-glyph {
+  font-family: "Dirham", sans-serif;
+  font-size: 0.68em;
+  font-weight: 500;
+  line-height: 1;
+  margin-inline-end: 0.12em;
+  vertical-align: 0.06em;
+}
+
 :root {
   --workiz-navy: #102846;
   --workiz-gold: #b69856;
@@ -442,6 +472,34 @@ p.subtitle,
 .blog-desc2,
 .testi-desc p {
   color: #3f4a57 !important;
+}
+
+.workiz-blog-html {
+  color: #3f4a57;
+  line-height: 1.7;
+}
+
+.workiz-blog-html p {
+  margin-bottom: 1rem;
+}
+
+.workiz-blog-html h2 {
+  color: #102846;
+  font-size: 1.5rem;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.workiz-blog-html blockquote {
+  border-left: 3px solid #b69856;
+  margin: 1.5rem 0;
+  padding: 0.5rem 0 0.5rem 1rem;
+  color: #102846;
+  font-style: italic;
+}
+
+.workiz-blog-html a {
+  color: #8f7338;
+  font-weight: 600;
 }
 
 /* —— Home testimonials —— */
@@ -2047,10 +2105,18 @@ img[src*="top-star.png"] {
   box-shadow: 0 18px 40px rgba(16, 40, 70, 0.1);
 }
 
-.workiz-course-detail__hero-media img {
+.workiz-course-detail__hero-media img,
+.workiz-course-detail__hero-media .workiz-course-detail__hero-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  background: #102846;
+}
+
+.workiz-course-detail__hero-video {
+  position: relative;
+  z-index: 1;
 }
 
 .workiz-course-detail__hero-scrim {
@@ -4916,3 +4982,136 @@ img[src*="top-star.png"] {
 
 
 
+
+/* Course reviews & Q&A */
+.workiz-engage { margin-top: 8px; }
+.workiz-engage__tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(16, 40, 70, 0.1);
+}
+.workiz-engage__tabs button {
+  border: 0;
+  background: transparent;
+  padding: 0.7rem 1rem;
+  font-weight: 650;
+  color: #8a93a0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.workiz-engage__tabs button.is-active {
+  color: #102846;
+  border-bottom-color: #b69856;
+}
+.workiz-engage__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+.workiz-engage__summary strong {
+  font-size: 2rem;
+  color: #102846;
+  letter-spacing: -0.03em;
+}
+.workiz-engage__summary span {
+  display: block;
+  font-size: 0.82rem;
+  color: #8a93a0;
+}
+.workiz-stars { display: inline-flex; gap: 0.1rem; }
+.workiz-stars__btn {
+  border: 0;
+  background: transparent;
+  color: #d5d8de;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: default;
+}
+.workiz-stars__btn.is-on { color: #b69856; }
+.workiz-stars__btn:not(:disabled) { cursor: pointer; }
+.workiz-engage__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(16, 40, 70, 0.03);
+  border: 1px solid rgba(16, 40, 70, 0.08);
+}
+.workiz-engage__form label {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #102846;
+}
+.workiz-engage__form textarea {
+  width: 100%;
+  border: 1px solid rgba(16, 40, 70, 0.14);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  resize: vertical;
+}
+.workiz-engage__form button[type=submit] {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.65rem 1.1rem;
+  background: #102846;
+  color: #fff;
+  font-weight: 650;
+}
+.workiz-engage__signin {
+  margin-bottom: 1.25rem;
+  color: #5b6572;
+}
+.workiz-engage__signin a { color: #b69856; font-weight: 650; }
+.workiz-engage__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.workiz-engage__list > li {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(16, 40, 70, 0.08);
+}
+.workiz-engage__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.workiz-engage__meta strong { color: #102846; }
+.workiz-engage__meta span { font-size: 0.78rem; color: #8a93a0; }
+.workiz-engage__list p { margin: 0; color: #3f4a57; line-height: 1.55; }
+.workiz-engage__answer {
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: rgba(182, 152, 86, 0.1);
+  border-left: 3px solid #b69856;
+}
+.workiz-engage__answer strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.84rem;
+  color: #8f7338;
+}
+.workiz-engage__pending {
+  margin-top: 0.55rem !important;
+  font-size: 0.82rem;
+  color: #8a93a0 !important;
+  font-style: italic;
+}
+.workiz-engage__empty { color: #8a93a0; border: 0 !important; }
+.workiz-engage__msg { margin-bottom: 0.85rem; font-size: 0.88rem; }
+.workiz-engage__msg--err { color: #b42318; }
+.workiz-engage__msg--ok { color: #027a48; }

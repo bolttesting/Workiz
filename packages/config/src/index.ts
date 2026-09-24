@@ -19,11 +19,22 @@ export function publicUrls() {
   };
 }
 
+/** UAE Dirham sign (Unicode 18, U+20C3). Requires the Dirham web font until OS fonts catch up. */
+export const DIRHAM_SIGN = "\u20C3";
+
 export function formatMoney(cents: number, currency = "usd") {
+  const code = currency.toUpperCase();
+  const amount = cents / 100;
+  if (code === "AED") {
+    return `${DIRHAM_SIGN}\u00A0${amount.toLocaleString("en-AE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: currency.toUpperCase(),
-  }).format(cents / 100);
+    currency: code,
+  }).format(amount);
 }
 
 /** Per-seat rate for the Custom plan ($20 / user / month). */

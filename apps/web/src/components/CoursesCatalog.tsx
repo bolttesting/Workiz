@@ -33,7 +33,8 @@ export function CoursesCatalog({ courses }: Props) {
         return false;
       }
       if (!q) return true;
-      const haystack = [course.title, course.subtitle, course.description, dept]
+      const tags = (course.tags ?? []).join(" ");
+      const haystack = [course.title, course.subtitle, course.description, dept, tags]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();

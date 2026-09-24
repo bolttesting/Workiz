@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>WORKIZ image dimensions</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #faf8f4;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #102846;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .sub {
+      margin: 0 0 22px;
+      color: #5b6572;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(16, 40, 70, 0.08);
+    }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(16, 40, 70, 0.08);
+    }
+    th {
+      background: #102846;
+      color: #fff;
+      font-weight: 650;
+      font-size: 13px;
+    }
+    tr:nth-child(even) td { background: #f5f2ec; }
+    td:first-child { font-weight: 650; }
+    td:nth-child(3) { font-weight: 650; color: #102846; }
+    .notes {
+      margin-top: 18px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .notes strong { color: #b69856; }
+  </style>
+</head>
+<body>
+  <h1>WORKIZ image dimensions</h1>
+  <p class="sub">Recommended upload sizes for marketing &amp; LMS assets</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Use</th>
+        <th>Aspect</th>
+        <th>Recommended upload</th>
+        <th>Current assets</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Course card / catalog</td><td>16:10</td><td>1280 × 800</td><td>385×300 or 364×280</td></tr>
+      <tr><td>Course detail hero</td><td>16:9</td><td>1600 × 900</td><td>same thumbs, cropped</td></tr>
+      <tr><td>Cart thumb</td><td>square-ish</td><td>320 × 320</td><td>CSS crops to ~72×64</td></tr>
+      <tr><td>Blog card</td><td>~3:2</td><td>1200 × 800</td><td>477×318 – 651×435</td></tr>
+      <tr><td>Blog detail</td><td>~16:9</td><td>1600 × 900</td><td>1220×650</td></tr>
+      <tr><td>Instructor / team</td><td>~10:11</td><td>600 × 660</td><td>273×300</td></tr>
+      <tr><td>Hero portrait</td><td>portrait</td><td>1050 × 1280</td><td>525×640</td></tr>
+      <tr><td>Hero background</td><td>wide</td><td>1920 × 800</td><td>1024×426</td></tr>
+      <tr><td>About / FAQ media</td><td>tall cover</td><td>1200 × 840</td><td>806×630</td></tr>
+      <tr><td>Breadcrumb banner</td><td>wide</td><td>1920 × 500</td><td>1920×499 – 1920×500</td></tr>
+      <tr><td>Logo (nav)</td><td>free</td><td>~300 × 300</td><td>150×150 / 122×145</td></tr>
+      <tr><td>Favicon</td><td>1:1</td><td>64 × 64</td><td>64×64</td></tr>
+    </tbody>
+  </table>
+  <div class="notes">
+    <strong>Practical defaults:</strong> Courses 1280×800 · Course hero 1600×900 · Instructors 600×660 · Blog 1200×800<br />
+    Cards use object-fit: cover — keep the subject centered.
+  </div>
+</body>
+</html>

@@ -12,3 +12,7 @@ coverage
 tmp
 uploads
 infra/letsencrypt
+infra/hostinger-media/.media-secret
+infra/hostinger-media/upload.deploy.php
+infra/hostinger-media/probe.png
+

@@ -48,6 +48,18 @@ courses.get("/:slug", async (c) => {
     ...lesson,
     article_content: unlocked || lesson.is_preview ? lesson.article_content : null,
   }));
+  const lessonIds = (lessons ?? []).map((l) => l.id);
+  const { data: resourceRows } = lessonIds.length
+    ? await adminDb
+        .from("lesson_resources")
+        .select("id, lesson_id, title, content_type, byte_size, sort_order")
+        .in("lesson_id", lessonIds)
+        .order("sort_order")
+    : { data: [] as never[] };
+  const resources = (resourceRows ?? []).filter((r) => {
+    const lesson = (lessons ?? []).find((l) => l.id === r.lesson_id);
+    return lesson && (unlocked || lesson.is_preview);
+  });
   const { data: links } = await adminDb.from("course_instructors").select("*").eq("course_id", course.id);
   const instructorIds = (links ?? []).map((l) => l.user_id);
   const { data: people } = instructorIds.length
@@ -61,7 +73,14 @@ courses.get("/:slug", async (c) => {
     user: (people ?? []).find((p) => p.id === l.user_id) ?? null,
     profile: (bios ?? []).find((b) => b.user_id === l.user_id) ?? null,
   }));
-  return c.json({ course, modules: modules ?? [], lessons: safeLessons, unlocked, instructors });
+  return c.json({
+    course,
+    modules: modules ?? [],
+    lessons: safeLessons,
+    resources,
+    unlocked,
+    instructors,
+  });
 });
 
 const progressSchema = z.object({

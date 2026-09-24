@@ -7,6 +7,37 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
 
+/* UAE Dirham sign (U+20C3) — not in OS fonts until Unicode 18 ships widely */
+@font-face {
+  font-family: "Dirham";
+  src: url("/assets/fonts/dirham.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20C3;
+  size-adjust: 68%;
+  ascent-override: 95%;
+  descent-override: 15%;
+}
+
+body {
+  font-family: "Dirham", var(--font-sans, system-ui), sans-serif;
+}
+
+.dirham-sign {
+  font-family: "Dirham", "Inter", "Outfit", "Open Sans", system-ui, sans-serif !important;
+}
+
+/* Dirham glyph alone — keep it smaller than the price digits */
+.dirham-glyph {
+  font-family: "Dirham", sans-serif;
+  font-size: 0.68em;
+  font-weight: 500;
+  line-height: 1;
+  margin-inline-end: 0.12em;
+  vertical-align: 0.06em;
+}
+
 :root {
   --background: #faf8f4;
   --foreground: #102846;

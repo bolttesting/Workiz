@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { requireUser, type Authed } from "./lib/auth.js";
+import { courseEngagement } from "./routes/engagement.js";
 import { courses } from "./routes/courses.js";
 import { admin } from "./routes/admin.js";
 import { checkout } from "./routes/checkout.js";
@@ -13,6 +14,7 @@ import { quizzes } from "./routes/quizzes.js";
 import { media } from "./routes/media.js";
 import { me } from "./routes/me.js";
 import { instructor, publicInstructors } from "./routes/instructors.js";
+import { blog, adminBlog } from "./routes/blog.js";
 import { processPdfJob } from "./jobs/pdf.js";
 
 type Vars = { auth: Authed };
@@ -38,14 +40,16 @@ app.use(
     origin,
     credentials: true,
     allowHeaders: ["Content-Type", "Authorization"],
-    allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 
 app.get("/health", (c) => c.json({ ok: true, service: "workix-api" }));
 app.route("/webhooks", webhooks);
+app.route("/courses", courseEngagement);
 app.route("/courses", courses);
 app.route("/instructors", publicInstructors);
+app.route("/blog", blog);
 
 app.use("/me/*", requireUser);
 app.use("/me", requireUser);
@@ -62,6 +66,7 @@ app.route("/orgs", orgs);
 app.route("/quizzes", quizzes);
 app.route("/media", media);
 app.route("/admin", admin);
+app.route("/admin/blog", adminBlog);
 app.route("/instructor", instructor);
 
 app.post("/internal/pdf", async (c) => {

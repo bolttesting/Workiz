@@ -56,7 +56,7 @@ export default function TeamPage() {
           {org.name} — {org.seat_used} / {org.seat_limit} seats used ({org.status})
         </p>
       ) : (
-        <p>No company yet. Buy seats from the public pricing page.</p>
+        <p>No company yet. Ask Workiz support to create your company seats, or buy seats from the public pricing page.</p>
       )}
       {org ? (
         <form className="card radius-12 mb-24" onSubmit={invite}>

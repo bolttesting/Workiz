@@ -42,6 +42,19 @@ export async function hasCourseAccess(profile: Profile, courseId: string) {
   return false;
 }
 
+/** Super admin, or instructor assigned to this course. */
+export async function canModerateCourse(profile: Profile, courseId: string) {
+  if (profile.role === "super_admin") return true;
+  if (profile.role !== "instructor") return false;
+  const { data } = await adminDb
+    .from("course_instructors")
+    .select("course_id")
+    .eq("course_id", courseId)
+    .eq("user_id", profile.id)
+    .maybeSingle();
+  return Boolean(data);
+}
+
 export function nextInvoiceNumber() {
   const stamp = new Date().toISOString().slice(0, 10).replaceAll("-", "");
   const rand = Math.floor(Math.random() * 9000 + 1000);

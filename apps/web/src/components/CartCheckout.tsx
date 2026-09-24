@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { formatMoney } from "@workix/config";
+import { Money } from "@/components/Money";
 import { ArrowUpRight, ShoppingBag, Trash2 } from "lucide-react";
 import { createBrowserSupabase } from "@workix/db/browser";
 import { useCart } from "@/lib/cart";
@@ -179,7 +179,7 @@ export function CartCheckout() {
                     </button>
                   </div>
                   <strong className="workiz-cart__price">
-                    {formatMoney(item.price_cents, item.currency)}
+                    <Money cents={item.price_cents} currency={item.currency} />
                   </strong>
                 </article>
               ))}
@@ -191,7 +191,9 @@ export function CartCheckout() {
                 <span>
                   {items.length} {items.length === 1 ? "course" : "courses"}
                 </span>
-                <strong>{formatMoney(totalCents, currency)}</strong>
+                <strong>
+                  <Money cents={totalCents} currency={currency} />
+                </strong>
               </div>
               <p className="workiz-cart__summary-note">
                 You’ll complete payment securely with Stripe. Access opens in My learning.

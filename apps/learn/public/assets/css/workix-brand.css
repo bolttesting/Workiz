@@ -1,5 +1,26 @@
 /* WORKIZ brand: #102846 navy, #b69856 gold */
 
+/* UAE Dirham sign (U+20C3) — not in OS fonts until Unicode 18 ships widely */
+@font-face {
+  font-family: "Dirham";
+  src: url("/assets/fonts/dirham.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20C3;
+  size-adjust: 68%;
+  ascent-override: 95%;
+  descent-override: 15%;
+}
+
+body {
+  font-family: "Dirham", "Inter", sans-serif;
+}
+
+.dirham-sign {
+  font-family: "Dirham", "Inter", sans-serif;
+}
+
 :root {
   --primary-50: #eef2f6;
   --primary-100: #1028462e;

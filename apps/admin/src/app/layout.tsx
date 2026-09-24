@@ -8,6 +8,7 @@ const css = [
   "/assets/css/remixicon.css",
   "/assets/css/lib/bootstrap.min.css",
   "/assets/css/lib/dataTables.min.css",
+  "/assets/css/lib/apexcharts.css",
   "/assets/css/style.css",
   "/assets/css/workix-brand.css",
 ];

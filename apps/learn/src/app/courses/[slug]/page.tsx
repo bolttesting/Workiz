@@ -13,21 +13,38 @@ type QuizPayload = {
   options: { id: string; question_id: string; label: string }[];
 };
 
+type LessonResourceMeta = {
+  id: string;
+  lesson_id: string;
+  title: string;
+  content_type: string;
+  byte_size: number | null;
+  sort_order: number;
+};
+
 export default function PlayerPage() {
   const { slug } = useParams<{ slug: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<ModuleRow[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [resources, setResources] = useState<LessonResourceMeta[]>([]);
   const [active, setActive] = useState<Lesson | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    apiClient<{ course: Course; modules: ModuleRow[]; lessons: Lesson[] }>(`/courses/${slug}`)
+    apiClient<{
+      course: Course;
+      modules: ModuleRow[];
+      lessons: Lesson[];
+      resources?: LessonResourceMeta[];
+    }>(`/courses/${slug}`)
       .then((res) => {
         setCourse(res.course);
         setModules(res.modules);
         setLessons(res.lessons);
+        setResources(res.resources ?? []);
         setActive(res.lessons[0] ?? null);
       })
       .catch((err) => setError((err as Error).message));
@@ -63,6 +80,30 @@ export default function PlayerPage() {
     });
   }
 
+  async function downloadResource(resourceId: string) {
+    setDownloading(resourceId);
+    setError(null);
+    try {
+      const { url, title } = await apiClient<{ url: string; title: string }>(
+        `/media/resources/${resourceId}/download`,
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.download = title.endsWith(".pdf") ? title : `${title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+  const activeResources = active ? resources.filter((r) => r.lesson_id === active.id) : [];
+
   return (
     <LearnShell>
       {error ? <p className="text-danger">{error}</p> : null}
@@ -84,6 +125,26 @@ export default function PlayerPage() {
                 </div>
               ) : null}
               {active?.type === "quiz" && active.quiz_id ? <QuizBlock quizId={active.quiz_id} /> : null}
+
+              {activeResources.length ? (
+                <div className="mt-4 pt-3 border-top">
+                  <h6>Downloads</h6>
+                  <ul className="list-unstyled mb-0">
+                    {activeResources.map((file) => (
+                      <li key={file.id} className="mb-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary-600 btn-sm"
+                          disabled={downloading === file.id}
+                          onClick={() => downloadResource(file.id)}
+                        >
+                          {downloading === file.id ? "Preparing…" : `Download PDF — ${file.title}`}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -101,6 +162,7 @@ export default function PlayerPage() {
                         <li key={lesson.id}>
                           <button className="btn btn-link p-0" onClick={() => setActive(lesson)}>
                             {lesson.title}
+                            {resources.some((r) => r.lesson_id === lesson.id) ? " · PDF" : ""}
                           </button>
                         </li>
                       ))}

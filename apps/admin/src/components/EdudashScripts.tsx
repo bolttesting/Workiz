@@ -7,6 +7,7 @@ const srcs = [
   "/assets/js/lib/bootstrap.bundle.min.js",
   "/assets/js/lib/iconify-icon.min.js",
   "/assets/js/lib/dataTables.min.js",
+  "/assets/js/lib/apexcharts.min.js",
   "/assets/js/app.js",
 ];
 

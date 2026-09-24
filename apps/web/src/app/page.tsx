@@ -2,53 +2,9 @@ import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { HomeCoursesCarousel } from "@/components/HomeCoursesCarousel";
 import { BlogCard } from "@/components/BlogCard";
-import { BLOG_POSTS } from "@/lib/blog";
+import { fetchBlogPosts } from "@/lib/blog";
 import { publicApi } from "@/lib/session";
 import type { Course } from "@workix/db/types";
-
-const fallbackCourses: Course[] = [
-  {
-    id: "demo-1",
-    slug: "professional-skills",
-    title: "Professional Skills for Modern Workplaces",
-    subtitle:
-      "Build practical workplace skills through focused lessons on communication, collaboration, and professional effectiveness.",
-    description: null,
-    thumbnail_url: "/assets/images/home-one/case-thumb1.jpg",
-    price_cents: 5900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 1680,
-    level: "Skills",
-  },
-  {
-    id: "demo-2",
-    slug: "workplace-communication",
-    title: "Workplace Communication",
-    subtitle: "Develop clearer communication habits and strengthen your ability to work effectively with others.",
-    description: null,
-    thumbnail_url: "/assets/images/home-one/case-thumb3.jpg",
-    price_cents: 4900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 1260,
-    level: "Communication",
-  },
-  {
-    id: "demo-3",
-    slug: "cultural-awareness",
-    title: "Cultural Awareness at Work",
-    subtitle:
-      "Explore cultural awareness, everyday workplace expectations, and the value of respectful communication.",
-    description: null,
-    thumbnail_url: "/assets/images/home-one/case-thumb1.jpg",
-    price_cents: 3900,
-    currency: "usd",
-    published: true,
-    duration_minutes: 840,
-    level: "Culture",
-  },
-];
 
 const fallbackInstructors = [
   { slug: "john-alexon", name: "John D. Alexon", headline: "Leadership Coach", photo: "/assets/images/home-one/team-thumb1.png" },
@@ -61,13 +17,14 @@ type HomeInstructor = (typeof fallbackInstructors)[number];
 
 async function loadHome() {
   try {
-    const [coursesRes, instructorsRes] = await Promise.all([
-      fetch(`${publicApi()}/courses`, { next: { revalidate: 30 } }),
+    const [coursesRes, instructorsRes, posts] = await Promise.all([
+      fetch(`${publicApi()}/courses`, { cache: "no-store" }),
       fetch(`${publicApi()}/instructors`, { next: { revalidate: 30 } }),
+      fetchBlogPosts(),
     ]);
     const coursesJson = coursesRes.ok ? await coursesRes.json() : { courses: [] };
     const instructorsJson = instructorsRes.ok ? await instructorsRes.json() : { instructors: [] };
-    const courses: Course[] = coursesJson.courses?.length ? coursesJson.courses.slice(0, 9) : fallbackCourses;
+    const courses: Course[] = coursesJson.courses?.length ? coursesJson.courses.slice(0, 9) : [];
     const instructors: HomeInstructor[] =
       instructorsJson.instructors?.length > 0
         ? instructorsJson.instructors.slice(0, 4).map(
@@ -82,14 +39,15 @@ async function loadHome() {
             }),
           )
         : fallbackInstructors;
-    return { courses, instructors };
+    return { courses, instructors, posts: posts.slice(0, 3) };
   } catch {
-    return { courses: fallbackCourses, instructors: fallbackInstructors };
+    const posts = await fetchBlogPosts();
+    return { courses: [] as Course[], instructors: fallbackInstructors, posts: posts.slice(0, 3) };
   }
 }
 
 export default async function HomePage() {
-  const { courses, instructors } = await loadHome();
+  const { courses, instructors, posts } = await loadHome();
   return (
     <>
       <SiteHeader />
@@ -798,7 +756,7 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="row">
-            {BLOG_POSTS.map((post) => (
+            {posts.map((post) => (
               <div className="col-xl-4 col-lg-6 col-md-6" key={post.slug}>
                 <BlogCard post={post} />
               </div>

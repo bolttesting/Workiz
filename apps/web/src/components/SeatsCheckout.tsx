@@ -55,7 +55,7 @@ export function SeatsCheckout() {
     try {
       const { url } = await apiClient<{ url: string }>("/checkout/seats", {
         method: "POST",
-        body: JSON.stringify({ companyName: name, seats: selection.seats }),
+        body: JSON.stringify({ companyName: name, seats: selection.seats, planId: selection.planId }),
       });
       clear();
       window.location.href = url;
@@ -212,7 +212,7 @@ export function SeatsCheckout() {
                   Remove
                 </button>
               </div>
-              <strong className="workiz-cart__price">{total}/mo</strong>
+              <strong className="workiz-cart__price dirham-sign">{total}/mo</strong>
             </article>
           </div>
 
@@ -222,7 +222,7 @@ export function SeatsCheckout() {
               <span>
                 {selection.seats} seats · {selection.planName}
               </span>
-              <strong>{total}/mo</strong>
+              <strong className="dirham-sign">{total}/mo</strong>
             </div>
             <p className="workiz-cart__summary-note">
               Billed monthly via Stripe. Your company admin creates employee accounts and assigns courses.

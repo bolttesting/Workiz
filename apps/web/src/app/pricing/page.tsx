@@ -1,9 +1,16 @@
 "use client";
 
-import { CUSTOM_SEAT_PRICE_CENTS, SEAT_PLANS } from "@workix/config";
+import { useEffect, useState } from "react";
+import { SEAT_PLANS } from "@workix/config";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
 import { PricingSection, type PricingPlan } from "@/components/ui/pricing";
-import { buildSeatsSelection, useSeatsCart } from "@/lib/seats-cart";
+import { buildSeatsSelection, useSeatsCart, type SeatPlanSnapshot } from "@/lib/seats-cart";
+
+type RemotePlan = SeatPlanSnapshot & {
+  blurb: string;
+  popular: boolean;
+  features: string[];
+};
 
 const PLAN_FEATURES: Record<string, string[]> = {
   growth: [
@@ -22,25 +29,42 @@ const PLAN_FEATURES: Record<string, string[]> = {
   ],
 };
 
-function toPlans(): PricingPlan[] {
-  return SEAT_PLANS.map((plan) => {
+function fallbackPlans(): RemotePlan[] {
+  return SEAT_PLANS.map((plan) => ({
+    id: plan.id,
+    name: plan.name,
+    blurb: plan.blurb,
+    seats: plan.seats,
+    monthlyCents: plan.monthlyCents,
+    custom: plan.custom,
+    pricePerSeatCents: "pricePerSeatCents" in plan ? plan.pricePerSeatCents : null,
+    minSeats: "minSeats" in plan ? plan.minSeats : null,
+    maxSeats: "maxSeats" in plan ? plan.maxSeats : null,
+    popular: plan.id === "growth",
+    features: PLAN_FEATURES[plan.id] ?? [plan.blurb],
+  }));
+}
+
+function toPlans(source: RemotePlan[]): PricingPlan[] {
+  return source.map((plan) => {
+    const features = plan.features?.length ? plan.features : (PLAN_FEATURES[plan.id] ?? [plan.blurb]);
     if (plan.custom) {
-      const perSeat = (plan.pricePerSeatCents ?? CUSTOM_SEAT_PRICE_CENTS) / 100;
+      const perSeat = (plan.pricePerSeatCents ?? 0) / 100;
       const defaultSeats = plan.seats;
       return {
         name: plan.name,
         price: String(defaultSeats * perSeat),
         yearlyPrice: String(Math.round(defaultSeats * perSeat * 0.8)),
         period: "month",
-        features: PLAN_FEATURES[plan.id] ?? [plan.blurb],
+        features,
         description: plan.blurb,
         buttonText: "Choose seats",
         href: "/cart?kind=seats",
         planId: plan.id,
         isCustom: true,
-        pricePerSeatCents: plan.pricePerSeatCents ?? CUSTOM_SEAT_PRICE_CENTS,
-        minSeats: plan.minSeats,
-        maxSeats: plan.maxSeats,
+        pricePerSeatCents: plan.pricePerSeatCents ?? 0,
+        minSeats: plan.minSeats ?? undefined,
+        maxSeats: plan.maxSeats ?? undefined,
         defaultSeats,
         seats: defaultSeats,
       };
@@ -53,11 +77,11 @@ function toPlans(): PricingPlan[] {
       price: String(monthly),
       yearlyPrice: String(yearly),
       period: "month",
-      features: PLAN_FEATURES[plan.id] ?? [plan.blurb],
+      features,
       description: plan.blurb,
       buttonText: `Choose ${plan.seats} seats`,
       href: "/cart?kind=seats",
-      isPopular: plan.id === "growth",
+      isPopular: plan.popular || plan.id === "growth",
       seats: plan.seats,
       planId: plan.id,
     };
@@ -66,13 +90,27 @@ function toPlans(): PricingPlan[] {
 
 export default function PricingPage() {
   const { setSelection } = useSeatsCart();
-  const plans = toPlans();
+  const [source, setSource] = useState<RemotePlan[]>(() => fallbackPlans());
+
+  useEffect(() => {
+    const api = process.env.NEXT_PUBLIC_API_URL;
+    if (!api) return;
+    fetch(`${api}/plans`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { plans?: RemotePlan[] } | null) => {
+        if (json?.plans?.length) setSource(json.plans);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const plans = toPlans(source);
 
   function selectPlan(plan: PricingPlan, seats?: number) {
-    if (!plan.planId) return;
+    const match = source.find((row) => row.id === plan.planId);
+    if (!match) return;
     const selection = buildSeatsSelection({
-      planId: plan.planId,
-      seats: seats ?? plan.seats ?? plan.defaultSeats ?? 100,
+      plan: match,
+      seats: seats ?? match.seats,
     });
     if (!selection) return;
     setSelection(selection);

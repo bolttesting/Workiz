@@ -17,6 +17,7 @@ type QRow = {
 
 export default function QuestionsAdminPage() {
   const [rows, setRows] = useState<QRow[]>([]);
+  const [unanswered, setUnanswered] = useState(0);
   const [loading, setLoading] = useState(true);
   const [unansweredOnly, setUnansweredOnly] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,10 +25,11 @@ export default function QuestionsAdminPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function refresh() {
-    const res = await apiClient<{ questions: QRow[] }>(
+    const res = await apiClient<{ questions: QRow[]; unanswered?: number }>(
       `/admin/questions${unansweredOnly ? "?unanswered=1" : ""}`,
     );
     setRows(res.questions);
+    setUnanswered(res.unanswered ?? 0);
   }
 
   useEffect(() => {
@@ -61,7 +63,11 @@ export default function QuestionsAdminPage() {
     <AdminShell>
       <AdminPageHeader
         title="Questions"
-        description="Reply to learner questions about courses. Answers show on the course page."
+        description={
+          unanswered
+            ? `${unanswered} unanswered. Reply here and the answer shows on the course page.`
+            : "Reply to learner questions about courses. Answers show on the course page."
+        }
         action={
           <label className="d-flex align-items-center gap-2 mb-0">
             <input

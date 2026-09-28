@@ -1,5 +1,8 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import { ensureCertificateNumber } from "../lib/certificate-code.js";
+import { gatesForUser } from "../lib/course-gate.js";
+import { addSecondsSpent } from "../lib/time-spent.js";
 import { adminDb } from "../lib/db.js";
 import { hasCourseAccess } from "../lib/access.js";
 import { pdfQueue } from "../lib/queue.js";
@@ -24,12 +27,16 @@ courses.get("/:slug", async (c) => {
   if (!course) return c.json({ error: "Not found" }, 404);
 
   let unlocked = false;
+  let waitingOn: { title: string; slug: string } | null = null;
   const token = await getBearer(c);
   if (token) {
     const { data: userData } = await adminDb.auth.getUser(token);
     if (userData.user) {
       const { data: profile } = await adminDb.from("profiles").select("*").eq("id", userData.user.id).single();
-      if (profile) unlocked = await hasCourseAccess(profile, course.id);
+      if (profile) {
+        unlocked = await hasCourseAccess(profile, course.id);
+        if (!unlocked) waitingOn = (await gatesForUser(profile, [course.id]))[course.id] ?? null;
+      }
     }
   }
   if (!course.published && !unlocked) return c.json({ error: "Not found" }, 404);
@@ -79,6 +86,7 @@ courses.get("/:slug", async (c) => {
     lessons: safeLessons,
     resources,
     unlocked,
+    waitingOn,
     instructors,
   });
 });
@@ -86,6 +94,7 @@ courses.get("/:slug", async (c) => {
 const progressSchema = z.object({
   lessonId: z.string().uuid(),
   positionSeconds: z.number().int().min(0).optional(),
+  spentSeconds: z.number().int().min(0).max(60).optional(),
   completed: z.boolean().optional(),
 });
 
@@ -106,13 +115,32 @@ courses.post("/:slug/progress", async (c) => {
     return c.json({ error: "No access" }, 403);
   }
 
-  await adminDb.from("lesson_progress").upsert({
+  const { data: existingProgress } = await adminDb
+    .from("lesson_progress")
+    .select("completed")
+    .eq("user_id", auth.userId)
+    .eq("lesson_id", parsed.data.lessonId)
+    .maybeSingle();
+  const progressRow: {
+    user_id: string;
+    lesson_id: string;
+    position_seconds?: number;
+    completed?: boolean;
+    completed_at?: string;
+  } = {
     user_id: auth.userId,
     lesson_id: parsed.data.lessonId,
-    position_seconds: parsed.data.positionSeconds ?? 0,
-    completed: parsed.data.completed ?? false,
-    completed_at: parsed.data.completed ? new Date().toISOString() : null,
-  });
+  };
+  if (parsed.data.positionSeconds != null) progressRow.position_seconds = parsed.data.positionSeconds;
+  else if (!existingProgress) progressRow.position_seconds = 0;
+  if (parsed.data.completed === true) {
+    progressRow.completed = true;
+    progressRow.completed_at = new Date().toISOString();
+  } else if (!existingProgress) {
+    progressRow.completed = false;
+  }
+  await adminDb.from("lesson_progress").upsert(progressRow);
+  if (parsed.data.spentSeconds) await addSecondsSpent(auth.userId, parsed.data.lessonId, parsed.data.spentSeconds);
 
   if (parsed.data.completed) {
     await maybeIssueCertificate(auth.userId, course.id);
@@ -147,6 +175,7 @@ async function maybeIssueCertificate(userId: string, courseId: string) {
     .select("id")
     .single();
   if (cert) {
+    await ensureCertificateNumber(cert.id);
     await pdfQueue().add("certificate", { kind: "certificate", userId, courseId });
   }
 }

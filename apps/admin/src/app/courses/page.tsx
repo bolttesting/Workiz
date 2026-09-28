@@ -14,7 +14,7 @@ import {
   matchesQuery,
 } from "@/components/AdminUi";
 import { apiClient } from "@/lib/api";
-import { uploadAdminAsset, slugify, centsFromMajor, COURSE_CURRENCIES } from "@/lib/uploads";
+import { uploadAdminAsset, slugify, centsFromMajor } from "@/lib/uploads";
 import { COURSE_DEPARTMENTS, formatMoney, DIRHAM_SIGN } from "@workix/config";
 import type { Course } from "@workix/db/types";
 
@@ -27,7 +27,7 @@ const emptyForm = {
   description: "",
   thumbnail_url: "",
   price: 79,
-  currency: "usd",
+  currency: "aed",
   duration_minutes: 60,
   level: "Leadership",
   published: true,
@@ -205,7 +205,7 @@ export default function CoursesPage() {
               <label className="form-label">Price</label>
               <div className="input-group">
                 <span className="input-group-text dirham-sign" aria-hidden="true">
-                  {form.currency === "aed" ? DIRHAM_SIGN : "$"}
+                  {DIRHAM_SIGN}
                 </span>
                 <input
                   className="form-control radius-8"
@@ -215,21 +215,9 @@ export default function CoursesPage() {
                   value={form.price}
                   onChange={(e) => patchForm("price", Number(e.target.value))}
                 />
-                <select
-                  className="form-select radius-8"
-                  style={{ maxWidth: 100 }}
-                  value={form.currency}
-                  onChange={(e) => patchForm("currency", e.target.value)}
-                >
-                  {COURSE_CURRENCIES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
               </div>
               <p className="text-sm text-secondary-light mt-8 mb-0">
-                Enter amount in major units (e.g. 79.00), not cents.
+                Price in Dirhams (for example 79.00).
               </p>
             </div>
             <div className="col-md-4">
@@ -318,7 +306,7 @@ export default function CoursesPage() {
                     </td>
                     <td>{c.level || "—"}</td>
                     <td>{c.duration_minutes ? `${c.duration_minutes} min` : "—"}</td>
-                    <td>{formatMoney(c.price_cents, c.currency)}</td>
+                    <td className="dirham-sign">{formatMoney(c.price_cents, "aed")}</td>
                     <td>
                       <StatusBadge
                         label={c.published ? "Published" : "Draft"}

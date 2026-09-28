@@ -3,8 +3,26 @@ import { z } from "zod";
 import { stripe } from "../lib/stripe.js";
 import { adminDb } from "../lib/db.js";
 import { urls, type Authed } from "../lib/auth.js";
+import { listSeatPlans } from "../lib/plans.js";
+import { fulfillCheckoutSession } from "./webhooks.js";
 
 export const checkout = new Hono<{ Variables: { auth: Authed } }>();
+
+/**
+ * Local / no-webhook fallback: after Stripe redirects back, the app confirms
+ * the session with the Secret key and fulfills enrollments/seats.
+ */
+checkout.post("/confirm", async (c) => {
+  const auth = c.get("auth");
+  const { sessionId } = z.object({ sessionId: z.string().min(10) }).parse(await c.req.json());
+  const session = await stripe().checkout.sessions.retrieve(sessionId);
+  if (session.metadata?.userId && session.metadata.userId !== auth.userId && auth.profile.role !== "super_admin") {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+  const result = await fulfillCheckoutSession(session);
+  if (!result.ok) return c.json({ error: "Payment not complete yet", ...result }, 402);
+  return c.json(result);
+});
 
 checkout.post("/course", async (c) => {
   const auth = c.get("auth");
@@ -27,13 +45,13 @@ checkout.post("/course", async (c) => {
       {
         quantity: 1,
         price_data: {
-          currency: course.currency,
+          currency: "aed",
           unit_amount: course.price_cents,
           product_data: { name: course.title, description: course.subtitle ?? undefined },
         },
       },
     ],
-    success_url: `${urls().learn}/courses/${course.slug}?purchased=1`,
+    success_url: `${urls().learn}/courses/${course.slug}?purchased=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${urls().web}/courses/${course.slug}`,
     metadata: {
       kind: "course",
@@ -48,7 +66,7 @@ checkout.post("/course", async (c) => {
     kind: "course",
     course_id: course.id,
     amount_cents: course.price_cents,
-    currency: course.currency,
+    currency: "aed",
     status: "pending",
     stripe_checkout_session_id: session.id,
   });
@@ -87,7 +105,6 @@ checkout.post("/cart", async (c) => {
   }
 
   const amount = purchasable.reduce((sum, row) => sum + row.price_cents, 0);
-  const currency = purchasable[0]?.currency ?? "usd";
   const ids = purchasable.map((row) => row.id);
 
   const session = await stripe().checkout.sessions.create({
@@ -96,12 +113,12 @@ checkout.post("/cart", async (c) => {
     line_items: purchasable.map((course) => ({
       quantity: 1,
       price_data: {
-        currency: course.currency,
+        currency: "aed",
         unit_amount: course.price_cents,
         product_data: { name: course.title, description: course.subtitle ?? undefined },
       },
     })),
-    success_url: `${urls().learn}?purchased=1`,
+    success_url: `${urls().learn}?purchased=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${urls().web}/cart`,
     metadata: {
       kind: "cart",
@@ -116,7 +133,7 @@ checkout.post("/cart", async (c) => {
     kind: "course",
     course_id: ids[0],
     amount_cents: amount,
-    currency,
+    currency: "aed",
     status: "pending",
     stripe_checkout_session_id: session.id,
   });
@@ -129,13 +146,34 @@ checkout.post("/seats", async (c) => {
   const body = z
     .object({
       companyName: z.string().min(2),
-      seats: z.number().int().min(1).max(500),
+      seats: z.number().int().min(1).max(10000),
+      planId: z.string().min(1).optional(),
       billingEmail: z.string().email().optional(),
     })
     .parse(await c.req.json());
 
-  const priceId = process.env.STRIPE_SEAT_PRICE_ID;
-  if (!priceId) return c.json({ error: "Seat price is not configured" }, 500);
+  const plans = await listSeatPlans();
+  const plan = plans.find((row) => row.id === body.planId) ?? plans[0];
+  if (!plan) return c.json({ error: "No company package is available" }, 400);
+
+  let seats = body.seats;
+  let amountCents = plan.monthlyCents;
+  let unitAmount = plan.monthlyCents;
+  let quantity = 1;
+  if (plan.custom) {
+    const min = plan.minSeats ?? 1;
+    const max = plan.maxSeats ?? 10000;
+    seats = Math.max(min, Math.min(max, seats));
+    const perSeat = plan.pricePerSeatCents ?? Math.round(plan.monthlyCents / Math.max(plan.seats, 1));
+    unitAmount = perSeat;
+    quantity = seats;
+    amountCents = perSeat * seats;
+  } else {
+    seats = plan.seats;
+    unitAmount = plan.monthlyCents;
+    quantity = 1;
+    amountCents = plan.monthlyCents;
+  }
 
   let orgId = auth.profile.organization_id;
   if (!orgId) {
@@ -160,14 +198,25 @@ checkout.post("/seats", async (c) => {
   const session = await stripe().checkout.sessions.create({
     mode: "subscription",
     customer_email: body.billingEmail ?? auth.email,
-    line_items: [{ price: priceId, quantity: body.seats }],
-    success_url: `${urls().learn}/team?subscribed=1`,
+    line_items: [
+      {
+        quantity,
+        price_data: {
+          currency: "aed",
+          unit_amount: unitAmount,
+          recurring: { interval: "month" },
+          product_data: { name: `${plan.name} — ${seats} seats` },
+        },
+      },
+    ],
+    success_url: `${urls().learn}/team?subscribed=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${urls().web}/pricing`,
     metadata: {
       kind: "seats",
       userId: auth.userId,
       organizationId: orgId,
-      seats: String(body.seats),
+      seats: String(seats),
+      planId: plan.id,
     },
     subscription_data: {
       metadata: { organizationId: orgId },
@@ -178,9 +227,9 @@ checkout.post("/seats", async (c) => {
     user_id: auth.userId,
     organization_id: orgId,
     kind: "seats",
-    seat_quantity: body.seats,
-    amount_cents: 0,
-    currency: "usd",
+    seat_quantity: seats,
+    amount_cents: amountCents,
+    currency: "aed",
     status: "pending",
     stripe_checkout_session_id: session.id,
   });

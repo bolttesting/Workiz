@@ -1,5 +1,6 @@
 import PDFDocument from "pdfkit";
-import { putBuffer } from "./s3.js";
+import { buildInvoicePdf } from "./invoice-pdf.js";
+import { putBuffer, s3Configured } from "./s3.js";
 
 function collectPdf(doc: PDFKit.PDFDocument) {
   const chunks: Buffer[] = [];
@@ -20,28 +21,46 @@ export async function renderInvoicePdf(input: {
   currency: string;
   issuedAt: Date;
 }) {
-  const doc = new PDFDocument({ size: "A4", margin: 56 });
-  doc.fontSize(22).fillColor("#102846").text("WORKIZ", { continued: false });
-  doc.moveDown(0.3);
-  doc.fontSize(11).fillColor("#555").text("Invoice");
-  doc.moveDown();
-  doc.fillColor("#111").fontSize(12);
-  doc.text(`Invoice ${input.number}`);
-  doc.text(`Date ${input.issuedAt.toLocaleDateString("en-GB")}`);
-  doc.moveDown();
-  doc.text(input.customerName);
-  doc.text(input.customerEmail);
-  doc.moveDown();
-  doc.text(input.description);
-  doc.moveDown();
-  const amount = (input.amountCents / 100).toFixed(2);
-  doc.fontSize(16).text(`Total  ${input.currency.toUpperCase()} ${amount}`);
-  doc.moveDown(2);
-  doc.fontSize(9).fillColor("#777").text("Thank you for learning with WORKIZ.");
-  const buffer = await collectPdf(doc);
+  const buffer = await buildInvoicePdf(input);
   const key = `invoices/${input.number}.pdf`;
-  await putBuffer(key, buffer, "application/pdf");
-  return key;
+  if (!s3Configured()) return null;
+  try {
+    await putBuffer(key, buffer, "application/pdf");
+    return key;
+  } catch {
+    return null;
+  }
+}
+
+export async function buildCertificatePdf(input: {
+  learnerName: string;
+  courseTitle: string;
+  issuedAt: Date;
+  id: string;
+  number?: string | null;
+  companyName?: string | null;
+  issuer?: string | null;
+}) {
+  const doc = new PDFDocument({ size: "A4", layout: "landscape", margin: 48 });
+  doc.fontSize(14).fillColor("#b69856").text(input.issuer?.trim() || "WORKIZ", { align: "center" });
+  doc.moveDown();
+  doc.fontSize(28).fillColor("#102846").text("Certificate of Completion", { align: "center" });
+  doc.moveDown(1.5);
+  doc.fontSize(12).fillColor("#555").text("This certifies that", { align: "center" });
+  doc.moveDown(0.5);
+  doc.fontSize(24).fillColor("#111").text(input.learnerName, { align: "center" });
+  if (input.companyName) {
+    doc.moveDown(0.3);
+    doc.fontSize(12).fillColor("#555").text(input.companyName, { align: "center" });
+  }
+  doc.moveDown(0.5);
+  doc.fontSize(12).fillColor("#555").text("has completed", { align: "center" });
+  doc.moveDown(0.4);
+  doc.fontSize(18).fillColor("#111").text(input.courseTitle, { align: "center" });
+  doc.moveDown(1.2);
+  doc.fontSize(11).fillColor("#555").text(input.issuedAt.toLocaleDateString("en-GB"), { align: "center" });
+  doc.fontSize(9).text(input.number ? `Certificate ${input.number}` : `ID ${input.id}`, { align: "center" });
+  return collectPdf(doc);
 }
 
 export async function renderCertificatePdf(input: {
@@ -49,24 +68,17 @@ export async function renderCertificatePdf(input: {
   courseTitle: string;
   issuedAt: Date;
   id: string;
+  number?: string | null;
+  companyName?: string | null;
+  issuer?: string | null;
 }) {
-  const doc = new PDFDocument({ size: "A4", layout: "landscape", margin: 48 });
-  doc.fontSize(14).fillColor("#b69856").text("WORKIZ", { align: "center" });
-  doc.moveDown();
-  doc.fontSize(28).fillColor("#111").text("Certificate of Completion", { align: "center" });
-  doc.moveDown(1.5);
-  doc.fontSize(12).fillColor("#555").text("This certifies that", { align: "center" });
-  doc.moveDown(0.5);
-  doc.fontSize(24).fillColor("#111").text(input.learnerName, { align: "center" });
-  doc.moveDown(0.5);
-  doc.fontSize(12).fillColor("#555").text("has completed", { align: "center" });
-  doc.moveDown(0.4);
-  doc.fontSize(18).fillColor("#111").text(input.courseTitle, { align: "center" });
-  doc.moveDown(1.2);
-  doc.fontSize(11).fillColor("#555").text(input.issuedAt.toLocaleDateString("en-GB"), { align: "center" });
-  doc.fontSize(9).text(`ID ${input.id}`, { align: "center" });
-  const buffer = await collectPdf(doc);
+  const buffer = await buildCertificatePdf(input);
   const key = `certificates/${input.id}.pdf`;
-  await putBuffer(key, buffer, "application/pdf");
-  return key;
+  if (!s3Configured()) return null;
+  try {
+    await putBuffer(key, buffer, "application/pdf");
+    return key;
+  } catch {
+    return null;
+  }
 }

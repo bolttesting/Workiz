@@ -1,0 +1,44 @@
+[
+  {
+    "id": "growth",
+    "name": "Growth",
+    "blurb": "Multi-department workforces with admin course assignment.",
+    "seats": 10,
+    "monthlyCents": 34900,
+    "pricePerSeatCents": null,
+    "minSeats": null,
+    "maxSeats": null,
+    "custom": false,
+    "popular": true,
+    "features": [
+      "10 learner seats",
+      "Multi-department admin tools",
+      "Priority course assignment",
+      "Progress dashboards",
+      "Priority support"
+    ],
+    "sortOrder": 1,
+    "active": true
+  },
+  {
+    "id": "custom",
+    "name": "Custom",
+    "blurb": "Pick the exact seats you need — priced per learner.",
+    "seats": 250,
+    "monthlyCents": 500000,
+    "pricePerSeatCents": 2000,
+    "minSeats": 50,
+    "maxSeats": 500,
+    "custom": true,
+    "popular": false,
+    "features": [
+      "__SEATS__ learner seats",
+      "Everything in Growth",
+      "Dedicated onboarding help",
+      "Custom training rollout support",
+      "Account manager"
+    ],
+    "sortOrder": 2,
+    "active": true
+  }
+]

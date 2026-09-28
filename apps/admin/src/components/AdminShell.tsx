@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { apiClient } from "@/lib/api";
 import { createBrowserSupabase } from "@workix/db/browser";
 import { useEffect, useRef, useState } from "react";
 
@@ -15,6 +16,7 @@ const links = [
   { href: "/instructors", label: "Instructors", icon: "ri-user-star-line" },
   { href: "/users", label: "Users", icon: "ri-user-3-line" },
   { href: "/organizations", label: "Companies", icon: "ri-building-line" },
+  { href: "/packages", label: "Packages", icon: "ri-price-tag-3-line" },
   { href: "/orders", label: "Orders", icon: "ri-shopping-cart-line" },
   { href: "/invoices", label: "Invoices", icon: "ri-file-list-3-line" },
   { href: "/settings", label: "Settings", icon: "ri-settings-3-line" },
@@ -31,6 +33,7 @@ function initials(name: string) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [unanswered, setUnanswered] = useState(0);
   const [name, setName] = useState("Admin");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -53,6 +56,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       setAvatarUrl(profile?.avatar_url || null);
     });
   }, []);
+
+  useEffect(() => {
+    apiClient<{ unanswered?: number }>("/admin/questions?unanswered=1")
+      .then((res) => setUnanswered(res.unanswered ?? 0))
+      .catch(() => setUnanswered(0));
+  }, [pathname]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -130,7 +139,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <li key={link.href} className={active ? "active-page" : ""}>
                   <Link href={link.href} onClick={() => setMobileOpen(false)} title={link.label}>
                     <i className={link.icon} />
-                    <span>{link.label}</span>
+                    <span>
+                      {link.label}
+                      {link.href === "/questions" && unanswered > 0 ? ` (${unanswered})` : ""}
+                    </span>
                   </Link>
                 </li>
               );

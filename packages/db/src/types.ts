@@ -35,6 +35,7 @@ export type Profile = {
   avatar_url: string | null;
   role: UserRole;
   organization_id: string | null;
+  department_lead?: boolean;
   created_at: string;
 };
 
@@ -47,6 +48,9 @@ export type Organization = {
   status: OrgStatus;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  current_period_end?: string | null;
+  subscription_status?: string | null;
+  dashboard_note?: string | null;
 };
 
 export type Course = {
@@ -134,6 +138,7 @@ export type Enrollment = {
   user_id: string;
   course_id: string;
   source: EnrollmentSource;
+  due_at?: string | null;
 };
 
 export type CourseReview = {

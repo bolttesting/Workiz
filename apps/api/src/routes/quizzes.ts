@@ -163,7 +163,12 @@ quizzes.post("/:id/attempt", async (c) => {
       position_seconds: 0,
     });
   }
-  return c.json({ score, passed, passingScore: quiz.passing_score });
+  const missed = passed
+    ? []
+    : (questions ?? [])
+        .filter((question) => answers[question.id] !== correct.get(question.id))
+        .map((question) => ({ id: question.id as string, prompt: question.prompt as string }));
+  return c.json({ score, passed, passingScore: quiz.passing_score, missed });
 });
 
 quizzes.post("/lessons/:lessonId", async (c) => {

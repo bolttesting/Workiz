@@ -6,6 +6,11 @@ import { adminDb } from "../lib/db.js";
 import { presignPut, s3Configured } from "../lib/s3.js";
 import { storeMediaFile, hostingerConfigured, type MediaFolder } from "../lib/media-store.js";
 import { transcodeQueue } from "../lib/queue.js";
+import { ensureInvoiceForOrder } from "../lib/access.js";
+import { loadInvoiceForPdf } from "../lib/invoice-pdf.js";
+import { listSeatPlans, updateSeatPlan } from "../lib/plans.js";
+import { getPlatformSettings, savePlatformSettings } from "../lib/platform-settings.js";
+import { enrichOrganizationBilling } from "../lib/billing.js";
 
 export const admin = new Hono<{ Variables: { auth: Authed } }>();
 admin.use("*", requireRole("super_admin"));
@@ -86,7 +91,7 @@ const courseSchema = z.object({
   thumbnail_url: z.string().nullish(),
   cover_video_url: z.string().nullish(),
   price_cents: z.number().int().min(0),
-  currency: z.string().default("usd"),
+  currency: z.string().default("aed"),
   published: z.boolean().optional(),
   duration_minutes: z.number().int().nullish(),
   level: z.string().nullish(),
@@ -412,9 +417,76 @@ admin.patch("/users/:id", async (c) => {
   return c.json({ user: data });
 });
 
+admin.get("/organizations/learning", async (c) => {
+  const { data: people } = await adminDb.from("profiles").select("id, organization_id").not("organization_id", "is", null);
+  const members = (people ?? []).filter((person) => person.organization_id);
+  const memberIds = members.map((person) => person.id);
+  if (!memberIds.length) return c.json({ rows: [] as { organizationId: string; notStarted: number; finished: number }[] });
+
+  const { data: enrollments } = await adminDb.from("enrollments").select("user_id, course_id").in("user_id", memberIds);
+  const courseIds = Array.from(new Set((enrollments ?? []).map((row) => row.course_id)));
+  const { data: modules } = courseIds.length
+    ? await adminDb.from("modules").select("id, course_id").in("course_id", courseIds)
+    : { data: [] as { id: string; course_id: string }[] };
+  const moduleIds = (modules ?? []).map((mod) => mod.id);
+  const { data: lessons } = moduleIds.length
+    ? await adminDb.from("lessons").select("id, module_id").in("module_id", moduleIds)
+    : { data: [] as { id: string; module_id: string }[] };
+  const { data: progress } = await adminDb
+    .from("lesson_progress")
+    .select("user_id, lesson_id, completed")
+    .in("user_id", memberIds)
+    .eq("completed", true);
+
+  const moduleCourse = new Map((modules ?? []).map((mod) => [mod.id, mod.course_id]));
+  const courseOfLesson = new Map<string, string>();
+  const lessonCount = new Map<string, number>();
+  for (const lesson of lessons ?? []) {
+    const courseId = moduleCourse.get(lesson.module_id);
+    if (!courseId) continue;
+    courseOfLesson.set(lesson.id, courseId);
+    lessonCount.set(courseId, (lessonCount.get(courseId) ?? 0) + 1);
+  }
+  const doneCount = new Map<string, number>();
+  const started = new Set<string>();
+  for (const row of progress ?? []) {
+    if (!row.completed) continue;
+    started.add(row.user_id);
+    const courseId = courseOfLesson.get(row.lesson_id);
+    if (!courseId) continue;
+    const key = `${row.user_id}:${courseId}`;
+    doneCount.set(key, (doneCount.get(key) ?? 0) + 1);
+  }
+  const finishedByOrg = new Map<string, number>();
+  const orgOfUser = new Map(members.map((person) => [person.id, person.organization_id as string]));
+  for (const enrollment of enrollments ?? []) {
+    const total = lessonCount.get(enrollment.course_id) ?? 0;
+    const done = doneCount.get(`${enrollment.user_id}:${enrollment.course_id}`) ?? 0;
+    if (total > 0 && done >= total) {
+      const orgId = orgOfUser.get(enrollment.user_id);
+      if (orgId) finishedByOrg.set(orgId, (finishedByOrg.get(orgId) ?? 0) + 1);
+    }
+  }
+  const notStartedByOrg = new Map<string, number>();
+  for (const person of members) {
+    if (started.has(person.id)) continue;
+    const orgId = person.organization_id as string;
+    notStartedByOrg.set(orgId, (notStartedByOrg.get(orgId) ?? 0) + 1);
+  }
+  const orgIds = new Set<string>([...notStartedByOrg.keys(), ...finishedByOrg.keys()]);
+  return c.json({
+    rows: Array.from(orgIds).map((organizationId) => ({
+      organizationId,
+      notStarted: notStartedByOrg.get(organizationId) ?? 0,
+      finished: finishedByOrg.get(organizationId) ?? 0,
+    })),
+  });
+});
+
 admin.get("/organizations", async (c) => {
   const { data } = await adminDb.from("organizations").select("*").order("created_at", { ascending: false });
-  return c.json({ organizations: data ?? [] });
+  const organizations = await enrichOrganizationBilling(data ?? []);
+  return c.json({ organizations });
 });
 
 /** Create a company for offline / bank-transfer seat deals (no Stripe required). */
@@ -520,8 +592,76 @@ admin.get("/orders", async (c) => {
 });
 
 admin.get("/invoices", async (c) => {
+  const { data: paid } = await adminDb
+    .from("orders")
+    .select("*")
+    .eq("status", "paid")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  for (const order of paid ?? []) {
+    await ensureInvoiceForOrder(order);
+  }
   const { data } = await adminDb.from("invoices").select("*").order("issued_at", { ascending: false }).limit(200);
   return c.json({ invoices: data ?? [] });
+});
+
+admin.get("/invoices/:id/pdf", async (c) => {
+  const loaded = await loadInvoiceForPdf(c.req.param("id"));
+  if (!loaded) return c.json({ error: "Not found" }, 404);
+  const filename = `${loaded.invoice.number}.pdf`;
+  return c.body(new Uint8Array(loaded.buffer), 200, {
+    "Content-Type": "application/pdf",
+    "Content-Disposition": `attachment; filename="${filename}"`,
+  });
+});
+
+admin.get("/settings", async (c) => {
+  const settings = await getPlatformSettings();
+  return c.json({
+    settings,
+    emailConfigured: Boolean(process.env.RESEND_API_KEY?.trim()),
+    currency: "AED",
+  });
+});
+
+admin.patch("/settings", async (c) => {
+  const body = z
+    .object({
+      quizPassMark: z.number().int().min(1).max(100).optional(),
+      dueSoonDays: z.number().int().min(1).max(60).optional(),
+      inviteDays: z.number().int().min(1).max(30).optional(),
+      certificateIssuer: z.string().trim().min(1).max(80).optional(),
+    })
+    .parse(await c.req.json());
+  const settings = await savePlatformSettings(body);
+  return c.json({ settings });
+});
+
+admin.get("/plans", async (c) => {
+  return c.json({ plans: await listSeatPlans() });
+});
+
+admin.patch("/plans/:id", async (c) => {
+  const body = z
+    .object({
+      name: z.string().min(2).optional(),
+      blurb: z.string().optional(),
+      seats: z.number().int().min(1).max(10000).optional(),
+      monthlyCents: z.number().int().min(0).optional(),
+      pricePerSeatCents: z.number().int().min(0).nullable().optional(),
+      minSeats: z.number().int().min(1).nullable().optional(),
+      maxSeats: z.number().int().min(1).nullable().optional(),
+      features: z.array(z.string()).optional(),
+      popular: z.boolean().optional(),
+    })
+    .parse(await c.req.json());
+  try {
+    const plan = await updateSeatPlan(c.req.param("id"), body);
+    if (!plan) return c.json({ error: "Package not found" }, 404);
+    return c.json({ plan });
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400);
+  }
 });
 
 admin.get("/instructors", async (c) => {
@@ -606,7 +746,12 @@ admin.get("/questions", async (c) => {
     : { data: [] as never[] };
   const courseMap = new Map((courseRows ?? []).map((row) => [row.id, row]));
   const peopleMap = new Map((people ?? []).map((p) => [p.id, p]));
+  const { count: unanswered } = await adminDb
+    .from("course_questions")
+    .select("id", { count: "exact", head: true })
+    .is("answer_body", null);
   return c.json({
+    unanswered: unanswered ?? 0,
     questions: rows.map((q) => ({
       ...q,
       course: courseMap.get(q.course_id) ?? null,

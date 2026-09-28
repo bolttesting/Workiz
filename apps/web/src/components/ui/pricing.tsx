@@ -15,6 +15,7 @@ import NumberFlow from "@number-flow/react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { DIRHAM_SIGN } from "@workix/config";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-workiz-gold focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -131,6 +132,11 @@ function InteractiveStarfield({
   mousePosition: { x: number | null; y: number | null };
   containerRef: React.RefObject<HTMLDivElement | null>;
 }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+  if (!ready) {
+    return <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden" />;
+  }
   return (
     <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden">
       {Array.from({ length: 150 }).map((_, i) => (
@@ -350,12 +356,14 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
         <div className="mt-6 flex min-h-[7.5rem] flex-col items-center justify-start">
           <div className="flex items-baseline justify-center gap-x-1">
             <span className="text-4xl font-bold tracking-tight text-workiz-navy sm:text-5xl">
+              <span className="dirham-glyph" aria-hidden="true">
+                {DIRHAM_SIGN}
+              </span>
               <NumberFlow
                 value={displayPrice}
                 format={{
-                  style: "currency",
-                  currency: "USD",
                   minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
                 }}
                 className="font-variant-numeric: tabular-nums"
               />
@@ -367,7 +375,10 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
           {plan.isCustom ? (
             <>
               <p className="mt-2 text-sm font-medium text-workiz-navy">
-                ${monthlyPerSeat} per user / month
+                <span className="dirham-glyph" aria-hidden="true">
+                  {DIRHAM_SIGN}
+                </span>
+                {monthlyPerSeat} per user / month
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {isMonthly ? "Billed monthly" : "Billed annually (20% off)"} · {customSeats} seats

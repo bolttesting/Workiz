@@ -97,7 +97,7 @@ export default function OrdersPage() {
                       <td>
                         <StatusBadge label={o.status} tone={statusTone(o.status)} />
                       </td>
-                      <td>{formatMoney(o.amount_cents, o.currency)}</td>
+                      <td className="dirham-sign">{formatMoney(o.amount_cents, "aed")}</td>
                       <td>
                         <button
                           type="button"

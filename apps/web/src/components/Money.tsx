@@ -1,4 +1,4 @@
-import { DIRHAM_SIGN, formatMoney } from "@workix/config";
+import { DIRHAM_SIGN } from "@workix/config";
 
 type Props = {
   cents: number;
@@ -6,22 +6,18 @@ type Props = {
   className?: string;
 };
 
-/** Renders money; AED Dirham glyph is sized to match the digits. */
-export function Money({ cents, currency = "usd", className }: Props) {
-  const code = (currency || "usd").toUpperCase();
-  if (code === "AED") {
-    const amount = (cents / 100).toLocaleString("en-AE", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    return (
-      <span className={className}>
-        <span className="dirham-glyph" aria-hidden="true">
-          {DIRHAM_SIGN}
-        </span>
-        {amount}
+/** Every price uses the UAE Dirham sign. */
+export function Money({ cents, className }: Props) {
+  const amount = ((Number(cents) || 0) / 100).toLocaleString("en-AE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return (
+    <span className={className}>
+      <span className="dirham-glyph" aria-hidden="true">
+        {DIRHAM_SIGN}
       </span>
-    );
-  }
-  return <span className={className}>{formatMoney(cents, code)}</span>;
+      {amount}
+    </span>
+  );
 }

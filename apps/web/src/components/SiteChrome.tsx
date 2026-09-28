@@ -340,6 +340,9 @@ export function SiteFooter() {
                     <li>
                       <Link href="/blog">Blog</Link>
                     </li>
+                    <li>
+                      <Link href="/verify">Check a certificate</Link>
+                    </li>
                   </ul>
                 </div>
               </div>

@@ -1,7 +1,17 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
-import { CUSTOM_SEAT_PRICE_CENTS, SEAT_PLANS } from "@workix/config";
+
+export type SeatPlanSnapshot = {
+  id: string;
+  name: string;
+  seats: number;
+  monthlyCents: number;
+  custom: boolean;
+  pricePerSeatCents?: number | null;
+  minSeats?: number | null;
+  maxSeats?: number | null;
+};
 
 export type SeatsCartSelection = {
   planId: string;
@@ -95,18 +105,19 @@ function subscribe(listener: () => void) {
 }
 
 export function buildSeatsSelection(opts: {
-  planId: string;
+  plan: SeatPlanSnapshot;
   seats: number;
   companyName?: string;
 }): SeatsCartSelection | null {
-  const plan = SEAT_PLANS.find((row) => row.id === opts.planId);
-  if (!plan) return null;
+  const plan = opts.plan;
+  if (!plan?.id) return null;
 
   if (plan.custom) {
-    const min = plan.minSeats;
-    const max = plan.maxSeats;
+    const min = plan.minSeats ?? 1;
+    const max = plan.maxSeats ?? 10000;
     const seats = Math.max(min, Math.min(max, Math.round(opts.seats)));
-    const pricePerSeatCents = plan.pricePerSeatCents ?? CUSTOM_SEAT_PRICE_CENTS;
+    const pricePerSeatCents =
+      plan.pricePerSeatCents ?? Math.round(plan.monthlyCents / Math.max(plan.seats, 1));
     return {
       planId: plan.id,
       planName: plan.name,
@@ -121,7 +132,7 @@ export function buildSeatsSelection(opts: {
     planId: plan.id,
     planName: plan.name,
     seats: plan.seats,
-    pricePerSeatCents: Math.round(plan.monthlyCents / plan.seats),
+    pricePerSeatCents: Math.round(plan.monthlyCents / Math.max(plan.seats, 1)),
     monthlyCents: plan.monthlyCents,
     companyName: opts.companyName,
   };

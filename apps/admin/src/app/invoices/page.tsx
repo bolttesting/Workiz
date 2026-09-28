@@ -11,7 +11,7 @@ import {
   StatusBadge,
   matchesQuery,
 } from "@/components/AdminUi";
-import { apiClient } from "@/lib/api";
+import { apiClient, downloadFile } from "@/lib/api";
 import { formatMoney } from "@workix/config";
 
 type Invoice = {
@@ -28,6 +28,7 @@ export default function InvoicesPage() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -39,6 +40,18 @@ export default function InvoicesPage() {
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
   }, []);
+
+  async function download(inv: Invoice) {
+    setDownloading(inv.id);
+    setError(null);
+    try {
+      await downloadFile(`/admin/invoices/${inv.id}/pdf`, `${inv.number}.pdf`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setDownloading(null);
+    }
+  }
 
   const filtered = useMemo(
     () => invoices.filter((inv) => matchesQuery(query, [inv.number, inv.pdf_key, inv.id])),
@@ -67,7 +80,8 @@ export default function InvoicesPage() {
                   <th>Number</th>
                   <th>Issued</th>
                   <th>Amount</th>
-                  <th>PDF</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -75,12 +89,19 @@ export default function InvoicesPage() {
                   <tr key={inv.id}>
                     <td className="fw-medium text-primary-light">{inv.number}</td>
                     <td>{inv.issued_at?.slice(0, 10) || "—"}</td>
-                    <td>{formatMoney(inv.amount_cents, inv.currency)}</td>
+                    <td className="dirham-sign">{formatMoney(inv.amount_cents, "aed")}</td>
                     <td>
-                      <StatusBadge
-                        label={inv.pdf_key ? "Ready" : "Pending"}
-                        tone={inv.pdf_key ? "success" : "warning"}
-                      />
+                      <StatusBadge label="Paid" tone="success" />
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary-600 btn-sm radius-8"
+                        disabled={downloading === inv.id}
+                        onClick={() => void download(inv)}
+                      >
+                        {downloading === inv.id ? "Preparing…" : "Download"}
+                      </button>
                     </td>
                   </tr>
                 ))}

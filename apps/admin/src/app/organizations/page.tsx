@@ -16,6 +16,8 @@ import type { Organization, OrgStatus, Profile } from "@workix/db/types";
 
 const STATUS_OPTIONS: OrgStatus[] = ["incomplete", "active", "past_due", "canceled"];
 
+type SeatPackage = { id: string; name: string; seats: number; custom: boolean };
+
 function statusTone(status: string) {
   if (status === "active") return "success" as const;
   if (status === "past_due") return "warning" as const;
@@ -33,6 +35,8 @@ export default function OrgsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [draftLimits, setDraftLimits] = useState<Record<string, number>>({});
+  const [packages, setPackages] = useState<SeatPackage[]>([]);
+  const [learning, setLearning] = useState<Record<string, { notStarted: number; finished: number }>>({});
   const [form, setForm] = useState({
     name: "",
     billing_email: "",
@@ -41,12 +45,16 @@ export default function OrgsPage() {
   });
 
   async function refresh() {
-    const [orgRes, userRes] = await Promise.all([
+    const [orgRes, userRes, planRes, learningRes] = await Promise.all([
       apiClient<{ organizations: Organization[] }>("/admin/organizations"),
       apiClient<{ users: Profile[] }>("/admin/users"),
+      apiClient<{ plans: SeatPackage[] }>("/admin/plans"),
+      apiClient<{ rows: { organizationId: string; notStarted: number; finished: number }[] }>("/admin/organizations/learning"),
     ]);
     setOrgs(orgRes.organizations);
     setUsers(userRes.users);
+    setPackages(planRes.plans);
+    setLearning(Object.fromEntries(learningRes.rows.map((row) => [row.organizationId, row])));
     setDraftLimits(
       Object.fromEntries(orgRes.organizations.map((org) => [org.id, org.seat_limit])),
     );
@@ -218,6 +226,8 @@ export default function OrgsPage() {
                 <tr>
                   <th>Name</th>
                   <th>Seats</th>
+                  <th>Not started</th>
+                  <th>Courses finished</th>
                   <th>Seat limit</th>
                   <th>Status</th>
                   <th>Assign admin</th>
@@ -234,7 +244,9 @@ export default function OrgsPage() {
                     <td>
                       {o.seat_used}/{o.seat_limit}
                     </td>
-                    <td style={{ minWidth: 140 }}>
+                    <td>{learning[o.id]?.notStarted ?? 0}</td>
+                    <td>{learning[o.id]?.finished ?? 0}</td>
+                    <td style={{ minWidth: 180 }}>
                       <input
                         className="form-control form-control-sm radius-8"
                         type="number"
@@ -244,6 +256,25 @@ export default function OrgsPage() {
                           setDraftLimits((prev) => ({ ...prev, [o.id]: Number(e.target.value) }))
                         }
                       />
+                      <select
+                        className="form-select form-select-sm radius-8 mt-8"
+                        defaultValue=""
+                        disabled={busyId === o.id}
+                        onChange={(e) => {
+                          const plan = packages.find((row) => row.id === e.target.value);
+                          e.target.value = "";
+                          if (!plan) return;
+                          setDraftLimits((prev) => ({ ...prev, [o.id]: plan.seats }));
+                          void saveOrg(o, { seat_limit: plan.seats });
+                        }}
+                      >
+                        <option value="">Apply a package…</option>
+                        {packages.map((plan) => (
+                          <option key={plan.id} value={plan.id}>
+                            {plan.name} · {plan.seats} seats
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td>
                       <select
@@ -260,6 +291,13 @@ export default function OrgsPage() {
                       </select>
                       <div className="mt-8">
                         <StatusBadge label={o.status} tone={statusTone(o.status)} />
+                      </div>
+                      <div className="text-sm text-secondary-light mt-8">
+                        {o.stripe_subscription_id
+                          ? o.current_period_end
+                            ? `${o.status === "canceled" ? "Period ended" : o.status === "past_due" ? "Past due through" : "Renews"} ${o.current_period_end.slice(0, 10)}`
+                            : "Stripe subscription on file"
+                          : "No Stripe subscription"}
                       </div>
                     </td>
                     <td style={{ minWidth: 220 }}>

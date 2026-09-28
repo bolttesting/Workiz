@@ -1,3 +1,7 @@
+import { formatMoney } from "@workix/config";
+import { ensureCertificateNumber } from "../lib/certificate-code.js";
+import { companyNameForUser } from "../lib/org-note.js";
+import { getPlatformSettings } from "../lib/platform-settings.js";
 import { adminDb } from "../lib/db.js";
 import { nextInvoiceNumber } from "../lib/access.js";
 import { renderCertificatePdf, renderInvoicePdf } from "../lib/pdf.js";
@@ -15,7 +19,8 @@ export async function processPdfJob(job: PdfJob) {
     const { data: course } = order.course_id
       ? await adminDb.from("courses").select("title").eq("id", order.course_id).single()
       : { data: null };
-    const number = nextInvoiceNumber();
+    const { data: existing } = await adminDb.from("invoices").select("*").eq("order_id", order.id).maybeSingle();
+    const number = existing?.number ?? nextInvoiceNumber();
     const description =
       order.kind === "course"
         ? `Course: ${course?.title ?? "WORKIZ course"}`
@@ -27,20 +32,24 @@ export async function processPdfJob(job: PdfJob) {
       description,
       amountCents: order.amount_cents,
       currency: order.currency,
-      issuedAt: new Date(),
+      issuedAt: existing?.issued_at ? new Date(existing.issued_at) : new Date(),
     });
-    await adminDb.from("invoices").insert({
-      order_id: order.id,
-      number,
-      pdf_key,
-      amount_cents: order.amount_cents,
-      currency: order.currency,
-    });
+    if (existing) {
+      if (pdf_key) await adminDb.from("invoices").update({ pdf_key }).eq("id", existing.id);
+    } else {
+      await adminDb.from("invoices").insert({
+        order_id: order.id,
+        number,
+        pdf_key,
+        amount_cents: order.amount_cents,
+        currency: "aed",
+      });
+    }
     if (profile?.email) {
       await sendMail({
         to: profile.email,
         subject: `Invoice ${number}`,
-        html: `<p>Your invoice ${number} is ready.</p><p>Amount ${(order.amount_cents / 100).toFixed(2)} ${order.currency.toUpperCase()}</p>`,
+        html: `<p>Your invoice ${number} is ready.</p><p>Amount ${formatMoney(order.amount_cents, "aed")}</p><p><a href="${urls().learn}/invoices">Download it from your account</a></p>`,
       });
     }
     return;
@@ -55,13 +64,19 @@ export async function processPdfJob(job: PdfJob) {
     .eq("course_id", job.courseId)
     .maybeSingle();
   if (!profile || !course || !cert) return;
+  const number = await ensureCertificateNumber(cert.id, cert.number ?? null);
+  const companyName = await companyNameForUser(cert.user_id);
+  const platform = await getPlatformSettings();
   const pdf_key = await renderCertificatePdf({
     learnerName: profile.full_name || profile.email,
     courseTitle: course.title,
     issuedAt: new Date(),
     id: cert.id,
+    number,
+    companyName,
+    issuer: platform.certificateIssuer,
   });
-  await adminDb.from("certificates").update({ pdf_key }).eq("id", cert.id);
+  if (pdf_key) await adminDb.from("certificates").update({ pdf_key }).eq("id", cert.id);
   await sendMail({
     to: profile.email,
     subject: `Certificate: ${course.title}`,

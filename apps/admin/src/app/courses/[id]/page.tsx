@@ -7,7 +7,7 @@ import { AdminShell } from "@/components/AdminShell";
 import { AdminPageHeader, StatusBadge } from "@/components/AdminUi";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { apiClient } from "@/lib/api";
-import { uploadAdminAsset, centsFromMajor, majorFromCents, COURSE_CURRENCIES } from "@/lib/uploads";
+import { uploadAdminAsset, centsFromMajor, majorFromCents } from "@/lib/uploads";
 import { COURSE_DEPARTMENTS, DIRHAM_SIGN } from "@workix/config";
 import { QuizEditor } from "@/components/QuizEditor";
 import type { Course, Lesson, LessonResource, ModuleRow, MediaAsset } from "@workix/db/types";
@@ -20,6 +20,16 @@ const TABS: { id: TabId; label: string; hint: string }[] = [
   { id: "curriculum", label: "3. Curriculum", hint: "Chapters & lectures" },
   { id: "publish", label: "4. Publish", hint: "Price & go live" },
 ];
+
+async function defaultPassMark() {
+  try {
+    const res = await apiClient<{ settings: { quizPassMark: number } }>("/admin/settings");
+    const mark = res.settings.quizPassMark;
+    return mark >= 1 && mark <= 100 ? mark : 70;
+  } catch {
+    return 70;
+  }
+}
 
 function ArticleLessonEditor({
   initialHtml,
@@ -100,7 +110,6 @@ export default function CourseBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [priceMajor, setPriceMajor] = useState(0);
-  const [currency, setCurrency] = useState("usd");
   const [published, setPublished] = useState(false);
   const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
   const [basics, setBasics] = useState({
@@ -140,7 +149,6 @@ export default function CourseBuilderPage() {
     setMedia(res.media);
     setResources(res.resources ?? []);
     setPriceMajor(majorFromCents(res.course.price_cents));
-    setCurrency(res.course.currency || "usd");
     setPublished(Boolean(res.course.published));
     setBasics({
       title: res.course.title,
@@ -198,7 +206,7 @@ export default function CourseBuilderPage() {
     e.preventDefault();
     await saveCourse({
       price_cents: centsFromMajor(priceMajor),
-      currency,
+      currency: "aed",
       published,
     });
   }
@@ -247,7 +255,7 @@ export default function CourseBuilderPage() {
           method: "PUT",
           body: JSON.stringify({
             title: draft.title.trim() || "Lecture quiz",
-            passing_score: 70,
+            passing_score: await defaultPassMark(),
             questions: [
               {
                 prompt: "Sample question — edit this",
@@ -374,7 +382,7 @@ export default function CourseBuilderPage() {
       method: "PUT",
       body: JSON.stringify({
         title: "Lecture quiz",
-        passing_score: 70,
+        passing_score: await defaultPassMark(),
         questions: [
           {
             prompt: "Did you complete this lecture?",
@@ -912,7 +920,7 @@ export default function CourseBuilderPage() {
                 <label className="form-label">Price</label>
                 <div className="input-group">
                   <span className="input-group-text dirham-sign" aria-hidden="true">
-                    {currency === "aed" ? DIRHAM_SIGN : "$"}
+                    {DIRHAM_SIGN}
                   </span>
                   <input
                     className="form-control radius-8"
@@ -923,20 +931,7 @@ export default function CourseBuilderPage() {
                     onChange={(e) => setPriceMajor(Number(e.target.value))}
                   />
                 </div>
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Currency</label>
-                <select
-                  className="form-select radius-8"
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                >
-                  {COURSE_CURRENCIES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                <p className="text-sm text-secondary-light mt-8 mb-0">Price in Dirhams.</p>
               </div>
             </div>
 

@@ -22,22 +22,16 @@ export function publicUrls() {
 /** UAE Dirham sign (Unicode 18, U+20C3). Requires the Dirham web font until OS fonts catch up. */
 export const DIRHAM_SIGN = "\u20C3";
 
-export function formatMoney(cents: number, currency = "usd") {
-  const code = currency.toUpperCase();
-  const amount = cents / 100;
-  if (code === "AED") {
-    return `${DIRHAM_SIGN}\u00A0${amount.toLocaleString("en-AE", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: code,
-  }).format(amount);
+/** Every price in WORKIZ is shown in UAE Dirhams with the Dirham sign. */
+export function formatMoney(cents: number, _currency = "aed") {
+  const amount = (Number(cents) || 0) / 100;
+  return `${DIRHAM_SIGN}\u00A0${amount.toLocaleString("en-AE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
-/** Per-seat rate for the Custom plan ($20 / user / month). */
+/** Per-seat rate for the Custom plan (20 Dirhams / user / month). */
 export const CUSTOM_SEAT_PRICE_CENTS = 2000;
 
 export const COURSE_DEPARTMENTS = [

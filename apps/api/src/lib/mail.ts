@@ -11,14 +11,19 @@ export function fromAddress() {
 }
 
 export async function sendMail(opts: { to: string; subject: string; html: string }) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY?.trim()) {
     console.warn("[email:skip]", opts.subject, opts.to);
-    return;
+    return { sent: false as const, error: "Email is not configured, so nothing was sent." };
   }
-  await resend().emails.send({
+  const { error } = await resend().emails.send({
     from: fromAddress(),
     to: opts.to,
     subject: opts.subject,
     html: opts.html,
   });
+  if (error) {
+    console.error("[email:fail]", error.message);
+    return { sent: false as const, error: error.message };
+  }
+  return { sent: true as const };
 }

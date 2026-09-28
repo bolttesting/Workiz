@@ -184,7 +184,7 @@ export default function AdminHome() {
     },
     {
       label: "Revenue",
-      value: formatMoney(stats.revenueCents, "usd"),
+      value: formatMoney(stats.revenueCents, "aed"),
       meta: `${stats.orders} paid orders`,
       icon: "ri-money-dollar-circle-line",
     },
@@ -264,7 +264,7 @@ export default function AdminHome() {
                     <p>Paid checkout total over the last 12 months</p>
                   </div>
                   <span className="workiz-dash-panel__pill dirham-sign">
-                    {formatMoney(stats.revenueCents, "usd")}
+                    {formatMoney(stats.revenueCents, "aed")}
                   </span>
                 </div>
                 <div ref={chartRef} className="workiz-admin-chart" />
@@ -321,7 +321,7 @@ export default function AdminHome() {
                           <td>
                             <StatusBadge label={order.kind} tone="info" />
                           </td>
-                          <td className="dirham-sign">{formatMoney(order.amount_cents, order.currency)}</td>
+                          <td className="dirham-sign">{formatMoney(order.amount_cents, "aed")}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -364,7 +364,7 @@ export default function AdminHome() {
                               tone={course.published ? "success" : "warning"}
                             />
                           </td>
-                          <td className="dirham-sign">{formatMoney(course.price_cents, course.currency)}</td>
+                          <td className="dirham-sign">{formatMoney(course.price_cents, "aed")}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -2,9 +2,11 @@ import { Hono } from "hono";
 import type Stripe from "stripe";
 import { stripe } from "../lib/stripe.js";
 import { adminDb } from "../lib/db.js";
+import { ensureInvoiceForOrder } from "../lib/access.js";
 import { pdfQueue } from "../lib/queue.js";
 import { sendMail } from "../lib/mail.js";
 import { urls } from "../lib/auth.js";
+import { periodEndIso, rememberPeriodEnd } from "../lib/billing.js";
 
 export const webhooks = new Hono();
 
@@ -21,7 +23,7 @@ webhooks.post("/stripe", async (c) => {
   }
 
   if (event.type === "checkout.session.completed") {
-    await onCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+    await fulfillCheckoutSession(event.data.object as Stripe.Checkout.Session);
   }
   if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
     await onSubscription(event.data.object as Stripe.Subscription);
@@ -29,7 +31,12 @@ webhooks.post("/stripe", async (c) => {
   return c.json({ received: true });
 });
 
-async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
+/** Apply paid checkout (webhook or success-page confirm). Idempotent. */
+export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
+  if (session.payment_status !== "paid" && session.status !== "complete") {
+    return { ok: false as const, reason: "not_paid" };
+  }
+
   const kind = session.metadata?.kind;
   const { data: order } = await adminDb
     .from("orders")
@@ -71,19 +78,38 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
         stripe_subscription_id: typeof session.subscription === "string" ? session.subscription : null,
       })
       .eq("id", session.metadata.organizationId);
+    if (typeof session.subscription === "string") {
+      try {
+        const sub = await stripe().subscriptions.retrieve(session.subscription);
+        await rememberPeriodEnd(session.metadata.organizationId, periodEndIso(sub));
+      } catch {
+        /* period end shows after the next subscription event */
+      }
+    }
   }
 
   if (order) {
-    await pdfQueue().add("invoice", { kind: "invoice", orderId: order.id });
+    await ensureInvoiceForOrder(order);
+    try {
+      await pdfQueue().add("invoice", { kind: "invoice", orderId: order.id });
+    } catch {
+      /* redis optional locally */
+    }
     const email = session.customer_details?.email || session.customer_email;
     if (email) {
-      await sendMail({
-        to: email,
-        subject: "Your WORKIZ receipt",
-        html: `<p>Thanks for your purchase.</p><p>Open your learning space: <a href="${urls().learn}">${urls().learn}</a></p>`,
-      });
+      try {
+        await sendMail({
+          to: email,
+          subject: "Your WORKIZ receipt",
+          html: `<p>Thanks for your purchase.</p><p>Open your learning space: <a href="${urls().learn}">${urls().learn}</a></p>`,
+        });
+      } catch {
+        /* mail optional locally */
+      }
     }
   }
+
+  return { ok: true as const, kind: kind ?? null, orderId: order?.id ?? null };
 }
 
 async function onSubscription(sub: Stripe.Subscription) {
@@ -104,4 +130,5 @@ async function onSubscription(sub: Stripe.Subscription) {
       stripe_subscription_id: sub.id,
     })
     .eq("id", orgId);
+  await rememberPeriodEnd(orgId, periodEndIso(sub));
 }

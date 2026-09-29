@@ -66,6 +66,7 @@ export function LegalPage({
   sections: LegalSection[];
   contact?: {
     email?: string;
+    emails?: string[];
     phone?: string;
     address?: string;
   };
@@ -134,12 +135,12 @@ export function LegalPage({
                   {contactNote ? <p className="workiz-legal__contact-note">{contactNote}</p> : null}
                 </div>
                 <ul className="workiz-legal__contact-list">
-                  {contact.email ? (
-                    <li>
+                  {(contact.emails?.length ? contact.emails : contact.email ? [contact.email] : []).map((email) => (
+                    <li key={email}>
                       <span>Email</span>
-                      <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                      <a href={`mailto:${email}`}>{email}</a>
                     </li>
-                  ) : null}
+                  ))}
                   {contact.phone ? (
                     <li>
                       <span>Phone</span>

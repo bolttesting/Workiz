@@ -11,6 +11,10 @@ type Settings = {
   dueSoonDays: number;
   inviteDays: number;
   certificateIssuer: string;
+  whatsapp: string;
+  phone: string;
+  emails: string[];
+  address: string;
 };
 
 const related = [
@@ -33,7 +37,13 @@ export default function SettingsPage() {
   useEffect(() => {
     apiClient<{ settings: Settings; emailConfigured: boolean }>("/admin/settings")
       .then((res) => {
-        setSettings(res.settings);
+        setSettings({
+          ...res.settings,
+          whatsapp: res.settings.whatsapp ?? "",
+          phone: res.settings.phone ?? "",
+          emails: res.settings.emails?.length ? res.settings.emails : [""],
+          address: res.settings.address ?? "",
+        });
         setEmailConfigured(res.emailConfigured);
         setError(null);
       })
@@ -44,16 +54,22 @@ export default function SettingsPage() {
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!settings) return;
+    const emails = settings.emails.map((email) => email.trim()).filter(Boolean);
+    if (emails.some((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      setError("Enter a valid email, or remove the empty row.");
+      setOk(null);
+      return;
+    }
     setSaving(true);
     setError(null);
     setOk(null);
     try {
       const res = await apiClient<{ settings: Settings }>("/admin/settings", {
         method: "PATCH",
-        body: JSON.stringify(settings),
+        body: JSON.stringify({ ...settings, emails }),
       });
       setSettings(res.settings);
-      setOk("Settings saved.");
+      setOk("Settings saved. The website contact details update on the next visit.");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -65,7 +81,7 @@ export default function SettingsPage() {
     <AdminShell>
       <AdminPageHeader
         title="Settings"
-        description="Rules for quizzes, due dates, invites, and the name printed on certificates."
+        description="Learning rules, and the WhatsApp number, call number, emails, and address shown on the website."
       />
       {error ? (
         <div className="alert alert-danger radius-8 mb-24" role="alert">
@@ -143,6 +159,87 @@ export default function SettingsPage() {
                     required
                   />
                   <p className="text-sm text-secondary-light mb-0 mt-8">Printed at the top of the certificate. The learner’s company name is printed under their name.</p>
+                </div>
+                <div className="border-top pt-16 mt-8">
+                  <h6 className="mb-8 fw-semibold">Contact details</h6>
+                  <p className="text-sm text-secondary-light mb-16">Shown on the website contact page, the help button, and the legal pages. Leave a number blank to hide that button.</p>
+                </div>
+                <div>
+                  <label className="form-label" htmlFor="whatsapp">
+                    WhatsApp number
+                  </label>
+                  <input
+                    id="whatsapp"
+                    className="form-control radius-8"
+                    type="tel"
+                    value={settings.whatsapp}
+                    maxLength={40}
+                    placeholder="+971 4 320 8888"
+                    onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="form-label" htmlFor="call-number">
+                    Call number
+                  </label>
+                  <input
+                    id="call-number"
+                    className="form-control radius-8"
+                    type="tel"
+                    value={settings.phone}
+                    maxLength={40}
+                    placeholder="+971 4 320 8888"
+                    onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <span className="form-label">Emails</span>
+                  <div className="d-flex flex-column gap-2">
+                    {settings.emails.map((email, index) => (
+                      <div key={index} className="d-flex gap-2">
+                        <input
+                          className="form-control radius-8"
+                          type="email"
+                          value={email}
+                          maxLength={120}
+                          aria-label={`Email ${index + 1}`}
+                          onChange={(e) => {
+                            const emails = [...settings.emails];
+                            emails[index] = e.target.value;
+                            setSettings({ ...settings, emails });
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger-600 radius-8"
+                          onClick={() => setSettings({ ...settings, emails: settings.emails.filter((_, i) => i !== index) })}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary-600 radius-8 align-self-start"
+                      disabled={settings.emails.length >= 8}
+                      onClick={() => setSettings({ ...settings, emails: [...settings.emails, ""] })}
+                    >
+                      Add email
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label" htmlFor="address">
+                    Address
+                  </label>
+                  <textarea
+                    id="address"
+                    className="form-control radius-8"
+                    rows={3}
+                    maxLength={300}
+                    value={settings.address}
+                    onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                  />
                 </div>
                 <button className="btn btn-primary-600 radius-8 align-self-start" type="submit" disabled={saving}>
                   {saving ? "Saving…" : "Save settings"}

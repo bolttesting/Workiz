@@ -1,6 +1,8 @@
 import { LegalPage } from "@/components/LegalPage";
+import { fetchPublicContact } from "@/lib/contact";
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const contact = await fetchPublicContact();
   return (
     <LegalPage
       title="Privacy Policy"
@@ -50,11 +52,7 @@ export default function PrivacyPolicyPage() {
           ],
         },
       ]}
-      contact={{
-        email: "hello@workiz.com",
-        phone: "+971 4 320 8888",
-        address: "Workiz Support Solutions - FZCO, Dubai Silicon Oasis, Dubai, United Arab Emirates",
-      }}
+      contact={{ emails: contact.emails, phone: contact.phone, address: contact.address }}
       contactIntro="For questions about this Privacy Policy or how your information is handled, contact us at:"
       contactHeading="Contact Us"
     />

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { LearnShell } from "@/components/LearnShell";
-import { EmptyState, LoadingState, StatusBadge } from "@/components/LearnUi";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
+import { EmptyState, StatusBadge } from "@/components/LearnUi";
 import { apiClient, downloadFile } from "@/lib/api";
 import { formatMoney } from "@workix/config";
 import type { Course, Enrollment, Lesson, ModuleRow, Organization, Profile } from "@workix/db/types";
@@ -53,7 +54,12 @@ export default function LearnHome() {
     try {
       const [me, owned, progress, certs, bills] = await Promise.all([
         apiClient<{ profile: Profile; organization: Organization | null }>("/me"),
-        apiClient<{ enrollments: Enrollment[]; courses: Course[]; gates?: Record<string, { title: string; slug: string } | null> }>("/me/enrollments"),
+        apiClient<{
+          enrollments: Enrollment[];
+          courses: Course[];
+          gates?: Record<string, { title: string; slug: string } | null>;
+          outlines?: Record<string, { id: string; title: string }[]>;
+        }>("/me/enrollments"),
         apiClient<{ progress: ProgressRow[] }>("/me/progress"),
         apiClient<{ certificates: Certificate[] }>("/me/certificates"),
         apiClient<{ invoices: Invoice[] }>("/me/invoices"),
@@ -71,18 +77,22 @@ export default function LearnHome() {
         owned.enrollments.map(async (enrollment) => {
           const course = byCourse.get(enrollment.course_id);
           if (!course) return null;
-          let lessons: Lesson[] = [];
-          let modules: ModuleRow[] = [];
-          try {
-            const outline = await apiClient<{ modules: ModuleRow[]; lessons: Lesson[] }>(`/courses/${course.slug}`);
-            modules = outline.modules;
-            lessons = outline.lessons;
-          } catch {
-            lessons = [];
+          const packed = owned.outlines?.[course.id];
+          let ordered: { id: string; title: string }[] = packed ?? [];
+          if (!packed) {
+            let lessons: Lesson[] = [];
+            let modules: ModuleRow[] = [];
+            try {
+              const outline = await apiClient<{ modules: ModuleRow[]; lessons: Lesson[] }>(`/courses/${course.slug}`);
+              modules = outline.modules;
+              lessons = outline.lessons;
+            } catch {
+              lessons = [];
+            }
+            ordered = modules.length
+              ? modules.flatMap((mod) => lessons.filter((lesson) => lesson.module_id === mod.id))
+              : lessons;
           }
-          const ordered = modules.length
-            ? modules.flatMap((mod) => lessons.filter((lesson) => lesson.module_id === mod.id))
-            : lessons;
           const total = ordered.length;
           const done = ordered.filter((lesson) => completed.has(lesson.id)).length;
           const next = ordered.find((lesson) => !completed.has(lesson.id));
@@ -123,19 +133,48 @@ export default function LearnHome() {
   const lessonTotal = rows.reduce((sum, row) => sum + row.total, 0);
   const lessonPct = lessonTotal > 0 ? Math.min(100, Math.round((lessonDone / lessonTotal) * 100)) : 0;
   const firstName = profile?.full_name?.trim().split(/\s+/)[0];
-
-  const quickActions = [
-    { href: next ? `/courses/${next.course.slug}` : "/catalog", label: next ? "Continue" : "Browse catalog", hint: next ? next.course.title : "Find a course to buy", icon: "ri-play-circle-fill" },
-    { href: "/catalog", label: "Catalog", hint: "Published courses", icon: "ri-book-2-fill" },
-    { href: "/certificates", label: "Certificates", hint: "PDFs you have earned", icon: "ri-award-fill" },
-    { href: "/invoices", label: "Invoices", hint: "Your purchases", icon: "ri-file-list-3-fill" },
-  ];
+  const notStarted = rows.filter((row) => row.status === "new").length;
+  const courseTotal = Math.max(rows.length, 1);
 
   const metrics = [
-    { label: "Courses", value: String(rows.length), meta: `${inProgress} in progress`, icon: "ri-book-open-line" },
-    { label: "Lessons done", value: String(lessonDone), meta: lessonTotal ? `${lessonTotal} in your courses` : "No lessons yet", icon: "ri-checkbox-circle-line" },
-    { label: "Certificates", value: String(certificates.length), meta: finished ? `${finished} courses finished` : "Finish a course to earn one", icon: "ri-award-line" },
-    { label: "Invoices", value: String(invoices.length), meta: "Purchase records", icon: "ri-file-list-3-line" },
+    {
+      label: "Courses",
+      value: String(rows.length),
+      meta: inProgress ? `${inProgress} in progress` : "None in progress",
+      icon: "ri-book-open-line",
+      tint: "gradient-bg-end-1",
+      bubble: "bg-warning-600",
+    },
+    {
+      label: "Lessons done",
+      value: String(lessonDone),
+      meta: lessonTotal ? `of ${lessonTotal} lessons` : "No lessons yet",
+      icon: "ri-checkbox-circle-line",
+      tint: "gradient-bg-end-2",
+      bubble: "bg-blue-600",
+    },
+    {
+      label: "Certificates",
+      value: String(certificates.length),
+      meta: finished ? `${finished} courses finished` : "Finish a course to earn one",
+      icon: "ri-award-line",
+      tint: "gradient-bg-end-5",
+      bubble: "bg-success-600",
+    },
+    {
+      label: "Invoices",
+      value: String(invoices.length),
+      meta: "Paid purchases",
+      icon: "ri-file-list-3-line",
+      tint: "gradient-bg-end-3",
+      bubble: "bg-purple-600",
+    },
+  ];
+
+  const mix = [
+    { label: "In progress", count: inProgress, color: "bg-primary-600" },
+    { label: "Not started", count: notStarted, color: "bg-warning-600" },
+    { label: "Finished", count: finished, color: "bg-success-600" },
   ];
 
   return (
@@ -148,20 +187,20 @@ export default function LearnHome() {
           </button>
         </div>
       ) : null}
-      {loading ? <LoadingState message="Loading dashboard…" /> : null}
+      {loading ? <DashboardSkeleton /> : null}
       {!loading ? (
         <div className="workiz-dash">
-          <section className="workiz-dash-hero">
-            <div className="workiz-dash-hero__copy">
-              <p className="workiz-dash-hero__eyebrow">WORKIZ LEARN</p>
-              <h1 className="workiz-dash-hero__title">{firstName ? `${firstName}'s learning` : "Your learning"}</h1>
-              <p className="workiz-dash-hero__lede">
+          <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <h6 className="fw-semibold mb-0">Dashboard</h6>
+              <p className="text-neutral-600 mt-4 mb-0">
+                {firstName ? `${firstName}, ` : ""}
                 {next
-                  ? `Next up: ${next.nextLesson || next.course.title}.`
-                  : "Courses you own, certificates, and invoices in one place."}
+                  ? `next up is ${next.nextLesson || next.course.title}.`
+                  : "Courses you own, certificates, and invoices."}
               </p>
             </div>
-            <div className="workiz-dash-hero__actions">
+            <div className="d-flex flex-wrap gap-2">
               {next ? (
                 <Link href={`/courses/${next.course.slug}`} className="btn btn-primary-600 radius-8 px-20">
                   Continue
@@ -171,78 +210,105 @@ export default function LearnHome() {
                 Browse catalog
               </Link>
             </div>
-          </section>
+          </div>
 
           {note ? (
-            <section className="workiz-dash-panel">
-              <div className="workiz-dash-panel__head">
-                <div>
-                  <h2>From your company</h2>
-                </div>
+            <div className="card shadow-1 radius-8">
+              <div className="card-body p-20">
+                <h6 className="text-lg mb-8">From your company</h6>
+                <p className="mb-0 text-secondary-light">{note}</p>
               </div>
-              <p className="mb-0">{note}</p>
-            </section>
+            </div>
           ) : null}
 
           {next ? (
-            <section className="workiz-dash-panel">
-              <div className="workiz-dash-panel__head">
+            <div className="card shadow-1 radius-8">
+              <div className="card-body p-20 d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div>
-                  <h2>Next lesson</h2>
-                  <p>
+                  <h6 className="mb-4">{next.nextLesson || next.course.title}</h6>
+                  <p className="mb-0 text-sm text-secondary-light">
                     {next.course.title} · {next.source === "seat" ? "Assigned" : "Purchased"}
                   </p>
                 </div>
-                <Link href={`/courses/${next.course.slug}`} className="btn btn-primary-600 radius-8">
+                <Link href={`/courses/${next.course.slug}`} className="btn btn-primary-600 radius-8 px-20">
                   Continue
                 </Link>
               </div>
-              <p className="mb-0 fw-medium text-primary-light">{next.nextLesson || next.course.title}</p>
-            </section>
+            </div>
           ) : null}
-
-          <section className="workiz-dash-actions" aria-label="Quick actions">
-            {quickActions.map((item) => (
-              <Link key={item.label} href={item.href} className="workiz-dash-action">
-                <span className="workiz-dash-action__icon" aria-hidden="true">
-                  <i className={item.icon} />
-                </span>
-                <span>
-                  <strong>{item.label}</strong>
-                  <small>{item.hint}</small>
-                </span>
-                <i className="ri-arrow-right-up-line workiz-dash-action__arrow" aria-hidden="true" />
-              </Link>
-            ))}
-          </section>
-
-          <section className="workiz-dash-metrics" aria-label="Learning summary">
-            {metrics.map((metric) => (
-              <article key={metric.label} className="workiz-dash-metric">
-                <div className="workiz-dash-metric__top">
-                  <span className="workiz-dash-metric__icon" aria-hidden="true">
-                    <i className={metric.icon} />
-                  </span>
-                  <span className="workiz-dash-metric__label">{metric.label}</span>
-                </div>
-                <p className="workiz-dash-metric__value">{metric.value}</p>
-                <p className="workiz-dash-metric__meta">{metric.meta}</p>
-              </article>
-            ))}
-          </section>
 
           <div className="row gy-4">
             <div className="col-xxl-8">
-              <div className="workiz-dash-panel">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Your courses</h2>
-                    <p>Purchased courses and company seats</p>
+              <div className="row gy-4">
+                {metrics.map((metric) => (
+                  <div key={metric.label} className="col-sm-6">
+                    <div className={`card shadow-1 radius-8 h-100 ${metric.tint}`}>
+                      <div className="card-body p-20">
+                        <div className="d-flex flex-wrap align-items-center gap-3 mb-16">
+                          <div className={`w-44-px h-44-px ${metric.bubble} rounded-circle d-flex justify-content-center align-items-center`}>
+                            <i className={`${metric.icon} text-white text-xl`} aria-hidden="true" />
+                          </div>
+                          <p className="fw-medium text-primary-light mb-0">{metric.label}</p>
+                        </div>
+                        <h6 className="mb-0">{metric.value}</h6>
+                        <p className="fw-medium text-sm text-primary-light mt-12 mb-0">{metric.meta}</p>
+                      </div>
+                    </div>
                   </div>
-                  <Link href="/my-courses" className="workiz-dash-panel__link">
-                    My courses
-                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="col-xxl-4">
+              <div className="card h-100">
+                <div className="card-body p-0">
+                  <div className="d-flex align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
+                    <h6 className="text-lg mb-0">Course mix</h6>
+                  </div>
+                  <div className="p-20">
+                    {rows.length === 0 ? (
+                      <p className="mb-0 text-secondary-light">No courses yet. Browse the catalog or wait for a company seat.</p>
+                    ) : (
+                      <>
+                        <div className="d-flex gap-2">
+                          {mix.map((item) =>
+                            item.count > 0 ? (
+                              <div
+                                key={item.label}
+                                className={`h-44-px ${item.color} rounded`}
+                                style={{ width: `${Math.max(12, Math.round((item.count / courseTotal) * 100))}%` }}
+                              />
+                            ) : null,
+                          )}
+                        </div>
+                        <div className="mt-32 d-flex flex-column gap-24">
+                          {mix.map((item) => (
+                            <div key={item.label} className="d-flex align-items-center justify-content-between">
+                              <div className="d-flex align-items-center gap-2">
+                                <span className={`w-12-px h-12-px radius-2 ${item.color}`} />
+                                <span className="text-neutral-600">{item.label}</span>
+                              </div>
+                              <span className="fw-semibold text-primary-light">{item.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-sm text-secondary-light mt-24 mb-0">{lessonPct}% of lessons complete</p>
+                      </>
+                    )}
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card shadow-1 radius-8">
+            <div className="card-body p-0">
+              <div className="d-flex flex-wrap align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
+                <h6 className="text-lg mb-0">Your courses</h6>
+                <Link href="/my-courses" className="text-primary-600 fw-semibold text-sm">
+                  My courses
+                </Link>
+              </div>
+              <div className="p-20">
                 <div className="workiz-admin-table-wrap">
                   <table className="table workiz-dash-table mb-0">
                     <thead>
@@ -284,47 +350,19 @@ export default function LearnHome() {
                 ) : null}
               </div>
             </div>
-            <div className="col-xxl-4">
-              <div className="workiz-dash-panel workiz-dash-panel--seat h-100">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Lesson progress</h2>
-                    <p>Across every course you can open</p>
-                  </div>
-                </div>
-                <p className="workiz-dash-seat__figure">
-                  {lessonDone}
-                  <span> / {lessonTotal}</span>
-                </p>
-                <div className="workiz-dash-seat__bar" role="progressbar" aria-valuenow={lessonPct} aria-valuemin={0} aria-valuemax={100}>
-                  <span style={{ width: `${lessonPct}%` }} />
-                </div>
-                <p className="workiz-dash-seat__pct">{lessonPct}% of lessons complete</p>
-                {next ? (
-                  <Link href={`/courses/${next.course.slug}`} className="btn btn-outline-primary-600 radius-8 w-100 mt-auto">
-                    Continue {next.course.title}
-                  </Link>
-                ) : (
-                  <Link href="/catalog" className="btn btn-outline-primary-600 radius-8 w-100 mt-auto">
-                    Browse catalog
-                  </Link>
-                )}
-              </div>
-            </div>
           </div>
 
           <div className="row gy-4">
             <div className="col-xxl-6">
-              <div className="workiz-dash-panel">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Certificates</h2>
-                    <p>Issued when every lesson is complete</p>
+              <div className="card shadow-1 radius-8 h-100">
+                <div className="card-body p-0">
+                  <div className="d-flex flex-wrap align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
+                    <h6 className="text-lg mb-0">Certificates</h6>
+                    <Link href="/certificates" className="text-primary-600 fw-semibold text-sm">
+                      View all
+                    </Link>
                   </div>
-                  <Link href="/certificates" className="workiz-dash-panel__link">
-                    View all
-                  </Link>
-                </div>
+                  <div className="p-20">
                 <div className="workiz-admin-table-wrap">
                   <table className="table workiz-dash-table mb-0">
                     <thead>
@@ -361,19 +399,20 @@ export default function LearnHome() {
                   </table>
                 </div>
                 {certificates.length === 0 ? <EmptyState message="Finish every lesson in a course to earn a PDF certificate." /> : null}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="col-xxl-6">
-              <div className="workiz-dash-panel">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Invoices</h2>
-                    <p>Your paid checkouts</p>
+              <div className="card shadow-1 radius-8 h-100">
+                <div className="card-body p-0">
+                  <div className="d-flex flex-wrap align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
+                    <h6 className="text-lg mb-0">Invoices</h6>
+                    <Link href="/invoices" className="text-primary-600 fw-semibold text-sm">
+                      View all
+                    </Link>
                   </div>
-                  <Link href="/invoices" className="workiz-dash-panel__link">
-                    View all
-                  </Link>
-                </div>
+                  <div className="p-20">
                 <div className="workiz-admin-table-wrap">
                   <table className="table workiz-dash-table mb-0">
                     <thead>
@@ -413,6 +452,8 @@ export default function LearnHome() {
                   </table>
                 </div>
                 {invoices.length === 0 ? <EmptyState message="Purchases show up here after checkout." /> : null}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

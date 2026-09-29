@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AdminShell } from "@/components/AdminShell";
-import { EmptyState, LoadingState, StatusBadge } from "@/components/AdminUi";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
+import { EmptyState, StatusBadge } from "@/components/AdminUi";
 import { apiClient } from "@/lib/api";
-import { formatMoney } from "@workix/config";
+import { DIRHAM_SIGN, formatMoney } from "@workix/config";
 
 type RevenueMonth = { month: string; revenueCents: number; orders: number };
 type RecentOrder = {
@@ -149,12 +150,12 @@ export default function AdminHome() {
         yaxis: {
           labels: {
             style: { colors: "#6b7280", fontSize: "11px" },
-            formatter: (value: number) => `$${value.toFixed(0)}`,
+            formatter: (value: number) => `${DIRHAM_SIGN} ${value.toFixed(0)}`,
           },
         },
         tooltip: {
           theme: "light",
-          y: { formatter: (value: number) => `$${value.toFixed(2)}` },
+          y: { formatter: (value: number) => `${DIRHAM_SIGN} ${value.toFixed(2)}` },
         },
         grid: { borderColor: "rgba(16,40,70,0.08)", strokeDashArray: 4 },
       });
@@ -172,23 +173,64 @@ export default function AdminHome() {
 
   const seatPct =
     stats.seatsLimit > 0 ? Math.min(100, Math.round((stats.seatsUsed / stats.seatsLimit) * 100)) : 0;
+  const seatsOpen = Math.max(0, stats.seatsLimit - stats.seatsUsed);
+  const draftCourses = Math.max(0, stats.courses - stats.publishedCourses);
+  const months = stats.revenueByMonth;
+  const latest = months[months.length - 1];
+  const previous = months.length > 1 ? months[months.length - 2] : undefined;
+  const revenueDelta =
+    latest && previous && previous.revenueCents > 0
+      ? Math.round(((latest.revenueCents - previous.revenueCents) / previous.revenueCents) * 100)
+      : null;
 
   const metrics = [
-    { label: "Learners & admins", value: stats.users.toLocaleString(), meta: "All profiles", icon: "ri-user-3-line" },
-    { label: "Companies", value: stats.orgs.toLocaleString(), meta: "Seat accounts", icon: "ri-building-line" },
+    {
+      label: "People",
+      value: stats.users.toLocaleString(),
+      meta: "Learners and admins",
+      icon: "ri-user-3-line",
+      tint: "gradient-bg-end-1",
+      bubble: "bg-warning-600",
+    },
+    {
+      label: "Companies",
+      value: stats.orgs.toLocaleString(),
+      meta: "Seat accounts",
+      icon: "ri-building-line",
+      tint: "gradient-bg-end-2",
+      bubble: "bg-blue-600",
+    },
     {
       label: "Live courses",
-      value: `${stats.publishedCourses}`,
-      meta: `${stats.courses} total · ${stats.quizzes} quizzes`,
+      value: String(stats.publishedCourses),
+      meta: `${stats.courses} in the catalog · ${stats.quizzes} quizzes`,
       icon: "ri-book-open-line",
+      tint: "gradient-bg-end-5",
+      bubble: "bg-success-600",
     },
     {
       label: "Revenue",
       value: formatMoney(stats.revenueCents, "aed"),
-      meta: `${stats.orders} paid orders`,
+      meta:
+        revenueDelta === null
+          ? `${stats.orders} paid orders`
+          : `${revenueDelta > 0 ? "+" : ""}${revenueDelta}% vs ${monthLabel(previous?.month || "")}`,
       icon: "ri-money-dollar-circle-line",
+      tint: "gradient-bg-end-3",
+      bubble: "bg-purple-600",
     },
   ];
+
+  const seatMix = [
+    { label: "Seats in use", count: stats.seatsUsed, color: "bg-primary-600" },
+    { label: "Seats open", count: seatsOpen, color: "bg-success-600" },
+  ];
+  const courseMix = [
+    { label: "Published", count: stats.publishedCourses, color: "bg-warning-600" },
+    { label: "Drafts", count: draftCourses, color: "bg-purple-600" },
+  ];
+  const seatTotal = Math.max(stats.seatsLimit, 1);
+  const courseTotal = Math.max(stats.courses, 1);
 
   return (
     <AdminShell>
@@ -198,19 +240,16 @@ export default function AdminHome() {
         </div>
       ) : null}
 
-      {loading ? <LoadingState message="Loading dashboard…" /> : null}
+      {loading ? <DashboardSkeleton /> : null}
 
       {!loading ? (
         <div className="workiz-dash">
-          <section className="workiz-dash-hero">
-            <div className="workiz-dash-hero__copy">
-              <p className="workiz-dash-hero__eyebrow">WORKIZ OPERATIONS</p>
-              <h1 className="workiz-dash-hero__title">Command center</h1>
-              <p className="workiz-dash-hero__lede">
-                Publish courses, build quizzes in the curriculum, and keep seats and revenue in view.
-              </p>
+          <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <h6 className="fw-semibold mb-0">Dashboard</h6>
+              <p className="text-neutral-600 mt-4 mb-0">Courses, company seats, and paid revenue.</p>
             </div>
-            <div className="workiz-dash-hero__actions">
+            <div className="d-flex flex-wrap gap-2">
               <Link href="/courses" className="btn btn-primary-600 radius-8 px-20">
                 Manage courses
               </Link>
@@ -223,160 +262,197 @@ export default function AdminHome() {
                 View website
               </a>
             </div>
-          </section>
+          </div>
 
-          <section className="workiz-dash-actions" aria-label="Quick actions">
+          <div className="d-flex flex-wrap gap-2">
             {quickActions.map((item) => (
-              <Link key={item.href} href={item.href} className="workiz-dash-action">
-                <span className="workiz-dash-action__icon" aria-hidden="true">
-                  <i className={item.icon} />
-                </span>
-                <span>
-                  <strong>{item.label}</strong>
-                  <small>{item.hint}</small>
-                </span>
-                <i className="ri-arrow-right-up-line workiz-dash-action__arrow" aria-hidden="true" />
+              <Link key={item.href} href={item.href} className="btn btn-outline-primary-600 radius-8 px-16 py-8 d-inline-flex align-items-center gap-2">
+                <i className={item.icon} aria-hidden="true" />
+                {item.label}
               </Link>
             ))}
-          </section>
-
-          <section className="workiz-dash-metrics" aria-label="Key metrics">
-            {metrics.map((m) => (
-              <article key={m.label} className="workiz-dash-metric">
-                <div className="workiz-dash-metric__top">
-                  <span className="workiz-dash-metric__icon" aria-hidden="true">
-                    <i className={m.icon} />
-                  </span>
-                  <span className="workiz-dash-metric__label">{m.label}</span>
-                </div>
-                <p className="workiz-dash-metric__value">{m.value}</p>
-                <p className="workiz-dash-metric__meta">{m.meta}</p>
-              </article>
-            ))}
-          </section>
+          </div>
 
           <div className="row gy-4">
             <div className="col-xxl-8">
-              <div className="workiz-dash-panel">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Revenue</h2>
-                    <p>Paid checkout total over the last 12 months</p>
+              <div className="row gy-4">
+                {metrics.map((metric) => (
+                  <div key={metric.label} className="col-sm-6">
+                    <div className={`card shadow-1 radius-8 h-100 ${metric.tint}`}>
+                      <div className="card-body p-20">
+                        <div className="d-flex flex-wrap align-items-center gap-3 mb-16">
+                          <div className={`w-44-px h-44-px ${metric.bubble} rounded-circle d-flex justify-content-center align-items-center`}>
+                            <i className={`${metric.icon} text-white text-xl`} aria-hidden="true" />
+                          </div>
+                          <p className="fw-medium text-primary-light mb-0">{metric.label}</p>
+                        </div>
+                        <h6 className="mb-0">{metric.value}</h6>
+                        <p className="fw-medium text-sm text-primary-light mt-12 mb-0">{metric.meta}</p>
+                      </div>
+                    </div>
                   </div>
-                  <span className="workiz-dash-panel__pill dirham-sign">
-                    {formatMoney(stats.revenueCents, "aed")}
-                  </span>
-                </div>
-                <div ref={chartRef} className="workiz-admin-chart" />
+                ))}
               </div>
             </div>
             <div className="col-xxl-4">
-              <div className="workiz-dash-panel workiz-dash-panel--seat h-100">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Seat capacity</h2>
-                    <p>Across all company accounts</p>
+              <div className="card h-100">
+                <div className="card-body p-0">
+                  <div className="d-flex align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
+                    <h6 className="text-lg mb-0">Seats and catalog</h6>
+                  </div>
+                  <div className="p-20">
+                    <p className="text-sm text-neutral-600 mb-8">Seats</p>
+                    <div className="d-flex gap-2 mb-16">
+                      {seatMix.map((item) =>
+                        item.count > 0 ? (
+                          <div
+                            key={item.label}
+                            className={`h-44-px ${item.color} rounded`}
+                            style={{ width: `${Math.max(12, Math.round((item.count / seatTotal) * 100))}%` }}
+                          />
+                        ) : null,
+                      )}
+                    </div>
+                    <p className="text-sm text-neutral-600 mb-8">Catalog</p>
+                    <div className="d-flex gap-2">
+                      {courseMix.map((item) =>
+                        item.count > 0 ? (
+                          <div
+                            key={item.label}
+                            className={`h-44-px ${item.color} rounded`}
+                            style={{ width: `${Math.max(12, Math.round((item.count / courseTotal) * 100))}%` }}
+                          />
+                        ) : null,
+                      )}
+                    </div>
+                    <div className="mt-32 d-flex flex-column gap-16">
+                      {[...seatMix, ...courseMix].map((item) => (
+                        <div key={item.label} className="d-flex align-items-center justify-content-between">
+                          <div className="d-flex align-items-center gap-2">
+                            <span className={`w-12-px h-12-px radius-2 ${item.color}`} />
+                            <span className="text-neutral-600">{item.label}</span>
+                          </div>
+                          <span className="fw-semibold text-primary-light">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-secondary-light mt-24 mb-16">{seatPct}% of seats filled</p>
+                    <Link href="/organizations" className="btn btn-outline-primary-600 radius-8 w-100">
+                      Manage companies
+                    </Link>
                   </div>
                 </div>
-                <p className="workiz-dash-seat__figure">
-                  {stats.seatsUsed}
-                  <span> / {stats.seatsLimit || 0}</span>
-                </p>
-                <div className="workiz-dash-seat__bar" role="progressbar" aria-valuenow={seatPct} aria-valuemin={0} aria-valuemax={100}>
-                  <span style={{ width: `${seatPct}%` }} />
-                </div>
-                <p className="workiz-dash-seat__pct">{seatPct}% used</p>
-                <Link href="/organizations" className="btn btn-outline-primary-600 radius-8 w-100 mt-auto">
-                  Manage companies
-                </Link>
               </div>
             </div>
           </div>
 
-          <div className="row gy-4 mt-1">
-            <div className="col-xxl-6">
-              <div className="workiz-dash-panel">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Recent orders</h2>
-                    <p>Latest paid checkouts</p>
+          <div className="row gy-4">
+            <div className="col-xxl-8">
+              <div className="card shadow-1 radius-8 h-100">
+                <div className="card-body p-0">
+                  <div className="d-flex flex-wrap align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200 gap-2">
+                    <h6 className="text-lg mb-0">Revenue</h6>
+                    <span className="fw-semibold text-primary-600 dirham-sign">{formatMoney(stats.revenueCents, "aed")}</span>
                   </div>
-                  <Link href="/orders" className="workiz-dash-panel__link">
-                    View all
+                  <div className="p-20">
+                    <div ref={chartRef} className="workiz-admin-chart" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-xxl-4">
+              <div className="card shadow-1 radius-8 h-100">
+                <div className="card-body p-20 d-flex flex-column">
+                  <h6 className="text-lg mb-8">Quizzes</h6>
+                  <p className="text-secondary-light mb-16">Open a course, then Curriculum, and add a lecture with type Quiz.</p>
+                  <p className="fw-semibold text-primary-light mb-24">{stats.quizzes} quizzes in the catalog</p>
+                  <Link href="/courses" className="btn btn-outline-primary-600 radius-8 w-100 mt-auto">
+                    Open courses
                   </Link>
                 </div>
-                <div className="workiz-admin-table-wrap">
-                  <table className="table workiz-dash-table mb-0">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Kind</th>
-                        <th>Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stats.recentOrders.map((order) => (
-                        <tr key={order.id}>
-                          <td>{order.created_at?.slice(0, 10) || "—"}</td>
-                          <td>
-                            <StatusBadge label={order.kind} tone="info" />
-                          </td>
-                          <td className="dirham-sign">{formatMoney(order.amount_cents, "aed")}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              </div>
+            </div>
+          </div>
+
+          <div className="row gy-4">
+            <div className="col-xxl-6">
+              <div className="card shadow-1 radius-8 h-100">
+                <div className="card-body p-0">
+                  <div className="d-flex flex-wrap align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
+                    <h6 className="text-lg mb-0">Recent orders</h6>
+                    <Link href="/orders" className="text-primary-600 fw-semibold text-sm">
+                      View all
+                    </Link>
+                  </div>
+                  <div className="p-20">
+                    <div className="workiz-admin-table-wrap">
+                      <table className="table workiz-dash-table mb-0">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Kind</th>
+                            <th>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.recentOrders.map((order) => (
+                            <tr key={order.id}>
+                              <td>{order.created_at?.slice(0, 10) || "—"}</td>
+                              <td>
+                                <StatusBadge label={order.kind} tone="info" />
+                              </td>
+                              <td className="dirham-sign">{formatMoney(order.amount_cents, "aed")}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {stats.recentOrders.length === 0 ? <EmptyState message="No paid orders yet." /> : null}
+                  </div>
                 </div>
-                {stats.recentOrders.length === 0 ? <EmptyState message="No paid orders yet." /> : null}
               </div>
             </div>
             <div className="col-xxl-6">
-              <div className="workiz-dash-panel">
-                <div className="workiz-dash-panel__head">
-                  <div>
-                    <h2>Courses</h2>
-                    <p>Edit curriculum &amp; quizzes inside each course</p>
+              <div className="card shadow-1 radius-8 h-100">
+                <div className="card-body p-0">
+                  <div className="d-flex flex-wrap align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
+                    <h6 className="text-lg mb-0">Courses</h6>
+                    <Link href="/courses" className="text-primary-600 fw-semibold text-sm">
+                      View all
+                    </Link>
                   </div>
-                  <Link href="/courses" className="workiz-dash-panel__link">
-                    View all
-                  </Link>
-                </div>
-                <div className="workiz-admin-table-wrap">
-                  <table className="table workiz-dash-table mb-0">
-                    <thead>
-                      <tr>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stats.recentCourses.map((course) => (
-                        <tr key={course.id}>
-                          <td>
-                            <Link href={`/courses/${course.id}`} className="workiz-dash-course-link">
-                              {course.title}
-                            </Link>
-                          </td>
-                          <td>
-                            <StatusBadge
-                              label={course.published ? "Published" : "Draft"}
-                              tone={course.published ? "success" : "warning"}
-                            />
-                          </td>
-                          <td className="dirham-sign">{formatMoney(course.price_cents, "aed")}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {stats.recentCourses.length === 0 ? <EmptyState message="No courses yet." /> : null}
-                <div className="workiz-dash-tip">
-                  <i className="ri-questionnaire-line" aria-hidden="true" />
-                  <p>
-                    <strong>Quizzes live in Curriculum.</strong> Open a course → tab 3 → add a lecture with type{" "}
-                    <em>Quiz</em>. The question editor opens automatically.
-                  </p>
+                  <div className="p-20">
+                    <div className="workiz-admin-table-wrap">
+                      <table className="table workiz-dash-table mb-0">
+                        <thead>
+                          <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.recentCourses.map((course) => (
+                            <tr key={course.id}>
+                              <td>
+                                <Link href={`/courses/${course.id}`} className="workiz-dash-course-link">
+                                  {course.title}
+                                </Link>
+                              </td>
+                              <td>
+                                <StatusBadge
+                                  label={course.published ? "Published" : "Draft"}
+                                  tone={course.published ? "success" : "warning"}
+                                />
+                              </td>
+                              <td className="dirham-sign">{formatMoney(course.price_cents, "aed")}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {stats.recentCourses.length === 0 ? <EmptyState message="No courses yet." /> : null}
+                  </div>
                 </div>
               </div>
             </div>

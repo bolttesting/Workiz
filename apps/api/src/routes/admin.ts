@@ -624,16 +624,29 @@ admin.get("/settings", async (c) => {
   });
 });
 
+const phoneField = z
+  .string()
+  .trim()
+  .max(40)
+  .refine((value) => value === "" || value.replace(/\D/g, "").length >= 7, "Enter a full phone number, or leave it blank.");
+
 admin.patch("/settings", async (c) => {
-  const body = z
+  const parsed = z
     .object({
       quizPassMark: z.number().int().min(1).max(100).optional(),
       dueSoonDays: z.number().int().min(1).max(60).optional(),
       inviteDays: z.number().int().min(1).max(30).optional(),
       certificateIssuer: z.string().trim().min(1).max(80).optional(),
+      whatsapp: phoneField.optional(),
+      phone: phoneField.optional(),
+      emails: z.array(z.string().trim().email("Enter a valid email.").max(120)).max(8).optional(),
+      address: z.string().trim().max(300).optional(),
     })
-    .parse(await c.req.json());
-  const settings = await savePlatformSettings(body);
+    .safeParse(await c.req.json());
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0]?.message || "Check the settings and try again." }, 400);
+  }
+  const settings = await savePlatformSettings(parsed.data);
   return c.json({ settings });
 });
 

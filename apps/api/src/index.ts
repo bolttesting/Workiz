@@ -17,6 +17,7 @@ import { instructor, publicInstructors } from "./routes/instructors.js";
 import { blog, adminBlog } from "./routes/blog.js";
 import { processPdfJob } from "./jobs/pdf.js";
 import { listSeatPlans } from "./lib/plans.js";
+import { getPlatformSettings, publicContact } from "./lib/platform-settings.js";
 import { verify } from "./routes/verify.js";
 
 type Vars = { auth: Authed };
@@ -48,6 +49,7 @@ app.use(
 
 app.get("/health", (c) => c.json({ ok: true, service: "workix-api" }));
 app.get("/plans", async (c) => c.json({ plans: await listSeatPlans() }));
+app.get("/contact", async (c) => c.json({ contact: publicContact(await getPlatformSettings()) }));
 app.route("/", verify);
 app.route("/webhooks", webhooks);
 app.route("/courses", courseEngagement);

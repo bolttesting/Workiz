@@ -3,11 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Phone, X } from "lucide-react";
-
-const WHATSAPP_URL =
-  "https://wa.me/97143208888?text=" +
-  encodeURIComponent("Hi Workiz — I need help with company seats / training.");
-const CALL_URL = "tel:+97143208888";
+import { CONTACT_DEFAULTS, fetchPublicContact, telHref, whatsappHref, type PublicContact } from "@/lib/contact";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -19,8 +15,21 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 export function HelpWidget() {
   const [open, setOpen] = useState(false);
+  const [contact, setContact] = useState<PublicContact>(CONTACT_DEFAULTS);
   const reduceMotion = useReducedMotion();
   const panelId = useId();
+  const whatsapp = whatsappHref(contact.whatsapp);
+  const call = telHref(contact.phone);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicContact().then((next) => {
+      if (!cancelled) setContact(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -64,19 +73,30 @@ export function HelpWidget() {
             </div>
 
             <div className="workiz-help__actions">
-              <a
-                href={WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="workiz-help__btn workiz-help__btn--whatsapp"
-              >
-                <WhatsAppIcon className="workiz-help__btn-icon" />
-                WhatsApp
-              </a>
-              <a href={CALL_URL} className="workiz-help__btn workiz-help__btn--call">
-                <Phone size={18} strokeWidth={2.2} aria-hidden="true" />
-                Call
-              </a>
+              {whatsapp ? (
+                <a
+                  href={whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="workiz-help__btn workiz-help__btn--whatsapp"
+                >
+                  <WhatsAppIcon className="workiz-help__btn-icon" />
+                  <span className="workiz-help__btn-copy">
+                    <span>WhatsApp</span>
+                    <span className="workiz-help__btn-number">{contact.whatsapp}</span>
+                  </span>
+                </a>
+              ) : null}
+              {call ? (
+                <a href={call} className="workiz-help__btn workiz-help__btn--call">
+                  <Phone size={18} strokeWidth={2.2} aria-hidden="true" />
+                  <span className="workiz-help__btn-copy">
+                    <span>Call</span>
+                    <span className="workiz-help__btn-number">{contact.phone}</span>
+                  </span>
+                </a>
+              ) : null}
+              {!whatsapp && !call ? <p className="workiz-help__subtitle">Contact details are not set yet.</p> : null}
             </div>
           </motion.div>
         ) : null}

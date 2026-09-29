@@ -43,7 +43,12 @@ export default function MyCoursesPage() {
     let cancelled = false;
     setLoading(true);
     Promise.all([
-      apiClient<{ enrollments: Enrollment[]; courses: Course[]; gates?: Record<string, { title: string } | null> }>("/me/enrollments"),
+      apiClient<{
+        enrollments: Enrollment[];
+        courses: Course[];
+        gates?: Record<string, { title: string } | null>;
+        outlines?: Record<string, { id: string; title: string }[]>;
+      }>("/me/enrollments"),
       apiClient<{ progress: ProgressRow[] }>("/me/progress"),
     ])
       .then(async ([owned, progress]) => {
@@ -53,18 +58,22 @@ export default function MyCoursesPage() {
           owned.enrollments.map(async (enrollment) => {
             const course = byCourse.get(enrollment.course_id);
             if (!course) return null;
-            let lessons: Lesson[] = [];
-            let modules: ModuleRow[] = [];
-            try {
-              const outline = await apiClient<{ modules: ModuleRow[]; lessons: Lesson[] }>(`/courses/${course.slug}`);
-              modules = outline.modules;
-              lessons = outline.lessons;
-            } catch {
-              lessons = [];
+            const packed = owned.outlines?.[course.id];
+            let ordered: { id: string; title: string }[] = packed ?? [];
+            if (!packed) {
+              let lessons: Lesson[] = [];
+              let modules: ModuleRow[] = [];
+              try {
+                const outline = await apiClient<{ modules: ModuleRow[]; lessons: Lesson[] }>(`/courses/${course.slug}`);
+                modules = outline.modules;
+                lessons = outline.lessons;
+              } catch {
+                lessons = [];
+              }
+              ordered = modules.length
+                ? modules.flatMap((mod) => lessons.filter((lesson) => lesson.module_id === mod.id))
+                : lessons;
             }
-            const ordered = modules.length
-              ? modules.flatMap((mod) => lessons.filter((lesson) => lesson.module_id === mod.id))
-              : lessons;
             const total = ordered.length;
             const done = ordered.filter((lesson) => completed.has(lesson.id)).length;
             const next = ordered.find((lesson) => !completed.has(lesson.id));

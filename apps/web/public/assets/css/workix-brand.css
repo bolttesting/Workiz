@@ -4298,16 +4298,32 @@ img[src*="top-star.png"] {
 .workiz-help__btn {
   display: inline-flex !important;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 52px;
-  padding: 0 18px !important;
-  border-radius: 999px !important;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 58px;
+  height: auto;
+  padding: 10px 18px !important;
+  border-radius: 18px !important;
   font-family: Outfit, sans-serif;
   font-size: 15px;
   font-weight: 700;
   text-decoration: none !important;
   box-shadow: none !important;
+  text-align: left;
+}
+
+.workiz-help__btn-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.workiz-help__btn-number {
+  font-size: 13px;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  opacity: 0.92;
 }
 
 .workiz-help__btn-icon {
@@ -4936,6 +4952,16 @@ img[src*="top-star.png"] {
 }
 
 @media (max-width: 991px) {
+  .workiz-help {
+    left: auto;
+    right: max(16px, env(safe-area-inset-right));
+    align-items: flex-end;
+  }
+
+  section.hero_area.style-one .hero_content {
+    padding-bottom: 5.5rem;
+  }
+
   .workiz-cart__layout {
     grid-template-columns: 1fr;
   }
@@ -4975,13 +5001,28 @@ img[src*="top-star.png"] {
   }
 
   .workiz-help {
-    left: max(12px, env(safe-area-inset-left));
+    left: auto;
+    right: max(12px, env(safe-area-inset-right));
     bottom: max(16px, env(safe-area-inset-bottom));
+    align-items: flex-end;
+  }
+
+  section.hero_area.style-one .hero_content {
+    padding-bottom: 5.5rem;
   }
 }
 
 
 
+
+.section_title h2.workiz-home-title,
+.course-offer-content h2.workiz-home-title {
+  font-size: clamp(1.45rem, 1.15rem + 0.8vw, 1.85rem) !important;
+  line-height: 1.25 !important;
+  font-weight: 650;
+  margin: 0 0 0.4rem;
+  color: #102846;
+}
 
 /* Course reviews & Q&A */
 .workiz-engage { margin-top: 8px; }

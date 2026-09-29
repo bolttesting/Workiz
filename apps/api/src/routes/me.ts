@@ -15,6 +15,36 @@ const AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export const me = new Hono<{ Variables: { auth: Authed } }>();
 
+async function lessonOutlines(courseIds: string[]) {
+  const outlines: Record<string, { id: string; title: string }[]> = {};
+  for (const id of courseIds) outlines[id] = [];
+  if (!courseIds.length) return outlines;
+  const { data: modules } = await adminDb
+    .from("modules")
+    .select("id, course_id, sort_order")
+    .in("course_id", courseIds)
+    .order("sort_order");
+  const moduleIds = (modules ?? []).map((mod) => mod.id);
+  const { data: lessons } = moduleIds.length
+    ? await adminDb.from("lessons").select("id, title, module_id, sort_order").in("module_id", moduleIds).order("sort_order")
+    : { data: [] as { id: string; title: string; module_id: string; sort_order: number }[] };
+  const byCourse = new Map<string, { id: string; sort_order: number }[]>();
+  for (const mod of modules ?? []) {
+    const list = byCourse.get(mod.course_id) ?? [];
+    list.push(mod);
+    byCourse.set(mod.course_id, list);
+  }
+  for (const courseId of courseIds) {
+    const mods = byCourse.get(courseId) ?? [];
+    outlines[courseId] = mods.flatMap((mod) =>
+      (lessons ?? [])
+        .filter((lesson) => lesson.module_id === mod.id)
+        .map((lesson) => ({ id: lesson.id, title: lesson.title })),
+    );
+  }
+  return outlines;
+}
+
 me.get("/", async (c) => {
   const auth = c.get("auth");
   let organization = null;
@@ -77,7 +107,8 @@ me.get("/enrollments", async (c) => {
   const ids = (enrollments ?? []).map((e) => e.course_id);
   const { data: courses } = ids.length ? await adminDb.from("courses").select("*").in("id", ids) : { data: [] as never[] };
   const gates = await gatesForUser(auth.profile, ids);
-  return c.json({ enrollments: enrollments ?? [], courses: courses ?? [], gates });
+  const outlines = await lessonOutlines(ids);
+  return c.json({ enrollments: enrollments ?? [], courses: courses ?? [], gates, outlines });
 });
 
 me.get("/progress", async (c) => {

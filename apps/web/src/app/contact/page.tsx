@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
+import { CONTACT_DEFAULTS, fetchPublicContact, telHref, whatsappHref, type PublicContact } from "@/lib/contact";
 import {
   Map,
   MapMarker,
@@ -11,25 +12,16 @@ import {
   MarkerTooltip,
 } from "@/components/ui/map";
 
-const CONTACT = {
-  email: "hello@workiz.com",
-  phone: "+971 4 320 8888",
-  phoneHref: "tel:+97143208888",
-  company: "Workiz Support Solutions - FZCO",
-  location: "Dubai Silicon Oasis",
-  city: "Dubai, United Arab Emirates",
+const MAP = {
   hours: "Sunday – Thursday, 09:00 – 18:00 (GST)",
   lng: 55.3837419,
   lat: 25.1250606,
-  mapLink: "https://www.google.com/maps/search/?api=1&query=Dubai+Silicon+Oasis%2C+Dubai%2C+UAE",
 };
 
 const OFFICE = {
   id: 1,
-  name: "Workiz Support Solutions - FZCO",
-  detail: "Dubai Silicon Oasis, Dubai, UAE",
-  lng: CONTACT.lng,
-  lat: CONTACT.lat,
+  lng: MAP.lng,
+  lat: MAP.lat,
 };
 
 const SUBJECTS = [
@@ -42,6 +34,20 @@ const SUBJECTS = [
 
 export default function ContactPage() {
   const [status, setStatus] = useState<"idle" | "sent">("idle");
+  const [contact, setContact] = useState<PublicContact>(CONTACT_DEFAULTS);
+  const call = telHref(contact.phone);
+  const whatsapp = whatsappHref(contact.whatsapp);
+  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address || "Dubai Silicon Oasis, Dubai, UAE")}`;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicContact().then((next) => {
+      if (!cancelled) setContact(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,7 +71,8 @@ export default function ContactPage() {
       .filter(Boolean)
       .join("\n");
 
-    window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(
+    const to = contact.emails[0] || CONTACT_DEFAULTS.emails[0];
+    window.location.href = `mailto:${to}?subject=${encodeURIComponent(
       `[Workiz] ${subject}`,
     )}&body=${encodeURIComponent(body)}`;
     setStatus("sent");
@@ -93,40 +100,54 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                <div className="call-do-action-info">
-                  <div className="call_info">
-                    <p>Email</p>
-                    <h3>
-                      <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-                    </h3>
+                {contact.emails.map((email) => (
+                  <div className="call-do-action-info" key={email}>
+                    <div className="call_info">
+                      <p>Email</p>
+                      <h3>
+                        <a href={`mailto:${email}`}>{email}</a>
+                      </h3>
+                    </div>
                   </div>
-                </div>
+                ))}
 
-                <div className="call-do-action-info">
-                  <div className="call_info">
-                    <p>Phone</p>
-                    <h3>
-                      <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
-                    </h3>
+                {call ? (
+                  <div className="call-do-action-info">
+                    <div className="call_info">
+                      <p>Phone</p>
+                      <h3>
+                        <a href={call}>{contact.phone}</a>
+                      </h3>
+                    </div>
                   </div>
-                </div>
+                ) : null}
 
-                <div className="call-do-action-info">
-                  <div className="call_info">
-                    <p>Office</p>
-                    <h3>{CONTACT.company}</h3>
-                    <span>
-                      {CONTACT.location}
-                      <br />
-                      {CONTACT.city}
-                    </span>
+                {whatsapp ? (
+                  <div className="call-do-action-info">
+                    <div className="call_info">
+                      <p>WhatsApp</p>
+                      <h3>
+                        <a href={whatsapp} target="_blank" rel="noopener noreferrer">
+                          {contact.whatsapp}
+                        </a>
+                      </h3>
+                    </div>
                   </div>
-                </div>
+                ) : null}
+
+                {contact.address ? (
+                  <div className="call-do-action-info">
+                    <div className="call_info">
+                      <p>Office</p>
+                      <h3>{contact.address}</h3>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="call-do-action-info">
                   <div className="call_info">
                     <p>Business hours</p>
-                    <h3>{CONTACT.hours}</h3>
+                    <h3>{MAP.hours}</h3>
                   </div>
                 </div>
               </div>
@@ -224,7 +245,7 @@ export default function ContactPage() {
                     </div>
                     {status === "sent" ? (
                       <p className="workiz-contact__status" role="status">
-                        Opening your email app to send the message to {CONTACT.email}.
+                        Opening your email app to send the message to {contact.emails[0] || "the team"}.
                       </p>
                     ) : null}
                   </div>
@@ -242,12 +263,12 @@ export default function ContactPage() {
               <div>
                 <h2>Find us in Dubai Silicon Oasis</h2>
                 <p>
-                  {CONTACT.company} · {CONTACT.location}, {CONTACT.city}
+                  {contact.address || "Dubai Silicon Oasis, Dubai"}
                 </p>
               </div>
               <a
                 className="workiz-contact__map-link"
-                href={CONTACT.mapLink}
+                href={mapLink}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -260,11 +281,11 @@ export default function ContactPage() {
                   <MarkerContent>
                     <div className="bg-primary size-4 rounded-full border-2 border-white shadow-lg" />
                   </MarkerContent>
-                  <MarkerTooltip>{OFFICE.name}</MarkerTooltip>
+                  <MarkerTooltip>{contact.address || "Workiz"}</MarkerTooltip>
                   <MarkerPopup>
                     <div className="space-y-1">
-                      <p className="text-foreground font-medium">{OFFICE.name}</p>
-                      <p className="text-muted-foreground text-xs">{OFFICE.detail}</p>
+                      <p className="text-foreground font-medium">Workiz</p>
+                      <p className="text-muted-foreground text-xs">{contact.address}</p>
                     </div>
                   </MarkerPopup>
                 </MapMarker>

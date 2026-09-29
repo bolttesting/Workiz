@@ -1,6 +1,8 @@
 import { LegalPage } from "@/components/LegalPage";
+import { fetchPublicContact } from "@/lib/contact";
 
-export default function TermsOfServicePage() {
+export default async function TermsOfServicePage() {
+  const contact = await fetchPublicContact();
   return (
     <LegalPage
       title="Terms of Service"
@@ -52,11 +54,7 @@ export default function TermsOfServicePage() {
           ],
         },
       ]}
-      contact={{
-        email: "hello@workiz.com",
-        phone: "+971 4 320 8888",
-        address: "Workiz Support Solutions - FZCO, Dubai Silicon Oasis, Dubai, United Arab Emirates",
-      }}
+      contact={{ emails: contact.emails, phone: contact.phone, address: contact.address }}
       contactIntro="If you have questions about these Terms of Service, please contact us:"
       contactHeading="Contact / Questions"
     />

@@ -1,6 +1,8 @@
 import { LegalPage } from "@/components/LegalPage";
+import { fetchPublicContact } from "@/lib/contact";
 
-export default function CookiePolicyPage() {
+export default async function CookiePolicyPage() {
+  const contact = await fetchPublicContact();
   return (
     <LegalPage
       title="Cookie Policy"
@@ -64,11 +66,7 @@ export default function CookiePolicyPage() {
           ],
         },
       ]}
-      contact={{
-        email: "hello@workiz.com",
-        phone: "+971 4 320 8888",
-        address: "Workiz Support Solutions - FZCO, Dubai Silicon Oasis, Dubai, United Arab Emirates",
-      }}
+      contact={{ emails: contact.emails, phone: contact.phone, address: contact.address }}
       contactHeading="Contact / Questions"
       contactIntro="If you have questions about this Cookie Policy or how Workiz uses cookies and similar technologies, you can contact our team using the details below."
       contactNote="Our team can help address general questions about website privacy, cookies, and platform usage."

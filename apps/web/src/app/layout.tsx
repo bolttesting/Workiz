@@ -1,5 +1,3 @@
-import { EducateScripts } from "@/components/EducateScripts";
-import { SiteLoader } from "@/components/SiteLoader";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { HelpWidget } from "@/components/HelpWidget";
 import "./globals.css";
@@ -12,20 +10,14 @@ export const metadata = {
 
 const css = [
   "/assets/css/bootstrap.min.css",
-  "/assets/css/owl.carousel.min.css",
   "/assets/css/animate.css",
-  "/assets/css/animated-text.css",
   "/assets/css/all.min.css",
   "/assets/css/theme-default.css",
-  "/assets/css/meanmenu.min.css",
-  "/assets/css/owl.transitions.css",
   "/venobox/venobox.css",
   "/assets/css/bootstrap-icons.css",
   "/assets/css/flaticon.css",
   "/assets/css/style.css",
   "/assets/css/responsive.css",
-  "/assets/css/coustom-animation.css",
-  "/assets/css/odometer-theme-default.css",
   "/assets/css/scroll-up.css",
   "/assets/css/workix-images.css",
   "/assets/css/workix-brand.css",
@@ -44,11 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ))}
       </head>
       <body>
-        <SiteLoader />
         {children}
         <ScrollToTop />
         <HelpWidget />
-        <EducateScripts />
       </body>
     </html>
   );

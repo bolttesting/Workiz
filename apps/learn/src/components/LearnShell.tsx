@@ -32,6 +32,7 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
   const [name, setName] = useState("Learner");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("individual_learner");
+  const [departmentLead, setDepartmentLead] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,6 +47,7 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
       setName(profile?.full_name || data.user.email || "Learner");
       setEmail(profile?.email || data.user.email || "");
       setRole(profile?.role || "individual_learner");
+      setDepartmentLead(Boolean(profile?.department_lead));
       setAvatarUrl(profile?.avatar_url || null);
     });
     function onProfile(event: Event) {
@@ -89,12 +91,25 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
     window.location.href = `${web}/`;
   }
 
-  const nav = [...links];
+  const nav = links
+    .filter((link) => {
+      if (role === "company_learner" && link.href === "/invoices") return false;
+      if (role === "company_admin" && link.href === "/my-courses") return false;
+      return true;
+    })
+    .map((link) =>
+      role === "company_admin" && link.href === "/invoices"
+        ? { href: "/billing", label: "Billing", icon: "ri-bank-card-line" }
+        : link,
+    );
   if (role === "instructor" || role === "super_admin") {
     nav.push({ href: "/teach", label: "Teach", icon: "ri-easel-line" });
   }
-  if (role === "company_admin" || role === "company_learner") {
+  if (role === "company_learner" && departmentLead) {
     nav.push({ href: "/team", label: "Team", icon: "ri-building-line" });
+  }
+  if (role === "company_admin") {
+    nav.splice(1, 0, { href: "/team", label: "Team", icon: "ri-building-line" });
   }
 
   return (

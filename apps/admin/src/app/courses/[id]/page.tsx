@@ -69,12 +69,14 @@ function FileUploadField({
   busy,
   onFile,
   hint,
+  quiet,
 }: {
   label: string;
   accept: string;
   busy?: boolean;
   onFile: (file: File) => void;
   hint?: string;
+  quiet?: boolean;
 }) {
   return (
     <div>
@@ -91,7 +93,45 @@ function FileUploadField({
         }}
       />
       {hint ? <p className="text-sm text-secondary-light mt-8 mb-0">{hint}</p> : null}
-      {busy ? <p className="text-sm text-primary-600 mt-8 mb-0">Uploading…</p> : null}
+      {busy && !quiet ? <p className="text-sm text-primary-600 mt-8 mb-0">Uploading…</p> : null}
+    </div>
+  );
+}
+
+type CoverUpload = {
+  name: string;
+  size: number;
+  loaded: number;
+  total: number;
+  phase: "sending" | "saving";
+};
+
+function formatUploadBytes(n: number) {
+  if (!n || n <= 0) return "0 MB";
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function CoverUploadView({ upload }: { upload: CoverUpload }) {
+  const total = upload.total || upload.size || 1;
+  const pct = upload.phase === "saving" ? 100 : Math.min(100, Math.round((upload.loaded / total) * 100));
+  return (
+    <div className="workiz-upload" role="status" aria-live="polite">
+      <div className="d-flex align-items-start justify-content-between gap-3 mb-12">
+        <div>
+          <div className="fw-semibold text-primary-light">{upload.name}</div>
+          <p className="text-sm text-secondary-light mb-0 mt-4">{formatUploadBytes(upload.size)}</p>
+        </div>
+        <div className="fw-semibold text-primary-light">{pct}%</div>
+      </div>
+      <div className="workiz-upload__bar" aria-hidden="true">
+        <span style={{ width: `${pct}%` }} />
+      </div>
+      <p className="text-sm text-secondary-light mt-12 mb-0">
+        {upload.phase === "saving"
+          ? "File sent. Saving it onto the course. A large video can sit here for a minute."
+          : `Sending ${formatUploadBytes(upload.loaded)} of ${formatUploadBytes(total)}.`}
+      </p>
     </div>
   );
 }
@@ -109,6 +149,7 @@ export default function CourseBuilderPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverUpload, setCoverUpload] = useState<CoverUpload | null>(null);
   const [priceMajor, setPriceMajor] = useState(0);
   const [published, setPublished] = useState(false);
   const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
@@ -367,13 +408,27 @@ export default function CourseBuilderPage() {
   async function uploadCoverVideo(file: File) {
     setUploading(true);
     setError(null);
+    setCoverUpload({ name: file.name, size: file.size, loaded: 0, total: file.size, phase: "sending" });
     try {
-      const publicUrl = await uploadAdminAsset(file, "courses");
+      const publicUrl = await uploadAdminAsset(file, "courses", (loaded, total) => {
+        const full = total || file.size;
+        setCoverUpload({
+          name: file.name,
+          size: file.size,
+          loaded,
+          total: full,
+          phase: full > 0 && loaded >= full ? "saving" : "sending",
+        });
+      });
+      setCoverUpload((current) =>
+        current ? { ...current, loaded: current.total, phase: "saving" } : current,
+      );
       await saveCourse({ cover_video_url: publicUrl });
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setUploading(false);
+      setCoverUpload(null);
     }
   }
 
@@ -613,11 +668,14 @@ export default function CourseBuilderPage() {
                 label="Cover video (MP4/WebM)"
                 accept="video/mp4,video/webm,video/*"
                 busy={uploading}
+                quiet={Boolean(coverUpload)}
                 onFile={uploadCoverVideo}
                 hint="Short trailer or intro. Plays muted with controls on the course page."
               />
               <div className="mt-16">
-                {course.cover_video_url ? (
+                {coverUpload ? (
+                  <CoverUploadView upload={coverUpload} />
+                ) : course.cover_video_url ? (
                   <video
                     key={course.cover_video_url}
                     src={course.cover_video_url}

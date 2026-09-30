@@ -109,6 +109,7 @@ export function canDownloadInvoice(
   order: { user_id?: string | null; organization_id?: string | null },
 ) {
   if (auth.profile.role === "super_admin") return true;
+  if (auth.profile.role === "company_learner") return false;
   if (order.user_id && order.user_id === auth.userId) return true;
   if (
     auth.profile.role === "company_admin" &&

@@ -3,7 +3,7 @@ import { gatesForUser } from "./course-gate.js";
 import type { Profile } from "@workix/db/types";
 
 export async function hasCourseAccess(profile: Profile, courseId: string) {
-  if (profile.role === "super_admin") return true;
+  if (profile.role === "super_admin" || profile.role === "company_admin") return true;
   if (profile.role === "instructor") {
     const { data: assigned } = await adminDb
       .from("course_instructors")

@@ -19,24 +19,35 @@ export default function CatalogPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    Promise.all([
-      apiClient<{ courses: Course[] }>("/courses"),
-      apiClient<{ profile: Profile }>("/me"),
-      apiClient<{ enrollments: Enrollment[] }>("/me/enrollments"),
-    ])
-      .then(([catalog, me, owned]) => {
+    apiClient<{ profile: Profile }>("/me")
+      .then(async (me) => {
+        if (cancelled) return;
+        const [catalog, owned] = await Promise.all([
+          apiClient<{ courses: Course[] }>("/courses"),
+          apiClient<{ enrollments: Enrollment[] }>("/me/enrollments"),
+        ]);
+        if (cancelled) return;
         setCourses(catalog.courses);
         setRole(me.profile.role);
         setOwnedIds(new Set(owned.enrollments.map((row) => row.course_id)));
         setError(null);
+        setLoading(false);
       })
-      .catch((err) => setError((err as Error).message))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (cancelled) return;
+        setError((err as Error).message);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const individual = role === "individual_learner";
   const companyLearner = role === "company_learner";
+  const reviewing = role === "company_admin";
   const limited = individual || companyLearner;
   const visible = useMemo(() => {
     const base = limited ? courses.filter((course) => ownedIds.has(course.id)) : courses;
@@ -52,10 +63,10 @@ export default function CatalogPage() {
       <LearnPageHeader
         title="Catalog"
         description={
-          companyLearner
-            ? "Courses your company admin assigned to you."
-            : role === "company_admin"
-              ? "Published courses. A person only sees a course after you assign it on Team."
+          reviewing
+            ? "Every published course. Open one if you want to test a lecture."
+            : companyLearner
+              ? "Courses your company admin assigned to you."
               : individual
                 ? "Only the course you purchased. Buy another from the website if you want a second one."
                 : "Published courses."
@@ -115,12 +126,12 @@ export default function CatalogPage() {
                       <td className="dirham-sign">{formatMoney(course.price_cents, "aed")}</td>
                       <td>
                         <StatusBadge
-                          label={owned ? (individual ? "Purchased" : "Assigned") : "Not assigned"}
-                          tone={owned ? "success" : "neutral"}
+                          label={reviewing ? "Preview" : owned ? (individual ? "Purchased" : "Assigned") : "Not assigned"}
+                          tone={reviewing || owned ? "success" : "neutral"}
                         />
                       </td>
                       <td className="text-end">
-                        {owned ? (
+                        {owned || reviewing ? (
                           <Link href={`/courses/${course.slug}`} className="btn btn-sm btn-outline-primary-600 radius-8">
                             Open
                           </Link>

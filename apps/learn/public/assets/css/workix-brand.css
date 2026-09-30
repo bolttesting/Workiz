@@ -730,21 +730,12 @@ body {
 .workiz-course {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-}
-
-.workiz-course__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 1rem;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid rgba(16, 40, 70, 0.08);
 }
 
 .workiz-course__back {
+  display: inline-flex;
+  margin: 0 0.35rem 0.35rem;
   font-size: 0.78rem;
   font-weight: 650;
   color: #8f7338 !important;
@@ -755,25 +746,31 @@ body {
   color: #102846 !important;
 }
 
-.workiz-course__bar h1 {
-  margin: 0.15rem 0 0;
-  font-size: 1.15rem;
+.workiz-player-outline h1 {
+  margin: 0 0.35rem;
+  font-size: 1.2rem !important;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #102846;
   line-height: 1.25;
 }
 
-.workiz-course__bar p {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
-  color: #8a93a0;
+.workiz-course__lede {
+  margin: 0.25rem 0.35rem 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #3d4f66;
+}
+
+.workiz-course__cert {
+  margin: auto 0.35rem 0.15rem;
+  text-align: center;
 }
 
 .workiz-player {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  gap: 0.85rem;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 1rem;
   align-items: start;
 }
 
@@ -797,39 +794,63 @@ body {
 
 .workiz-player-stage {
   min-width: 0;
-  padding: 0 0 1rem;
+  padding: 0;
   overflow: hidden;
 }
 
-.workiz-player-stage__head {
+.workiz-player-screen {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0.9rem 1.1rem 0.75rem;
+  align-items: center;
+  justify-content: center;
+  background: #071422;
 }
 
-.workiz-player-stage__head h2 {
+.workiz-player-video {
+  width: 100%;
+  height: min(38vh, 400px);
+  object-fit: contain;
+  background: #071422;
+  display: block;
+}
+
+.workiz-player-dock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 1rem 1rem;
+}
+
+.workiz-player-dock__copy {
+  min-width: min(100%, 16rem);
+}
+
+.workiz-player-dock h2 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.05rem !important;
   font-weight: 700;
   color: #102846;
   line-height: 1.3;
 }
 
-.workiz-player-stage__type {
+.workiz-player-dock p {
   margin: 0.2rem 0 0;
-  font-size: 0.78rem;
-  color: #8a93a0;
+  font-size: 0.8rem;
+  color: #3d4f66;
 }
 
-.workiz-player-video {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 0;
-  background: #102846;
-  display: block;
+.workiz-player-dock__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.workiz-player-empty {
+  margin: 0;
+  padding: 1.25rem 1.1rem;
+  color: #3d4f66;
 }
 
 .workiz-player-article {
@@ -844,7 +865,7 @@ body {
 .workiz-player-article h2,
 .workiz-player-article h3 {
   color: #102846;
-  font-size: 1.05rem;
+  font-size: 1.05rem !important;
   margin: 1rem 0 0.4rem;
 }
 
@@ -861,26 +882,38 @@ body {
   border-top: 1px solid rgba(16, 40, 70, 0.08);
 }
 
-.workiz-player-nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem;
-  margin: 1rem 1.1rem 0;
-}
-
-.workiz-player-nav__step {
-  display: flex;
-  gap: 0.45rem;
-}
-
 .workiz-player-outline {
-  padding: 0.9rem 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0.7rem 0.9rem;
   position: sticky;
-  top: 1rem;
-  max-height: calc(100vh - 6.5rem);
+  top: 5.25rem;
+  height: calc(100vh - 6.75rem);
+  max-height: calc(100vh - 6.75rem);
+  overflow: hidden;
+}
+
+@media (max-width: 991px) {
+  .workiz-player-outline {
+    height: auto;
+    max-height: none;
+    position: static;
+    overflow: visible;
+  }
+
+  .workiz-player-dock {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .workiz-player-dock__copy {
+    min-width: 0;
+  }
+}
+
+.workiz-player-lessons {
   overflow: auto;
+  min-height: 0;
 }
 
 .workiz-player-outline__head {
@@ -893,14 +926,15 @@ body {
 
 .workiz-player-outline__head h2 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.95rem !important;
   font-weight: 700;
   color: #102846;
 }
 
 .workiz-player-outline__head span {
   font-size: 0.75rem;
-  color: #8a93a0;
+  font-weight: 650;
+  color: #3d4f66;
 }
 
 .workiz-player-bar {
@@ -925,7 +959,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #8a93a0;
+  color: #3d4f66;
 }
 
 .workiz-player-lesson {
@@ -948,8 +982,18 @@ body {
   background: rgba(16, 40, 70, 0.04);
 }
 
+.workiz-player-lesson:focus-visible {
+  outline: 2px solid #102846;
+  outline-offset: 2px;
+}
+
 .workiz-player-lesson.is-active {
-  background: rgba(182, 152, 86, 0.16);
+  background: #102846;
+  color: #fff;
+}
+
+.workiz-player-lesson.is-active i {
+  color: #e4d3a4;
 }
 
 .workiz-player-lesson i {
@@ -963,6 +1007,10 @@ body {
   color: #027a48;
 }
 
+.workiz-player-lesson.is-active.is-done i {
+  color: #e4d3a4;
+}
+
 .workiz-player-quiz {
   display: flex;
   flex-direction: column;
@@ -972,7 +1020,7 @@ body {
 
 .workiz-player-quiz h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1rem !important;
   font-weight: 700;
   color: #102846;
 }
@@ -996,14 +1044,69 @@ body {
 .workiz-player-option {
   display: flex;
   align-items: flex-start;
-  gap: 0.45rem;
-  margin: 0.25rem 0;
+  gap: 0.55rem;
+  margin: 0.35rem 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 40, 70, 0.12);
+  background: #fff;
   font-size: 0.88rem;
   color: #1c3148;
+  cursor: pointer;
+}
+
+.workiz-player-option input {
+  appearance: auto;
+  -webkit-appearance: auto;
+  width: 1rem;
+  height: 1rem;
+  margin: 0.15rem 0 0;
+  flex: none;
+  accent-color: #102846;
+  cursor: pointer;
+}
+
+.workiz-player-option.is-selected {
+  border-color: #102846;
+  background: rgba(16, 40, 70, 0.05);
 }
 
 .workiz-player-lock {
   padding: 1.25rem 1.1rem;
+}
+
+.workiz-player-lock h2 {
+  font-size: 1.05rem !important;
+  color: #102846;
+}
+
+.workiz-player-stage .workiz-ask {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid rgba(16, 40, 70, 0.08);
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.workiz-ask__list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.workiz-ask__list li {
+  padding-top: 0.85rem;
+  margin-top: 0.85rem;
+  border-top: 1px solid rgba(16, 40, 70, 0.08);
+}
+
+.workiz-ask__reply {
+  margin-top: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(16, 40, 70, 0.05);
+  color: #102846;
+  font-size: 0.9rem;
 }
 
 .workiz-bone {

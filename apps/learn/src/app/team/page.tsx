@@ -43,7 +43,7 @@ function formatSpent(seconds?: number) {
   if (minutes) return `${minutes}m`;
   return `${seconds}s`;
 }
-type InviteLink = { email: string; link: string };
+type InviteLink = { email: string; link: string; emailSent?: boolean };
 
 function dueBadge(status?: string) {
   if (status === "overdue") return { label: "Overdue", tone: "danger" as const };
@@ -298,7 +298,15 @@ export default function TeamPage() {
       });
       setBulkLinks(res.created);
       const skipped = res.skipped.length ? ` ${res.skipped.length} skipped.` : "";
-      setNotice(`${res.created.length} invite link${res.created.length === 1 ? "" : "s"} ready.${skipped}`);
+      const sent = res.created.filter((row) => row.emailSent).length;
+      const missed = res.created.length - sent;
+      setNotice(
+        res.created.length === 0
+          ? `No invites created.${skipped}`
+          : missed
+            ? `${sent} invite email${sent === 1 ? "" : "s"} sent. ${missed} saved, but the email was not sent.${skipped}`
+            : `${sent} invite email${sent === 1 ? "" : "s"} sent.${skipped}`,
+      );
       setBulkEmails("");
       await refresh();
     } catch (err) {
@@ -470,9 +478,13 @@ export default function TeamPage() {
       <LearnPageHeader
         title="Team"
         description={
-          org
-            ? `${org.name} · ${org.seat_used} joined · ${pendingCount} invited · ${seatsOpen} of ${org.seat_limit} seats open`
-            : "Buy company seats, then invite people and assign courses."
+          !org
+            ? "Buy company seats, then invite people and assign courses."
+            : canManage
+              ? `${org.name} · ${org.seat_used} joined · ${pendingCount} invited · ${seatsOpen} of ${org.seat_limit} seats open`
+              : departmentLead
+                ? `${org.name} · progress in your department`
+                : "Your assigned courses are on My courses."
         }
       />
       {error ? (
@@ -553,6 +565,7 @@ export default function TeamPage() {
                 {bulkLinks.map((row) => (
                   <li key={row.email} className="mb-8">
                     <div className="fw-medium">{row.email}</div>
+                    <div className="text-sm text-secondary-light">{row.emailSent ? "Email sent" : "Email was not sent"}</div>
                     <code className="text-sm">{row.link}</code>
                   </li>
                 ))}
@@ -732,7 +745,10 @@ export default function TeamPage() {
         </form>
         </>
       ) : null}
-      {org ? (
+      {org && !canManage && !departmentLead ? (
+        <EmptyState message="Your assigned courses are on My courses." />
+      ) : null}
+      {org && canManage ? (
         <LearnDataCard
           title="People"
           toolbar={
@@ -1111,7 +1127,7 @@ export default function TeamPage() {
       {org && canManage ? (
         <div className="mt-24">
           <LearnDataCard title="Certificates">
-            {certificates.length === 0 ? <EmptyState message="Certificates appear here when someone finishes a course." /> : null}
+            {certificates.length === 0 ? <EmptyState message="Certificates appear here when a learner finishes a course." /> : null}
             {certificates.length > 0 ? (
               <div className="workiz-admin-table-wrap">
                 <table className="table bordered-table mb-0">

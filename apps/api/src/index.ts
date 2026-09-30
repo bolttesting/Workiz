@@ -16,6 +16,7 @@ import { me } from "./routes/me.js";
 import { instructor, publicInstructors } from "./routes/instructors.js";
 import { blog, adminBlog } from "./routes/blog.js";
 import { processPdfJob } from "./jobs/pdf.js";
+import { sendDueReminders } from "./jobs/reminders.js";
 import { listSeatPlans } from "./lib/plans.js";
 import { getPlatformSettings, publicContact } from "./lib/platform-settings.js";
 import { verify } from "./routes/verify.js";
@@ -88,4 +89,13 @@ app.post("/internal/pdf", async (c) => {
 const port = Number(process.env.API_PORT || 4000);
 serve({ fetch: app.fetch, port }, () => {
   console.log(`WORKIZ API on :${port}`);
+  const runReminders = () => {
+    sendDueReminders()
+      .then((result) => {
+        if (result.learners || result.admins) console.log("[reminders]", result.learners, "learners", result.admins, "admins");
+      })
+      .catch((err) => console.error("[reminders]", (err as Error).message));
+  };
+  setTimeout(runReminders, 20_000);
+  setInterval(runReminders, 6 * 60 * 60 * 1000);
 });

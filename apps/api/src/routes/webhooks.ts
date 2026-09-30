@@ -4,7 +4,7 @@ import { stripe } from "../lib/stripe.js";
 import { adminDb } from "../lib/db.js";
 import { ensureInvoiceForOrder } from "../lib/access.js";
 import { pdfQueue } from "../lib/queue.js";
-import { sendMail } from "../lib/mail.js";
+import { receiptEmail, sendMail } from "../lib/mail.js";
 import { urls } from "../lib/auth.js";
 import { periodEndIso, rememberPeriodEnd } from "../lib/billing.js";
 
@@ -101,7 +101,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
         await sendMail({
           to: email,
           subject: "Your WORKIZ receipt",
-          html: `<p>Thanks for your purchase.</p><p>Open your learning space: <a href="${urls().learn}">${urls().learn}</a></p>`,
+          html: receiptEmail({ learnUrl: urls().learn, kind: kind === "seats" ? "seats" : "course" }),
         });
       } catch {
         /* mail optional locally */

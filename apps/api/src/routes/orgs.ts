@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import { adminDb } from "../lib/db.js";
-import { sendMail } from "../lib/mail.js";
+import { inviteEmail, sendMail } from "../lib/mail.js";
+import { inviteSignInLink } from "../lib/invite-link.js";
 import { courseIdsForInvites, enrollInviteCourses, setInviteCourseIds } from "../lib/invite-courses.js";
 import { inviteDepartments, memberDepartments, setInviteDepartment, setMemberDepartment } from "../lib/departments.js";
 import { createCourseSet, deleteCourseSet, getCourseSet, listCourseSets, setCourseSetOrdered } from "../lib/course-sets.js";
@@ -12,6 +13,7 @@ import { logActivity, listActivity } from "../lib/activity.js";
 import { secondsForUsers } from "../lib/time-spent.js";
 import { getOrgNote, setOrgNote } from "../lib/org-note.js";
 import { leadFlags, setDepartmentLead } from "../lib/leads.js";
+import { loadCompanyBilling, scheduleCompanyCancel } from "../lib/billing.js";
 import { getPlatformSettings } from "../lib/platform-settings.js";
 import { urls, type Authed } from "../lib/auth.js";
 
@@ -37,11 +39,22 @@ orgs.get("/me", async (c) => {
     .select("*")
     .eq("id", auth.profile.organization_id)
     .single();
+  const isAdmin = auth.profile.role === "company_admin" || auth.profile.role === "super_admin";
+  if (!isAdmin) {
+    return c.json({
+      organization: organization ? { id: organization.id, name: organization.name } : null,
+      members: [],
+      invites: [],
+      assignments: [],
+      inviteAssignments: [],
+      pendingInvites: 0,
+      seatsOpen: 0,
+    });
+  }
   const { data: members } = await adminDb
     .from("profiles")
     .select("id, email, full_name, role, created_at")
     .eq("organization_id", auth.profile.organization_id);
-  const isAdmin = auth.profile.role === "company_admin" || auth.profile.role === "super_admin";
   const { data: invites } = isAdmin
     ? await adminDb
         .from("invites")
@@ -514,7 +527,7 @@ orgs.post("/invites/bulk", async (c) => {
       409,
     );
   }
-  const created: { email: string; link: string }[] = [];
+  const created: { email: string; link: string; emailSent: boolean; emailError: string | null }[] = [];
   for (const email of valid) {
     const { data: pending } = await adminDb
       .from("invites")
@@ -545,13 +558,14 @@ orgs.post("/invites/bulk", async (c) => {
       continue;
     }
     if (body.department?.trim()) await setInviteDepartment(invite.id, body.department);
-    const link = `${urls().web}/invite/${token}`;
-    await sendMail({
+    const nextPath = `/invite/${token}`;
+    const link = (await inviteSignInLink(email, nextPath, urls().web)) ?? `${urls().web}${nextPath}`;
+    const mail = await sendMail({
       to: email,
       subject: `Join ${org.name} on WORKIZ`,
-      html: `<p>${auth.profile.full_name || auth.email} invited you to learn on WORKIZ.</p><p><a href="${link}">Accept invite</a></p>`,
+      html: inviteEmail({ inviter: auth.profile.full_name || auth.email, company: org.name, link }),
     });
-    created.push({ email, link });
+    created.push({ email, link, emailSent: mail.sent, emailError: mail.error ?? null });
   }
   if (created.length) await logActivity(org.id, auth.userId, "Invited", `${created.length} people`);
   return c.json({ created, skipped });
@@ -603,11 +617,12 @@ orgs.post("/invites", async (c) => {
   if (error) return c.json({ error: error.message }, 400);
   if (department?.trim()) await setInviteDepartment(invite.id, department);
 
-  const link = `${urls().web}/invite/${token}`;
+  const nextPath = `/invite/${token}`;
+  const link = (await inviteSignInLink(email.toLowerCase(), nextPath, urls().web)) ?? `${urls().web}${nextPath}`;
   const mail = await sendMail({
     to: email,
     subject: `Join ${org.name} on WORKIZ`,
-    html: `<p>${auth.profile.full_name || auth.email} invited you to learn on WORKIZ.</p><p><a href="${link}">Accept invite</a></p>`,
+    html: inviteEmail({ inviter: auth.profile.full_name || auth.email, company: org.name, link }),
   });
   await logActivity(org.id, auth.userId, "Invited", email.toLowerCase());
   return c.json({ invite, link, emailSent: mail.sent, emailError: mail.error ?? null });
@@ -637,7 +652,8 @@ orgs.get("/certificates", async (c) => {
   const { data: members } = await adminDb
     .from("profiles")
     .select("id, email, full_name")
-    .eq("organization_id", auth.profile.organization_id);
+    .eq("organization_id", auth.profile.organization_id)
+    .eq("role", "company_learner");
   const people = members ?? [];
   const memberIds = people.map((member) => member.id);
   const withNumber = memberIds.length
@@ -878,6 +894,28 @@ orgs.get("/note", async (c) => {
   if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
   const note = await getOrgNote(auth.profile.organization_id as string);
   return c.json({ note });
+});
+
+orgs.get("/billing", async (c) => {
+  const auth = c.get("auth");
+  const denied = requireCompanyManager(auth);
+  if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
+  const billing = await loadCompanyBilling(auth.profile.organization_id as string);
+  if (!billing) return c.json({ error: "No company" }, 400);
+  return c.json({ billing });
+});
+
+orgs.post("/billing/cancel", async (c) => {
+  const auth = c.get("auth");
+  const denied = requireCompanyManager(auth);
+  if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
+  try {
+    const billing = await scheduleCompanyCancel(auth.profile.organization_id as string);
+    await logActivity(auth.profile.organization_id as string, auth.userId, "Cancelled package", "Stops after this billing month");
+    return c.json({ billing });
+  } catch (err) {
+    return c.json({ error: (err as Error).message || "Could not cancel the package." }, 400);
+  }
 });
 
 orgs.patch("/note", async (c) => {

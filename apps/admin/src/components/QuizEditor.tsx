@@ -186,16 +186,17 @@ export function QuizEditor({ lessonId, onSaved }: Props) {
             onChange={(e) => updateQuestion(qi, { prompt: e.target.value })}
             placeholder="What should the learner answer?"
           />
-          <p className="text-sm text-secondary-light mb-8">Options (mark the correct one)</p>
+          <p className="text-sm text-secondary-light mb-8">Write each answer, then mark the right one.</p>
           {q.options.map((opt, oi) => (
             <div key={oi} className="d-flex align-items-center gap-2 mb-8">
-              <input
-                type="radio"
-                name={`correct-${lessonId}-${qi}`}
-                checked={opt.is_correct}
-                onChange={() => updateOption(qi, oi, { is_correct: true })}
-                title="Correct answer"
-              />
+              <button
+                type="button"
+                className={`btn btn-sm radius-8 flex-shrink-0 ${opt.is_correct ? "btn-primary-600" : "btn-outline-primary-600"}`}
+                aria-pressed={opt.is_correct}
+                onClick={() => updateOption(qi, oi, { is_correct: true })}
+              >
+                {opt.is_correct ? "Correct" : "Mark correct"}
+              </button>
               <input
                 className="form-control radius-8"
                 value={opt.label}

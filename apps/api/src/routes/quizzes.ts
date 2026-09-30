@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { adminDb } from "../lib/db.js";
 import { hasCourseAccess } from "../lib/access.js";
+import { maybeIssueCertificate } from "../lib/issue-certificate.js";
 import type { Authed } from "../lib/auth.js";
 
 export const quizzes = new Hono<{ Variables: { auth: Authed } }>();
@@ -162,6 +163,11 @@ quizzes.post("/:id/attempt", async (c) => {
       completed_at: new Date().toISOString(),
       position_seconds: 0,
     });
+    const { data: lesson } = await adminDb.from("lessons").select("module_id").eq("id", quiz.lesson_id).maybeSingle();
+    if (lesson?.module_id) {
+      const { data: module } = await adminDb.from("modules").select("course_id").eq("id", lesson.module_id).maybeSingle();
+      if (module?.course_id) await maybeIssueCertificate(auth.userId, module.course_id);
+    }
   }
   const missed = passed
     ? []

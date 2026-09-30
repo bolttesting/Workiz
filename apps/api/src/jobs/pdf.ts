@@ -1,11 +1,10 @@
-import { formatMoney } from "@workix/config";
 import { ensureCertificateNumber } from "../lib/certificate-code.js";
 import { companyNameForUser } from "../lib/org-note.js";
 import { getPlatformSettings } from "../lib/platform-settings.js";
 import { adminDb } from "../lib/db.js";
 import { nextInvoiceNumber } from "../lib/access.js";
 import { renderCertificatePdf, renderInvoicePdf } from "../lib/pdf.js";
-import { sendMail } from "../lib/mail.js";
+import { certificateEmail, emailAmount, invoiceEmail, sendMail } from "../lib/mail.js";
 import { urls } from "../lib/auth.js";
 import type { PdfJob } from "../lib/queue.js";
 
@@ -45,11 +44,15 @@ export async function processPdfJob(job: PdfJob) {
         currency: "aed",
       });
     }
-    if (profile?.email) {
+    if (profile?.email && profile.role !== "company_learner") {
       await sendMail({
         to: profile.email,
         subject: `Invoice ${number}`,
-        html: `<p>Your invoice ${number} is ready.</p><p>Amount ${formatMoney(order.amount_cents, "aed")}</p><p><a href="${urls().learn}/invoices">Download it from your account</a></p>`,
+        html: invoiceEmail({
+          number,
+          amount: emailAmount(order.amount_cents),
+          href: `${urls().learn}/invoices`,
+        }),
       });
     }
     return;
@@ -80,6 +83,6 @@ export async function processPdfJob(job: PdfJob) {
   await sendMail({
     to: profile.email,
     subject: `Certificate: ${course.title}`,
-    html: `<p>You completed ${course.title}.</p><p><a href="${urls().learn}/certificates">Download your certificate</a></p>`,
+    html: certificateEmail({ course: course.title, href: `${urls().learn}/certificates` }),
   });
 }

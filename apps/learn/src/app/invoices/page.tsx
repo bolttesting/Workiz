@@ -19,13 +19,16 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      apiClient<{ invoices: Invoice[] }>("/me/invoices"),
-      apiClient<{ profile: Profile }>("/me"),
-    ])
-      .then(([r, me]) => {
-        setInvoices(r.invoices);
+    apiClient<{ profile: Profile }>("/me")
+      .then(async (me) => {
         setRole(me.profile.role);
+        if (me.profile.role === "company_learner") {
+          setInvoices([]);
+          setError(null);
+          return;
+        }
+        const bills = await apiClient<{ invoices: Invoice[] }>("/me/invoices");
+        setInvoices(bills.invoices);
         setError(null);
       })
       .catch((err) => setError((err as Error).message))
@@ -34,12 +37,21 @@ export default function InvoicesPage() {
 
   return (
     <LearnShell>
-      <LearnPageHeader title="Invoices" description="Receipts for courses you purchased." />
+      <LearnPageHeader
+        title="Invoices"
+        description={
+          role === "company_learner"
+            ? "Seat invoices stay with your company admin."
+            : "Receipts for courses you purchased."
+        }
+      />
       {error ? (
         <div className="alert alert-danger radius-8 mb-24" role="alert">
           {error}
         </div>
       ) : null}
+      {role === "company_learner" ? <EmptyState message="You do not need invoices. Your company admin keeps the receipts." /> : null}
+      {role === "company_learner" ? null : (
       <LearnDataCard
         title="Your invoices"
         toolbar={
@@ -117,6 +129,7 @@ export default function InvoicesPage() {
           </div>
         ) : null}
       </LearnDataCard>
+      )}
     </LearnShell>
   );
 }

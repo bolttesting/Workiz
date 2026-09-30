@@ -1,11 +1,10 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { ensureCertificateNumber } from "../lib/certificate-code.js";
 import { gatesForUser } from "../lib/course-gate.js";
+import { maybeIssueCertificate } from "../lib/issue-certificate.js";
 import { addSecondsSpent } from "../lib/time-spent.js";
 import { adminDb } from "../lib/db.js";
 import { hasCourseAccess } from "../lib/access.js";
-import { pdfQueue } from "../lib/queue.js";
 import { getBearer, type Authed } from "../lib/auth.js";
 
 export const courses = new Hono<{ Variables: { auth?: Authed } }>();
@@ -147,35 +146,3 @@ courses.post("/:slug/progress", async (c) => {
   }
   return c.json({ ok: true });
 });
-
-async function maybeIssueCertificate(userId: string, courseId: string) {
-  const { data: modules } = await adminDb.from("modules").select("id").eq("course_id", courseId);
-  const ids = (modules ?? []).map((m) => m.id);
-  if (!ids.length) return;
-  const { data: lessons } = await adminDb.from("lessons").select("id").in("module_id", ids);
-  const lessonIds = (lessons ?? []).map((l) => l.id);
-  const { data: progress } = await adminDb
-    .from("lesson_progress")
-    .select("lesson_id, completed")
-    .eq("user_id", userId)
-    .in("lesson_id", lessonIds);
-  const done = new Set((progress ?? []).filter((p) => p.completed).map((p) => p.lesson_id));
-  if (lessonIds.some((id) => !done.has(id))) return;
-
-  const { data: existing } = await adminDb
-    .from("certificates")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("course_id", courseId)
-    .maybeSingle();
-  if (existing) return;
-  const { data: cert } = await adminDb
-    .from("certificates")
-    .insert({ user_id: userId, course_id: courseId })
-    .select("id")
-    .single();
-  if (cert) {
-    await ensureCertificateNumber(cert.id);
-    await pdfQueue().add("certificate", { kind: "certificate", userId, courseId });
-  }
-}

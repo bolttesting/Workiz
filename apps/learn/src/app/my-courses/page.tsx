@@ -52,6 +52,7 @@ export default function MyCoursesPage() {
       apiClient<{ progress: ProgressRow[] }>("/me/progress"),
     ])
       .then(async ([owned, progress]) => {
+        if (cancelled) return;
         const completed = new Set(progress.progress.filter((row) => row.completed).map((row) => row.lesson_id));
         const byCourse = new Map(owned.courses.map((course) => [course.id, course]));
         const built = await Promise.all(

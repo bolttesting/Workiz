@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Hls from "hls.js";
+import { CourseAsk } from "@/components/CourseAsk";
 import { LearnShell } from "@/components/LearnShell";
 import { LoadingState, StatusBadge } from "@/components/LearnUi";
 import { apiClient } from "@/lib/api";
@@ -211,156 +212,151 @@ export default function PlayerPage() {
       ) : null}
       {!loading && course && unlocked ? (
         <div className="workiz-course">
-          <header className="workiz-course__bar">
-            <div>
+          <div className="workiz-player">
+            <aside className="workiz-player-outline" aria-label="Curriculum">
               <Link href="/my-courses" className="workiz-course__back">
                 My courses
               </Link>
               <h1>{course.title}</h1>
-              {course.subtitle ? <p>{course.subtitle}</p> : null}
-            </div>
-            <span className="workiz-dash-panel__pill">
-              {doneCount} / {ordered.length} lessons
-            </span>
-          </header>
-          <div className="workiz-player">
-          <aside className="workiz-player-outline" aria-label="Curriculum">
-            <div className="workiz-player-outline__head">
-              <h2>Lessons</h2>
-              <span>{pct}%</span>
-            </div>
-            <div className="workiz-player-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-              <span style={{ width: `${pct}%` }} />
-            </div>
-            {modules.map((mod) => {
-              const items = lessons.filter((lesson) => lesson.module_id === mod.id);
-              if (!items.length) return null;
-              return (
-                <div key={mod.id}>
-                  <p className="workiz-player-module">{mod.title}</p>
-                  {items.map((lesson) => {
-                    const done = completed.has(lesson.id);
-                    const current = lesson.id === active?.id;
-                    return (
+              {course.subtitle ? <p className="workiz-course__lede">{course.subtitle}</p> : null}
+              <div className="workiz-player-outline__head">
+                <h2>Lessons</h2>
+                <span>
+                  {doneCount} / {ordered.length}
+                </span>
+              </div>
+              <div className="workiz-player-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                <span style={{ width: `${pct}%` }} />
+              </div>
+              <div className="workiz-player-lessons">
+                {modules.map((mod) => {
+                  const items = lessons.filter((lesson) => lesson.module_id === mod.id);
+                  if (!items.length) return null;
+                  return (
+                    <div key={mod.id}>
+                      <p className="workiz-player-module">{mod.title}</p>
+                      {items.map((lesson) => {
+                        const done = completed.has(lesson.id);
+                        const current = lesson.id === active?.id;
+                        return (
+                          <button
+                            key={lesson.id}
+                            type="button"
+                            className={`workiz-player-lesson${current ? " is-active" : ""}${done ? " is-done" : ""}`}
+                            aria-current={current ? "true" : undefined}
+                            onClick={() => setActiveId(lesson.id)}
+                          >
+                            <i className={lessonIcon(lesson, done)} aria-hidden="true" />
+                            <span>{lesson.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+              {pct === 100 && ordered.length > 0 ? (
+                <Link href="/certificates" className="btn btn-primary-600 btn-sm radius-8 workiz-course__cert">
+                  View certificate
+                </Link>
+              ) : null}
+            </aside>
+            <section className="workiz-player-stage" aria-label="Lesson">
+              {active ? (
+                <>
+                  {active.type === "video" ? (
+                    <div className="workiz-player-screen">
+                      <video
+                        ref={videoRef}
+                        controls
+                        className="workiz-player-video"
+                        onTimeUpdate={() => {
+                          const video = videoRef.current;
+                          if (!video || !slug) return;
+                          const seconds = Math.floor(video.currentTime);
+                          if (seconds < 3 || Math.abs(seconds - lastSavedRef.current) < 8) return;
+                          const spent = Math.min(20, Math.max(0, seconds - lastSavedRef.current));
+                          lastSavedRef.current = seconds;
+                          positionsRef.current[active.id] = seconds;
+                          void apiClient(`/courses/${slug}/progress`, {
+                            method: "POST",
+                            body: JSON.stringify({ lessonId: active.id, positionSeconds: seconds, spentSeconds: spent }),
+                          }).catch(() => undefined);
+                        }}
+                        onEnded={() => void completeLesson(active.id)}
+                      />
+                    </div>
+                  ) : null}
+
+                  {active.type === "article" ? (
+                    <div className="workiz-player-article" dangerouslySetInnerHTML={{ __html: active.article_content || "<p>This reading is empty.</p>" }} />
+                  ) : null}
+
+                  {active.type === "quiz" && active.quiz_id ? (
+                    <QuizBlock quizId={active.quiz_id} onPassed={() => setCompleted((current) => new Set(current).add(active.id))} />
+                  ) : null}
+
+                  <div className="workiz-player-dock">
+                    <div className="workiz-player-dock__copy">
+                      <h2>{active.title}</h2>
+                      <p>
+                        {typeLabel[active.type]}
+                        {ordered.length ? ` · Lesson ${activeIndex + 1} of ${ordered.length}` : ""}
+                      </p>
+                    </div>
+                    <div className="workiz-player-dock__actions">
+                      {activeDone ? <StatusBadge label="Complete" tone="success" /> : null}
+                      {active.type !== "quiz" ? (
+                        <button
+                          type="button"
+                          className="btn btn-primary-600 btn-sm radius-8"
+                          disabled={activeDone || saving}
+                          onClick={() => void completeLesson(active.id)}
+                        >
+                          {activeDone ? "Completed" : saving ? "Saving…" : "Mark complete"}
+                        </button>
+                      ) : null}
                       <button
-                        key={lesson.id}
-                        type="button"
-                        className={`workiz-player-lesson${current ? " is-active" : ""}${done ? " is-done" : ""}`}
-                        aria-current={current ? "true" : undefined}
-                        onClick={() => setActiveId(lesson.id)}
-                      >
-                        <i className={lessonIcon(lesson, done)} aria-hidden="true" />
-                        <span>{lesson.title}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-            {pct === 100 && ordered.length > 0 ? (
-              <p className="text-secondary-light text-sm px-8 mb-0 mt-12">
-                Course finished. <Link href="/certificates">Certificates</Link>
-              </p>
-            ) : null}
-          </aside>
-          <section className="workiz-player-stage" aria-label="Lesson">
-            {active ? (
-              <>
-                <div className="workiz-player-stage__head">
-                  <div>
-                    <h2>{active.title}</h2>
-                    <p className="workiz-player-stage__type">
-                      {typeLabel[active.type]}
-                      {ordered.length ? ` · Lesson ${activeIndex + 1} of ${ordered.length}` : ""}
-                    </p>
-                  </div>
-                  {activeDone ? <StatusBadge label="Complete" tone="success" /> : null}
-                </div>
-
-                {active.type === "video" ? (
-                  <video
-                    ref={videoRef}
-                    controls
-                    className="workiz-player-video"
-                    onTimeUpdate={() => {
-                      const video = videoRef.current;
-                      if (!video || !slug) return;
-                      const seconds = Math.floor(video.currentTime);
-                      if (seconds < 3 || Math.abs(seconds - lastSavedRef.current) < 8) return;
-                      const spent = Math.min(20, Math.max(0, seconds - lastSavedRef.current));
-                      lastSavedRef.current = seconds;
-                      positionsRef.current[active.id] = seconds;
-                      void apiClient(`/courses/${slug}/progress`, {
-                        method: "POST",
-                        body: JSON.stringify({ lessonId: active.id, positionSeconds: seconds, spentSeconds: spent }),
-                      }).catch(() => undefined);
-                    }}
-                    onEnded={() => void completeLesson(active.id)}
-                  />
-                ) : null}
-
-                {active.type === "article" ? (
-                  <div className="workiz-player-article" dangerouslySetInnerHTML={{ __html: active.article_content || "<p>This reading is empty.</p>" }} />
-                ) : null}
-
-                {active.type === "quiz" && active.quiz_id ? (
-                  <QuizBlock quizId={active.quiz_id} onPassed={() => setCompleted((current) => new Set(current).add(active.id))} />
-                ) : null}
-
-                {activeResources.length ? (
-                  <div className="workiz-player-files">
-                    {activeResources.map((file) => (
-                      <button
-                        key={file.id}
                         type="button"
                         className="btn btn-outline-primary-600 btn-sm radius-8"
-                        disabled={downloading === file.id}
-                        onClick={() => void downloadResource(file.id)}
+                        disabled={!previous}
+                        onClick={() => previous && setActiveId(previous.id)}
                       >
-                        <i className="ri-file-pdf-line me-4" aria-hidden="true" />
-                        {downloading === file.id ? "Preparing…" : file.title}
+                        Previous
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary-600 btn-sm radius-8"
+                        disabled={!next}
+                        onClick={() => next && setActiveId(next.id)}
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
-                ) : null}
 
-                <div className="workiz-player-nav">
-                  {active.type !== "quiz" ? (
-                    <button
-                      type="button"
-                      className="btn btn-primary-600 btn-sm radius-8"
-                      disabled={activeDone || saving}
-                      onClick={() => void completeLesson(active.id)}
-                    >
-                      {activeDone ? "Completed" : saving ? "Saving…" : "Mark complete"}
-                    </button>
-                  ) : (
-                    <span />
-                  )}
-                  <div className="workiz-player-nav__step">
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary-600 btn-sm radius-8"
-                      disabled={!previous}
-                      onClick={() => previous && setActiveId(previous.id)}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary-600 btn-sm radius-8"
-                      disabled={!next}
-                      onClick={() => next && setActiveId(next.id)}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <p className="text-secondary-light mb-0 px-16">This course has no lessons yet.</p>
-            )}
-          </section>
+                  {activeResources.length ? (
+                    <div className="workiz-player-files">
+                      {activeResources.map((file) => (
+                        <button
+                          key={file.id}
+                          type="button"
+                          className="btn btn-outline-primary-600 btn-sm radius-8"
+                          disabled={downloading === file.id}
+                          onClick={() => void downloadResource(file.id)}
+                        >
+                          <i className="ri-file-pdf-line me-4" aria-hidden="true" />
+                          {downloading === file.id ? "Preparing…" : file.title}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <CourseAsk slug={slug} />
+                </>
+              ) : (
+                <p className="workiz-player-empty">This course has no lessons yet.</p>
+              )}
+            </section>
           </div>
         </div>
       ) : null}
@@ -370,6 +366,7 @@ export default function PlayerPage() {
 
 function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void }) {
   const [data, setData] = useState<QuizPayload | null>(null);
+  const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<{ score: number; passed: boolean; missed?: { id: string; prompt: string }[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -377,6 +374,7 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
 
   useEffect(() => {
     setData(null);
+    setStarted(false);
     setAnswers({});
     setResult(null);
     apiClient<QuizPayload>(`/quizzes/${quizId}`)
@@ -384,7 +382,10 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
       .catch((err) => setError((err as Error).message));
   }, [quizId]);
 
+  const answered = Boolean(data && data.questions.length > 0 && data.questions.every((question) => answers[question.id]));
+
   async function submit() {
+    if (!data || submitting || !answered) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -404,6 +405,25 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
   if (error) return <p className="text-danger mb-0">{error}</p>;
   if (!data) return <p className="text-secondary-light mb-0">Loading quiz…</p>;
 
+  if (!started) {
+    return (
+      <div className="workiz-player-quiz">
+        <h3>
+          {data.quiz.title}
+          <span className="text-secondary-light fw-medium"> · pass at {data.quiz.passing_score}%</span>
+        </h3>
+        <p className="text-secondary-light mb-0">
+          {data.questions.length} question{data.questions.length === 1 ? "" : "s"}. Choose one answer for each, then submit.
+        </p>
+        <div>
+          <button type="button" className="btn btn-primary-600 btn-sm radius-8" onClick={() => setStarted(true)}>
+            Start quiz
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="workiz-player-quiz">
       <h3>
@@ -418,7 +438,7 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
           {data.options
             .filter((option) => option.question_id === question.id)
             .map((option) => (
-              <label key={option.id} className="workiz-player-option">
+              <label key={option.id} className={`workiz-player-option${answers[question.id] === option.id ? " is-selected" : ""}`}>
                 <input
                   type="radio"
                   name={question.id}
@@ -457,9 +477,12 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
             </button>
           </>
         ) : (
-          <button type="button" className="btn btn-primary-600 btn-sm radius-8" disabled={submitting} onClick={() => void submit()}>
-            {submitting ? "Submitting…" : "Submit quiz"}
-          </button>
+          <>
+            <button type="button" className="btn btn-primary-600 btn-sm radius-8" disabled={submitting || !answered} onClick={() => void submit()}>
+              {submitting ? "Submitting…" : "Submit quiz"}
+            </button>
+            {!answered ? <p className="text-sm text-secondary-light mt-8 mb-0">Select an answer before submitting.</p> : null}
+          </>
         )}
       </div>
     </div>

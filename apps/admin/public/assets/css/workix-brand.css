@@ -955,3 +955,25 @@ body {
     background: rgba(16, 40, 70, 0.1);
   }
 }
+
+.workiz-upload {
+  padding: 16px;
+  border: 1px solid rgba(16, 40, 70, 0.12);
+  border-radius: 12px;
+  background: #f7f8fa;
+  min-height: 160px;
+}
+
+.workiz-upload__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(16, 40, 70, 0.1);
+  overflow: hidden;
+}
+
+.workiz-upload__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #102846;
+}

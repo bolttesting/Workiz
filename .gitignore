@@ -15,4 +15,5 @@ infra/letsencrypt
 infra/hostinger-media/.media-secret
 infra/hostinger-media/upload.deploy.php
 infra/hostinger-media/probe.png
+apps/api/data/reminder-sent.json
 

@@ -13,6 +13,20 @@ export default function InvitePage() {
   useEffect(() => {
     async function run() {
       const sb = createBrowserSupabase();
+      const search = new URLSearchParams(window.location.search);
+      const tokenHash = search.get("token_hash");
+      const otpType = search.get("type");
+      if (tokenHash && (otpType === "invite" || otpType === "magiclink")) {
+        const verified = await sb.auth.verifyOtp({ token_hash: tokenHash, type: otpType });
+        window.history.replaceState({}, "", window.location.pathname);
+        if (verified.error) {
+          const existing = await sb.auth.getUser();
+          if (!existing.data.user) {
+            setStatus(verified.error.message);
+            return;
+          }
+        }
+      }
       const { data } = await sb.auth.getUser();
       if (!data.user) {
         window.location.href = `/sign-in?next=/invite/${params.token}`;

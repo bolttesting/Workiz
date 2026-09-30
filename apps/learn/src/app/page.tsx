@@ -3,15 +3,20 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { LearnShell } from "@/components/LearnShell";
+import { CompanyDashboard, type CompanyHome } from "@/components/CompanyDashboard";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { EmptyState, StatusBadge } from "@/components/LearnUi";
 import { apiClient, downloadFile } from "@/lib/api";
 import { formatMoney } from "@workix/config";
 import type { Course, Enrollment, Lesson, ModuleRow, Organization, Profile } from "@workix/db/types";
 
+const web = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000";
+
 type ProgressRow = { lesson_id: string; completed: boolean };
 type Certificate = { id: string; course_id: string; issued_at: string };
 type Invoice = { id: string; number: string; amount_cents: number; currency: string; pdf_key: string | null };
+
+type DueMark = "none" | "overdue" | "due_soon" | "late" | "on_time";
 
 type CourseRow = {
   course: Course;
@@ -20,8 +25,21 @@ type CourseRow = {
   total: number;
   nextLesson: string | null;
   waitingOn: string | null;
+  dueAt: string | null;
+  dueMark: DueMark;
   status: "new" | "open" | "done" | "unknown";
 };
+
+function dueMark(dueAt: string | null, finished: boolean): DueMark {
+  if (!dueAt) return "none";
+  const due = new Date(`${dueAt.slice(0, 10)}T23:59:59`);
+  if (Number.isNaN(due.getTime())) return "none";
+  const late = Date.now() > due.getTime();
+  if (finished) return late ? "late" : "on_time";
+  if (late) return "overdue";
+  const days = (due.getTime() - Date.now()) / 86_400_000;
+  return days <= 7 ? "due_soon" : "on_time";
+}
 
 function rank(status: CourseRow["status"]) {
   if (status === "open") return 0;
@@ -45,6 +63,8 @@ export default function LearnHome() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [courseTitles, setCourseTitles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [home, setHome] = useState<"learner" | "company" | null>(null);
+  const [company, setCompany] = useState<CompanyHome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
 
@@ -52,8 +72,48 @@ export default function LearnHome() {
     setLoading(true);
     setError(null);
     try {
-      const [me, owned, progress, certs, bills] = await Promise.all([
-        apiClient<{ profile: Profile; organization: Organization | null }>("/me"),
+      const me = await apiClient<{ profile: Profile; organization: Organization | null }>("/me");
+      setProfile(me.profile);
+      if (me.profile.role === "company_admin") {
+        setHome("company");
+        const [orgRes, progressRes, activityRes, billingRes] = await Promise.all([
+          apiClient<{
+            organization: Organization | null;
+            members: CompanyHome["members"];
+            invites: { id: string; email: string; status: string }[];
+            pendingInvites?: number;
+            seatsOpen?: number;
+          }>("/orgs/me"),
+          apiClient<{ rows: CompanyHome["progress"] }>("/orgs/progress").catch(() => ({ rows: [] as CompanyHome["progress"] })),
+          apiClient<{ events: CompanyHome["activity"] }>("/orgs/activity").catch(() => ({ events: [] as CompanyHome["activity"] })),
+          apiClient<{ billing: NonNullable<CompanyHome["billing"]> }>("/orgs/billing").catch(() => ({ billing: null })),
+        ]);
+        const org = orgRes.organization;
+        const pending =
+          orgRes.pendingInvites ?? orgRes.invites.filter((invite) => invite.status === "pending").length;
+        setCompany(
+          org
+            ? {
+                name: org.name,
+                seatUsed: org.seat_used,
+                seatLimit: org.seat_limit,
+                seatsOpen: orgRes.seatsOpen ?? Math.max(0, org.seat_limit - org.seat_used),
+                members: orgRes.members,
+                pendingInvites: pending,
+                progress: progressRes.rows ?? [],
+                activity: activityRes.events ?? [],
+                billing: billingRes.billing,
+              }
+            : null,
+        );
+        setNote(null);
+        setRows([]);
+        return;
+      }
+      setHome("learner");
+      setCompany(null);
+      const showBills = me.profile.role !== "company_learner";
+      const [owned, progress, certs, bills] = await Promise.all([
         apiClient<{
           enrollments: Enrollment[];
           courses: Course[];
@@ -62,7 +122,7 @@ export default function LearnHome() {
         }>("/me/enrollments"),
         apiClient<{ progress: ProgressRow[] }>("/me/progress"),
         apiClient<{ certificates: Certificate[] }>("/me/certificates"),
-        apiClient<{ invoices: Invoice[] }>("/me/invoices"),
+        showBills ? apiClient<{ invoices: Invoice[] }>("/me/invoices") : Promise.resolve({ invoices: [] as Invoice[] }),
       ]);
       setProfile(me.profile);
       setNote(me.organization?.dashboard_note?.trim() || null);
@@ -98,6 +158,7 @@ export default function LearnHome() {
           const next = ordered.find((lesson) => !completed.has(lesson.id));
           const status: CourseRow["status"] =
             total === 0 ? "unknown" : done === 0 ? "new" : done >= total ? "done" : "open";
+          const dueAt = enrollment.due_at ? enrollment.due_at.slice(0, 10) : null;
           return {
             course,
             source: enrollment.source,
@@ -105,12 +166,18 @@ export default function LearnHome() {
             total,
             nextLesson: next?.title ?? null,
             waitingOn: owned.gates?.[course.id]?.title ?? null,
+            dueAt,
+            dueMark: dueMark(dueAt, status === "done"),
             status,
           } satisfies CourseRow;
         }),
       );
       const present = built.filter((row): row is CourseRow => row !== null);
-      present.sort((a, b) => rank(a.status) - rank(b.status) || a.course.title.localeCompare(b.course.title));
+      const dueRank = (mark: DueMark) => (mark === "overdue" ? 0 : mark === "due_soon" ? 1 : 2);
+      present.sort(
+        (a, b) =>
+          rank(a.status) - rank(b.status) || dueRank(a.dueMark) - dueRank(b.dueMark) || a.course.title.localeCompare(b.course.title),
+      );
       setRows(present);
       setCourseTitles(titles);
     } catch (err) {
@@ -124,9 +191,12 @@ export default function LearnHome() {
     void load();
   }, [load]);
 
+  const individual = profile?.role === "individual_learner";
+  const companyLearner = profile?.role === "company_learner";
   const openRow = (row: CourseRow) => !row.waitingOn && (row.status === "open" || row.status === "new");
   const nextAssigned = rows.find((row) => row.source === "seat" && openRow(row));
-  const next = nextAssigned ?? rows.find((row) => openRow(row));
+  const nextOwned = rows.find((row) => row.source !== "seat" && openRow(row));
+  const next = individual ? (nextOwned ?? rows.find((row) => openRow(row))) : (nextAssigned ?? rows.find((row) => openRow(row)));
   const inProgress = rows.filter((row) => row.status === "open").length;
   const finished = rows.filter((row) => row.status === "done").length;
   const lessonDone = rows.reduce((sum, row) => sum + row.done, 0);
@@ -161,14 +231,18 @@ export default function LearnHome() {
       tint: "gradient-bg-end-5",
       bubble: "bg-success-600",
     },
-    {
-      label: "Invoices",
-      value: String(invoices.length),
-      meta: "Paid purchases",
-      icon: "ri-file-list-3-line",
-      tint: "gradient-bg-end-3",
-      bubble: "bg-purple-600",
-    },
+    ...(profile?.role === "company_learner"
+      ? []
+      : [
+          {
+            label: "Invoices",
+            value: String(invoices.length),
+            meta: "Paid purchases",
+            icon: "ri-file-list-3-line",
+            tint: "gradient-bg-end-3",
+            bubble: "bg-purple-600",
+          },
+        ]),
   ];
 
   const mix = [
@@ -187,8 +261,21 @@ export default function LearnHome() {
           </button>
         </div>
       ) : null}
-      {loading ? <DashboardSkeleton /> : null}
-      {!loading ? (
+      {loading ? (
+        <DashboardSkeleton
+          variant={home === "company" ? "company" : "learner"}
+          showInvoices={profile?.role !== "company_learner"}
+          individual={profile?.role === "individual_learner"}
+        />
+      ) : null}
+      {!loading && home === "company" ? (
+        company ? (
+          <CompanyDashboard company={company} />
+        ) : (
+          <EmptyState message="This account is not attached to a company." />
+        )
+      ) : null}
+      {!loading && home !== "company" ? (
         <div className="workiz-dash">
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
@@ -197,7 +284,11 @@ export default function LearnHome() {
                 {firstName ? `${firstName}, ` : ""}
                 {next
                   ? `next up is ${next.nextLesson || next.course.title}.`
-                  : "Courses you own, certificates, and invoices."}
+                  : individual
+                    ? "Courses you buy, certificates, and invoices."
+                    : companyLearner
+                      ? "Courses assigned to you, and certificates."
+                      : "Courses you own, certificates, and invoices."}
               </p>
             </div>
             <div className="d-flex flex-wrap gap-2">
@@ -206,13 +297,22 @@ export default function LearnHome() {
                   Continue
                 </Link>
               ) : null}
-              <Link href="/catalog" className="btn btn-outline-primary-600 radius-8 px-20">
-                Browse catalog
-              </Link>
+              {individual ? (
+                <a
+                  href={`${web}/courses`}
+                  className={`btn radius-8 px-20 ${next ? "btn-outline-primary-600" : "btn-primary-600"}`}
+                >
+                  Buy a course
+                </a>
+              ) : (
+                <Link href="/catalog" className="btn btn-outline-primary-600 radius-8 px-20">
+                  Browse catalog
+                </Link>
+              )}
             </div>
           </div>
 
-          {note ? (
+          {note && !individual ? (
             <div className="card shadow-1 radius-8">
               <div className="card-body p-20">
                 <h6 className="text-lg mb-8">From your company</h6>
@@ -227,8 +327,18 @@ export default function LearnHome() {
                 <div>
                   <h6 className="mb-4">{next.nextLesson || next.course.title}</h6>
                   <p className="mb-0 text-sm text-secondary-light">
-                    {next.course.title} · {next.source === "seat" ? "Assigned" : "Purchased"}
+                    {next.course.title}
+                    {individual ? "" : ` · ${next.source === "seat" ? "Assigned" : "Purchased"}`}
+                    {next.dueAt ? ` · Due ${next.dueAt}` : ""}
                   </p>
+                  {next.dueMark === "overdue" || next.dueMark === "due_soon" ? (
+                    <div className="mt-8">
+                      <StatusBadge
+                        label={next.dueMark === "overdue" ? "Overdue" : "Due soon"}
+                        tone={next.dueMark === "overdue" ? "danger" : "warning"}
+                      />
+                    </div>
+                  ) : null}
                 </div>
                 <Link href={`/courses/${next.course.slug}`} className="btn btn-primary-600 radius-8 px-20">
                   Continue
@@ -266,7 +376,13 @@ export default function LearnHome() {
                   </div>
                   <div className="p-20">
                     {rows.length === 0 ? (
-                      <p className="mb-0 text-secondary-light">No courses yet. Browse the catalog or wait for a company seat.</p>
+                      <p className="mb-0 text-secondary-light">
+                        {individual
+                          ? "You have not bought a course yet."
+                          : companyLearner
+                            ? "No course has been assigned to you yet."
+                            : "You have no courses yet."}
+                      </p>
                     ) : (
                       <>
                         <div className="d-flex gap-2">
@@ -331,13 +447,20 @@ export default function LearnHome() {
                               {row.nextLesson && row.status !== "done" ? (
                                 <div className="text-secondary-light text-sm">{row.nextLesson}</div>
                               ) : null}
+                              {row.dueAt && row.status !== "done" ? (
+                                <div className="text-secondary-light text-sm">Due {row.dueAt}</div>
+                              ) : null}
                             </td>
                             <td>
                               <StatusBadge label={row.source === "seat" ? "Assigned" : "Purchased"} tone="primary" />
                             </td>
                             <td>{row.total ? `${row.done} / ${row.total}` : "—"}</td>
                             <td>
-                              <StatusBadge label={badge.label} tone={badge.tone} />
+                              <div className="d-flex flex-wrap gap-2">
+                                <StatusBadge label={badge.label} tone={badge.tone} />
+                                {row.dueMark === "overdue" ? <StatusBadge label="Overdue" tone="danger" /> : null}
+                                {row.dueMark === "due_soon" ? <StatusBadge label="Due soon" tone="warning" /> : null}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -346,14 +469,22 @@ export default function LearnHome() {
                   </table>
                 </div>
                 {rows.length === 0 ? (
-                  <EmptyState message="You have no courses yet. Browse the catalog to buy one, or wait for a company seat." />
+                  <EmptyState
+                    message={
+                      individual
+                        ? "You have not bought a course yet. Buy one from the website to start."
+                        : companyLearner
+                          ? "No course has been assigned to you yet."
+                          : "You have no courses yet."
+                    }
+                  />
                 ) : null}
               </div>
             </div>
           </div>
 
           <div className="row gy-4">
-            <div className="col-xxl-6">
+            <div className={profile?.role === "company_learner" ? "col-12" : "col-xxl-6"}>
               <div className="card shadow-1 radius-8 h-100">
                 <div className="card-body p-0">
                   <div className="d-flex flex-wrap align-items-center justify-content-between px-20 py-16 border-bottom border-neutral-200">
@@ -398,11 +529,14 @@ export default function LearnHome() {
                     </tbody>
                   </table>
                 </div>
-                {certificates.length === 0 ? <EmptyState message="Finish every lesson in a course to earn a PDF certificate." /> : null}
+                {certificates.length === 0 ? (
+                  <EmptyState message="Finish every lesson, and pass the quiz when the course has one, to earn a certificate." />
+                ) : null}
                   </div>
                 </div>
               </div>
             </div>
+            {profile?.role === "company_learner" ? null : (
             <div className="col-xxl-6">
               <div className="card shadow-1 radius-8 h-100">
                 <div className="card-body p-0">
@@ -451,11 +585,14 @@ export default function LearnHome() {
                     </tbody>
                   </table>
                 </div>
-                {invoices.length === 0 ? <EmptyState message="Purchases show up here after checkout." /> : null}
+                {invoices.length === 0 ? (
+                  <EmptyState message={individual ? "A receipt appears here after you buy a course." : "Purchases show up here after checkout."} />
+                ) : null}
                   </div>
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
       ) : null}

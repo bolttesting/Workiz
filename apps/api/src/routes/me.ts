@@ -51,7 +51,12 @@ me.get("/", async (c) => {
   if (auth.profile.organization_id) {
     const { data } = await adminDb.from("organizations").select("*").eq("id", auth.profile.organization_id).single();
     const note = await getOrgNote(auth.profile.organization_id);
-    organization = data ? { ...data, dashboard_note: note } : null;
+    const manager = auth.profile.role === "company_admin" || auth.profile.role === "super_admin";
+    organization = data
+      ? manager
+        ? { ...data, dashboard_note: note }
+        : { id: data.id, name: data.name, dashboard_note: note }
+      : null;
   }
   const lead = (await leadFlags([auth.userId]))[auth.userId] ?? false;
   return c.json({ profile: { ...auth.profile, department_lead: lead }, organization });
@@ -164,6 +169,7 @@ me.get("/certificates/:id/pdf", async (c) => {
 
 me.get("/invoices", async (c) => {
   const auth = c.get("auth");
+  if (auth.profile.role === "company_learner") return c.json({ orders: [], invoices: [] });
   const { data: ownOrders } = await adminDb.from("orders").select("*").eq("user_id", auth.userId);
   const orders = [...(ownOrders ?? [])];
   if (auth.profile.role === "company_admin" && auth.profile.organization_id) {

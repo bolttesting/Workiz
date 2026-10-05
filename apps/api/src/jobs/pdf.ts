@@ -20,14 +20,15 @@ export async function processPdfJob(job: PdfJob) {
       : { data: null };
     const { data: existing } = await adminDb.from("invoices").select("*").eq("order_id", order.id).maybeSingle();
     const number = existing?.number ?? nextInvoiceNumber();
-    const description =
-      order.kind === "course"
-        ? `Course: ${course?.title ?? "WORKIZ course"}`
-        : `Company seats x${order.seat_quantity ?? 0}`;
+    const seats = order.kind !== "course";
+    const description = seats
+      ? `${order.seat_quantity ?? 0} seat${order.seat_quantity === 1 ? "" : "s"}`
+      : (course?.title ?? "WORKIZ course");
     const pdf_key = await renderInvoicePdf({
       number,
       customerName: profile?.full_name || profile?.email || "Customer",
       customerEmail: profile?.email || "",
+      kindLabel: seats ? "Package" : "Course",
       description,
       amountCents: order.amount_cents,
       currency: order.currency,

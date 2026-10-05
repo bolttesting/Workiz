@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LearnShell } from "@/components/LearnShell";
-import { EmptyState, LearnDataCard, LearnPageHeader, StatusBadge, formatRole } from "@/components/LearnUi";
+import { EmptyState, LearnDataCard, LearnPageHeader, LoadingState, StatusBadge, formatRole } from "@/components/LearnUi";
 import { apiClient, downloadFile } from "@/lib/api";
 import type { Course, Organization, Profile } from "@workix/db/types";
 
@@ -112,6 +112,7 @@ export default function TeamPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [role, setRole] = useState<Profile["role"] | null>(null);
+  const [ready, setReady] = useState(false);
 
   async function refresh() {
     const [res, catalogRes, me, progressRes, certificateRes, setRes, activityRes, noteRes] = await Promise.all([
@@ -148,7 +149,9 @@ export default function TeamPage() {
   }
 
   useEffect(() => {
-    refresh().catch((err) => setError((err as Error).message));
+    refresh()
+      .catch((err) => setError((err as Error).message))
+      .finally(() => setReady(true));
   }, []);
 
   async function invite(e: React.FormEvent) {
@@ -492,6 +495,9 @@ export default function TeamPage() {
           {error}
         </div>
       ) : null}
+      {!ready ? <LoadingState message="Loading team…" rows={8} /> : null}
+      {ready ? (
+      <>
       {notice ? (
         <div className="alert alert-success radius-8 mb-24" role="status">
           {notice}
@@ -1174,6 +1180,8 @@ export default function TeamPage() {
             ) : null}
           </LearnDataCard>
         </div>
+      ) : null}
+      </>
       ) : null}
     </LearnShell>
   );

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { HomeCoursesCarousel } from "@/components/HomeCoursesCarousel";
@@ -39,8 +40,7 @@ async function loadHome() {
   }
 }
 
-export default async function HomePage() {
-  const { courses, instructors, posts } = await loadHome();
+export default function HomePage() {
   return (
     <>
       <HomePageScripts />
@@ -255,7 +255,27 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      <Suspense fallback={<HomePending />}>
+        <HomeBelow />
+      </Suspense>
+    </>
+  );
+}
 
+function HomePending() {
+  return (
+    <div className="workiz-home-pending" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
+async function HomeBelow() {
+  const { courses, instructors, posts } = await loadHome();
+  return (
+    <>
       <div className="case-study-area style-one">
         <div className="container">
           <div className="row align-items-center section-title-space" data-reveal>

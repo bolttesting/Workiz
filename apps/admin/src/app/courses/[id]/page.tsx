@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AdminShell } from "@/components/AdminShell";
-import { AdminPageHeader, StatusBadge } from "@/components/AdminUi";
+import { AdminPageHeader, LoadingState, StatusBadge } from "@/components/AdminUi";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { apiClient } from "@/lib/api";
 import { uploadAdminAsset, centsFromMajor, majorFromCents } from "@/lib/uploads";
@@ -456,7 +456,7 @@ export default function CourseBuilderPage() {
   if (!course) {
     return (
       <AdminShell>
-        <p>{error || "Loading…"}</p>
+        {error ? <p className="text-danger">{error}</p> : <LoadingState message="Loading course…" rows={8} />}
       </AdminShell>
     );
   }

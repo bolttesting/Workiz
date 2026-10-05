@@ -58,7 +58,7 @@ function lessonDurationLabel(seconds: number | null) {
 
 async function load(slug: string) {
   try {
-    const res = await fetch(`${publicApi()}/courses/${slug}`, { cache: "no-store" });
+    const res = await fetch(`${publicApi()}/courses/${slug}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     return (await res.json()) as {
       course: Course;

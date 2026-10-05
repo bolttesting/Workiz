@@ -64,8 +64,34 @@ export function EmptyState({ message }: { message: string }) {
   return <p className="text-secondary-light mb-0 py-24 text-center">{message}</p>;
 }
 
-export function LoadingState({ message = "Loading…" }: { message?: string }) {
-  return <p className="text-secondary-light mb-0 py-24 text-center">{message}</p>;
+export function LoadingState({ message = "Loading…", rows = 5 }: { message?: string; rows?: number }) {
+  return (
+    <div role="status" aria-live="polite" aria-busy="true">
+      <span className="visually-hidden">{message}</span>
+      <div className="workiz-admin-table-wrap">
+        <table className="table bordered-table mb-0">
+          <tbody>
+            {Array.from({ length: rows }, (_, row) => (
+              <tr key={row}>
+                <td>
+                  <span className="workiz-bone workiz-bone--cell" />
+                </td>
+                <td>
+                  <span className="workiz-bone workiz-bone--chip" />
+                </td>
+                <td>
+                  <span className="workiz-bone workiz-bone--chip" />
+                </td>
+                <td>
+                  <span className="workiz-bone workiz-bone--meta" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 export function formatRole(role: string) {

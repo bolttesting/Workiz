@@ -8,7 +8,12 @@ function cookieDomain() {
   return trimmed;
 }
 
+function hasAuthCookie(request: NextRequest) {
+  return request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+}
+
 export async function middleware(request: NextRequest) {
+  if (!hasAuthCookie(request)) return NextResponse.next();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

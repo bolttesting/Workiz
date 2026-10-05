@@ -5156,3 +5156,33 @@ img[src*="top-star.png"] {
 .workiz-engage__msg { margin-bottom: 0.85rem; font-size: 0.88rem; }
 .workiz-engage__msg--err { color: #b42318; }
 .workiz-engage__msg--ok { color: #027a48; }
+
+.workiz-home-pending {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 72rem;
+  margin: 2rem auto 3rem;
+  padding: 0 1rem;
+}
+
+.workiz-home-pending span {
+  display: block;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e7edf4 0%, #f7f9fb 45%, #e7edf4 100%);
+  background-size: 200% 100%;
+  animation: workiz-home-pending 1.2s ease-in-out infinite;
+}
+
+.workiz-home-pending span:nth-child(1) { width: 28%; height: 1.6rem; }
+.workiz-home-pending span:nth-child(2) { width: 62%; }
+.workiz-home-pending span:nth-child(3) { width: 44%; }
+
+@keyframes workiz-home-pending {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workiz-home-pending span { animation: none; }
+}

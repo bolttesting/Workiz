@@ -28,7 +28,7 @@ export function telHref(number: string) {
 export async function fetchPublicContact(): Promise<PublicContact> {
   try {
     const api = process.env.NEXT_PUBLIC_API_URL || process.env.API_INTERNAL_URL || "http://localhost:4000";
-    const res = await fetch(`${api}/contact`, { cache: "no-store" });
+    const res = await fetch(`${api}/contact`, { next: { revalidate: 60 } });
     if (!res.ok) return CONTACT_DEFAULTS;
     const json = (await res.json()) as { contact?: Partial<PublicContact> };
     const contact = json.contact ?? {};

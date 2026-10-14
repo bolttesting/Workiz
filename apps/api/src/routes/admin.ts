@@ -7,10 +7,73 @@ import { presignPut, s3Configured } from "../lib/s3.js";
 import { storeMediaFile, hostingerConfigured, type MediaFolder } from "../lib/media-store.js";
 import { transcodeQueue } from "../lib/queue.js";
 import { ensureInvoiceForOrder } from "../lib/access.js";
+import { isUuid, readPage, readSearch } from "../lib/pagination.js";
 import { loadInvoiceForPdf } from "../lib/invoice-pdf.js";
 import { listSeatPlans, updateSeatPlan } from "../lib/plans.js";
-import { getPlatformSettings, savePlatformSettings } from "../lib/platform-settings.js";
-import { enrichOrganizationBilling } from "../lib/billing.js";
+import { getPlatformSettings, platformSettingGaps, savePlatformSettings } from "../lib/platform-settings.js";
+import { readReminderStatus } from "../lib/reminder-status.js";
+import { adminHomeSignals, enrichOrganizationBilling } from "../lib/billing.js";
+
+async function barePublishedLessons() {
+  const gaps: { courseId: string; courseTitle: string; lessonTitle: string }[] = [];
+  const { data: published, error } = await adminDb.from("courses").select("id,title").eq("published", true).limit(40);
+  if (error || !published?.length) return gaps;
+  const { data: modules } = await adminDb
+    .from("modules")
+    .select("id,course_id")
+    .in(
+      "course_id",
+      published.map((course) => course.id),
+    );
+  if (!modules?.length) return gaps;
+  const moduleCourse = new Map(modules.map((module) => [module.id, module.course_id]));
+  const { data: lessons } = await adminDb
+    .from("lessons")
+    .select("id,module_id,title,type,article_content")
+    .in(
+      "module_id",
+      modules.map((module) => module.id),
+    );
+  const candidates = (lessons ?? []).filter((lesson) => lesson.type === "video" || lesson.type === "article");
+  if (!candidates.length) return gaps;
+  const lessonIds = candidates.map((lesson) => lesson.id);
+  const withUrl = await adminDb.from("media_assets").select("lesson_id,status,public_url").in("lesson_id", lessonIds);
+  const mediaRows = withUrl.error && /public_url/i.test(withUrl.error.message)
+    ? (await adminDb.from("media_assets").select("lesson_id,status").in("lesson_id", lessonIds)).data
+    : withUrl.error
+      ? null
+      : withUrl.data;
+  if (!mediaRows) return gaps;
+  const ready = new Set(
+    mediaRows
+      .filter((asset) => asset.status === "ready" || String("public_url" in asset ? asset.public_url : "").trim())
+      .map((asset) => asset.lesson_id),
+  );
+  const { data: resources, error: resourceError } = await adminDb
+    .from("lesson_resources")
+    .select("lesson_id")
+    .in("lesson_id", lessonIds);
+  const withHandout = new Set(resourceError ? [] : (resources ?? []).map((row) => row.lesson_id));
+  const courseTitle = new Map(published.map((course) => [course.id, course.title]));
+  for (const lesson of candidates) {
+    if (gaps.length >= 5) break;
+    const handout = withHandout.has(lesson.id);
+    const hasVideo = ready.has(lesson.id);
+    const articleText = String(lesson.article_content ?? "")
+      .replace(/<[^>]+>/g, " ")
+      .trim();
+    const bare = lesson.type === "video" ? !hasVideo && !handout : !articleText && !handout && !hasVideo;
+    if (!bare) continue;
+    const courseId = moduleCourse.get(lesson.module_id);
+    if (!courseId) continue;
+    gaps.push({
+      courseId: String(courseId),
+      courseTitle: courseTitle.get(courseId) || "Course",
+      lessonTitle: lesson.title || "Lesson",
+    });
+  }
+  return gaps;
+}
 
 export const admin = new Hono<{ Variables: { auth: Authed } }>();
 admin.use("*", requireRole("super_admin"));
@@ -25,6 +88,8 @@ admin.get("/stats", async (c) => {
     { data: orgRows },
     { data: paidOrders },
     { data: recentCourses },
+    { count: unansweredQuestions },
+    { count: pendingOrders },
   ] = await Promise.all([
     adminDb.from("profiles").select("*", { count: "exact", head: true }),
     adminDb.from("organizations").select("*", { count: "exact", head: true }),
@@ -32,10 +97,10 @@ admin.get("/stats", async (c) => {
     adminDb.from("courses").select("*", { count: "exact", head: true }).eq("published", true),
     adminDb.from("quizzes").select("*", { count: "exact", head: true }),
     adminDb.from("orders").select("*", { count: "exact", head: true }).eq("status", "paid"),
-    adminDb.from("organizations").select("seat_used,seat_limit"),
+    adminDb.from("organizations").select("id,name,seat_used,seat_limit,status,created_at"),
     adminDb
       .from("orders")
-      .select("id,kind,status,amount_cents,currency,created_at,user_id")
+      .select("id,kind,status,amount_cents,currency,created_at,user_id,course_id")
       .eq("status", "paid")
       .order("created_at", { ascending: false })
       .limit(500),
@@ -44,6 +109,8 @@ admin.get("/stats", async (c) => {
       .select("id,title,slug,published,price_cents,currency,created_at")
       .order("created_at", { ascending: false })
       .limit(8),
+    adminDb.from("course_questions").select("id", { count: "exact", head: true }).is("answer_body", null),
+    adminDb.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
 
   const seatsUsed = (orgRows ?? []).reduce((sum, row) => sum + (row.seat_used ?? 0), 0);
@@ -67,6 +134,140 @@ admin.get("/stats", async (c) => {
     bucket.orders += 1;
   }
 
+  const monthKey = monthKeys[monthKeys.length - 1] || "";
+  const monthOrders = (paidOrders ?? []).filter((order) => {
+    const created = order.created_at ? new Date(order.created_at) : null;
+    if (!created || Number.isNaN(created.getTime())) return false;
+    const key = `${created.getUTCFullYear()}-${String(created.getUTCMonth() + 1).padStart(2, "0")}`;
+    return key === monthKey;
+  });
+  const sourceCourseIds = [...new Set(monthOrders.map((order) => order.course_id).filter((id): id is string => Boolean(id)))];
+  const titleById = new Map<string, string>();
+  if (sourceCourseIds.length) {
+    const { data: titled } = await adminDb.from("courses").select("id,title").in("id", sourceCourseIds);
+    for (const course of titled ?? []) titleById.set(course.id, course.title);
+  }
+  const sourceMap = new Map<string, number>();
+  for (const order of monthOrders) {
+    const label =
+      order.kind === "seats"
+        ? "Company seats"
+        : titleById.get(order.course_id || "") || (order.kind === "course" ? "Course" : "Order");
+    sourceMap.set(label, (sourceMap.get(label) ?? 0) + (order.amount_cents ?? 0));
+  }
+  const monthSources = [...sourceMap.entries()]
+    .map(([label, amountCents]) => ({ label, amountCents }))
+    .sort((a, b) => b.amountCents - a.amountCents)
+    .slice(0, 6);
+
+  const year = now.getUTCFullYear();
+  const monthIndex = now.getUTCMonth();
+  const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+  const revenueByDay = Array.from({ length: daysInMonth }, (_, index) => ({
+    day: `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(index + 1).padStart(2, "0")}`,
+    revenueCents: 0,
+  }));
+  const dayIndex = new Map(revenueByDay.map((row, index) => [row.day, index]));
+  for (const order of monthOrders) {
+    const day = String(order.created_at).slice(0, 10);
+    const index = dayIndex.get(day);
+    if (index === undefined) continue;
+    revenueByDay[index]!.revenueCents += order.amount_cents ?? 0;
+  }
+
+  const recent = (paidOrders ?? []).slice(0, 8);
+  const invoiceByOrder = new Map<string, { id: string; number: string }>();
+  if (recent.length) {
+    const { data: invoiceRows } = await adminDb
+      .from("invoices")
+      .select("id, order_id, number")
+      .in(
+        "order_id",
+        recent.map((order) => order.id),
+      );
+    for (const row of invoiceRows ?? []) {
+      if (row.order_id && row.id) invoiceByOrder.set(String(row.order_id), { id: String(row.id), number: String(row.number ?? "") });
+    }
+    const latest = recent[0];
+    if (latest && !invoiceByOrder.has(latest.id)) {
+      try {
+        const created = await ensureInvoiceForOrder({
+          id: latest.id,
+          status: "paid",
+          amount_cents: latest.amount_cents ?? 0,
+          currency: latest.currency || "aed",
+        });
+        if (created?.id) invoiceByOrder.set(latest.id, { id: String(created.id), number: String(created.number ?? "") });
+      } catch {
+        // The recent-orders row still opens the order when the invoice cannot be created.
+      }
+    }
+  }
+
+  const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  const extras = await Promise.all([
+    adminDb
+      .from("orders")
+      .select("id,kind,status,amount_cents,currency,created_at")
+      .in("status", ["failed", "refunded"])
+      .order("created_at", { ascending: false })
+      .limit(5),
+    adminDb.from("enrollments").select("user_id").limit(5000),
+    adminDb
+      .from("profiles")
+      .select("id, full_name, email, role, created_at")
+      .in("role", ["individual_learner", "company_learner", "company_admin"])
+      .order("created_at", { ascending: false })
+      .limit(200),
+    barePublishedLessons().catch(() => [] as Awaited<ReturnType<typeof barePublishedLessons>>),
+    listSeatPlans().catch(() => []),
+    platformSettingGaps().catch(() => [] as Array<"issuer" | "email">),
+  ]).catch(() => null);
+  const problemOrders = extras?.[0].data ?? [];
+  const enrollmentRows = extras?.[1].data ?? [];
+  const learners = extras?.[2].data ?? [];
+  const bareLessons = extras?.[3] ?? [];
+  const plans = extras?.[4] ?? [];
+  const settingGaps = extras?.[5] ?? [];
+
+  const enrolled = new Set((enrollmentRows ?? []).map((row) => row.user_id));
+  const paidUsers = new Set((paidOrders ?? []).map((order) => order.user_id).filter((id): id is string => Boolean(id)));
+  const idleAll = (learners ?? []).filter((person) => person.id && !enrolled.has(person.id) && !paidUsers.has(person.id));
+  const idlePeople = idleAll.slice(0, 5).map((person) => ({
+      id: String(person.id),
+      name: String(person.full_name || "").trim() || String(person.email || "Learner"),
+      email: String(person.email || ""),
+    }));
+  const almostFull = (orgRows ?? [])
+    .filter((org) => {
+      const limit = Number(org.seat_limit ?? 0);
+      const used = Number(org.seat_used ?? 0);
+      return limit > 0 && used > 0 && limit - used <= 1;
+    })
+    .slice(0, 5)
+    .map((org) => ({
+      id: String(org.id),
+      name: String(org.name || "Company"),
+      open: Math.max(0, Number(org.seat_limit ?? 0) - Number(org.seat_used ?? 0)),
+    }));
+  const newNames = [
+    ...(orgRows ?? [])
+      .filter((org) => org.created_at && String(org.created_at) >= since)
+      .map((org) => String(org.name || "").trim())
+      .filter(Boolean),
+    ...(learners ?? [])
+      .filter((person) => person.created_at && String(person.created_at) >= since)
+      .map((person) => String(person.full_name || "").trim() || String(person.email || "").trim())
+      .filter(Boolean),
+  ].slice(0, 6);
+  const freePlans = plans
+    .filter((plan) => plan.active && !plan.custom && plan.monthlyCents === 0)
+    .slice(0, 5)
+    .map((plan) => ({ id: plan.id, name: plan.name }));
+  const mail = readReminderStatus();
+  const mailFresh = mail ? Date.now() - new Date(mail.at).getTime() < 14 * 86_400_000 : false;
+  const signals = await adminHomeSignals();
+
   return c.json({
     users: users ?? 0,
     orgs: orgs ?? 0,
@@ -78,8 +279,34 @@ admin.get("/stats", async (c) => {
     seatsLimit,
     revenueCents,
     revenueByMonth: monthKeys.map((month) => byMonth.get(month)!),
-    recentOrders: (paidOrders ?? []).slice(0, 8),
+    revenueByDay,
+    monthSources,
+    recentOrders: recent.map((order) => {
+      const invoice = invoiceByOrder.get(order.id);
+      return {
+        id: order.id,
+        kind: order.kind,
+        status: order.status,
+        amount_cents: order.amount_cents,
+        currency: order.currency,
+        created_at: order.created_at,
+        invoiceId: invoice?.id ?? null,
+        invoiceNumber: invoice?.number ?? null,
+      };
+    }),
     recentCourses: recentCourses ?? [],
+    unanswered: unansweredQuestions ?? 0,
+    pendingOrders: pendingOrders ?? 0,
+    problemOrders: problemOrders ?? [],
+    idleCount: idleAll.length,
+    idlePeople,
+    almostFull,
+    newNames,
+    bareLessons,
+    freePlans,
+    settingGaps,
+    mailNote: mail && !mail.ok && mailFresh ? "The Monday reminder email did not send." : null,
+    ...signals,
   });
 });
 
@@ -98,6 +325,7 @@ const courseSchema = z.object({
   learning_outcomes: z.array(z.string()).nullish(),
   audience: z.array(z.string()).nullish(),
   tags: z.array(z.string()).nullish(),
+  certificate_months: z.number().int().min(0).max(120).nullish(),
 });
 
 admin.get("/courses", async (c) => {
@@ -116,7 +344,15 @@ admin.post("/courses", async (c) => {
 admin.patch("/courses/:id", async (c) => {
   const parsed = courseSchema.partial().safeParse(await c.req.json());
   if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
-  const { data, error } = await adminDb.from("courses").update(parsed.data).eq("id", c.req.param("id")).select("*").single();
+  const payload = { ...parsed.data };
+  if (payload.certificate_months === 0) payload.certificate_months = null;
+  let { data, error } = await adminDb.from("courses").update(payload).eq("id", c.req.param("id")).select("*").single();
+  if (error && /certificate_months/i.test(error.message)) {
+    const { certificate_months: _months, ...rest } = payload;
+    const retry = await adminDb.from("courses").update(rest).eq("id", c.req.param("id")).select("*").single();
+    data = retry.data;
+    error = retry.error;
+  }
   if (error) return c.json({ error: error.message }, 400);
   return c.json({ course: data });
 });
@@ -386,9 +622,24 @@ admin.post("/lessons/:id/transcode", async (c) => {
   return c.json({ ok: true });
 });
 
+const USER_ROLES = ["super_admin", "instructor", "company_admin", "company_learner", "individual_learner"];
+
 admin.get("/users", async (c) => {
-  const { data } = await adminDb.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
-  return c.json({ users: data ?? [] });
+  const paging = readPage(c);
+  if (!paging) {
+    const { data } = await adminDb.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
+    return c.json({ users: data ?? [] });
+  }
+  const q = readSearch(c);
+  const role = c.req.query("role");
+  let query = adminDb.from("profiles").select("*", { count: "exact" });
+  if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
+  if (role && USER_ROLES.includes(role)) query = query.eq("role", role);
+  const { data, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(paging.from, paging.to);
+  if (error) return c.json({ error: error.message }, 400);
+  return c.json({ users: data ?? [], total: count ?? 0, page: paging.page, pageSize: paging.pageSize });
 });
 
 admin.patch("/users/:id", async (c) => {
@@ -586,9 +837,46 @@ admin.patch("/organizations/:id", async (c) => {
   return c.json({ organization: org });
 });
 
+const ORDER_SELECT = "*, user:profiles(full_name,email), organization:organizations(name), course:courses(title)";
+const ORDER_STATUSES = ["pending", "paid", "failed", "refunded"];
+const ORDER_KINDS = ["course", "seats"];
+
+/** Order ids or customer ids matching free text: an order id, or a customer's name / email / company. */
+async function orderCustomerFilter(q: string): Promise<string | null> {
+  if (isUuid(q)) return `id.eq.${q},user_id.eq.${q},organization_id.eq.${q}`;
+  const [{ data: people }, { data: orgs }] = await Promise.all([
+    adminDb.from("profiles").select("id").or(`full_name.ilike.%${q}%,email.ilike.%${q}%`).limit(200),
+    adminDb.from("organizations").select("id").ilike("name", `%${q}%`).limit(200),
+  ]);
+  const parts: string[] = [];
+  if (people?.length) parts.push(`user_id.in.(${people.map((p) => p.id).join(",")})`);
+  if (orgs?.length) parts.push(`organization_id.in.(${orgs.map((o) => o.id).join(",")})`);
+  return parts.length ? parts.join(",") : null;
+}
+
 admin.get("/orders", async (c) => {
-  const { data } = await adminDb.from("orders").select("*").order("created_at", { ascending: false }).limit(200);
-  return c.json({ orders: data ?? [] });
+  const paging = readPage(c);
+  if (!paging) {
+    const { data } = await adminDb.from("orders").select(ORDER_SELECT).order("created_at", { ascending: false }).limit(200);
+    return c.json({ orders: data ?? [] });
+  }
+  const q = readSearch(c);
+  const status = c.req.query("status");
+  const kind = c.req.query("kind");
+  const empty = { orders: [], total: 0, page: paging.page, pageSize: paging.pageSize };
+  let query = adminDb.from("orders").select(ORDER_SELECT, { count: "exact" });
+  if (q) {
+    const filter = await orderCustomerFilter(q);
+    if (!filter) return c.json(empty);
+    query = query.or(filter);
+  }
+  if (status && ORDER_STATUSES.includes(status)) query = query.eq("status", status);
+  if (kind && ORDER_KINDS.includes(kind)) query = query.eq("kind", kind);
+  const { data, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(paging.from, paging.to);
+  if (error) return c.json({ error: error.message }, 400);
+  return c.json({ orders: data ?? [], total: count ?? 0, page: paging.page, pageSize: paging.pageSize });
 });
 
 admin.get("/invoices", async (c) => {
@@ -598,11 +886,32 @@ admin.get("/invoices", async (c) => {
     .eq("status", "paid")
     .order("created_at", { ascending: false })
     .limit(200);
+  const paidIds = (paid ?? []).map((order) => order.id);
+  const { data: invoiced } = paidIds.length
+    ? await adminDb.from("invoices").select("order_id").in("order_id", paidIds)
+    : { data: [] as { order_id: string }[] };
+  const hasInvoice = new Set((invoiced ?? []).map((row) => row.order_id));
   for (const order of paid ?? []) {
-    await ensureInvoiceForOrder(order);
+    if (!hasInvoice.has(order.id)) await ensureInvoiceForOrder(order);
   }
-  const { data } = await adminDb.from("invoices").select("*").order("issued_at", { ascending: false }).limit(200);
-  return c.json({ invoices: data ?? [] });
+
+  const paging = readPage(c);
+  if (!paging) {
+    const { data } = await adminDb.from("invoices").select("*").order("issued_at", { ascending: false }).limit(200);
+    return c.json({ invoices: data ?? [] });
+  }
+  const q = readSearch(c);
+  let query = adminDb
+    .from("invoices")
+    .select("*, order:orders(kind, user:profiles(full_name,email), organization:organizations(name))", {
+      count: "exact",
+    });
+  if (q) query = query.ilike("number", `%${q}%`);
+  const { data, count, error } = await query
+    .order("issued_at", { ascending: false })
+    .range(paging.from, paging.to);
+  if (error) return c.json({ error: error.message }, 400);
+  return c.json({ invoices: data ?? [], total: count ?? 0, page: paging.page, pageSize: paging.pageSize });
 });
 
 admin.get("/invoices/:id/pdf", async (c) => {
@@ -795,5 +1104,16 @@ admin.post("/questions/:id/answer", async (c) => {
     .select("*")
     .single();
   if (error) return c.json({ error: error.message }, 400);
+  const { data: asker } = await adminDb.from("profiles").select("email").eq("id", question.user_id).maybeSingle();
+  const { data: course } = await adminDb.from("courses").select("title, slug").eq("id", question.course_id).maybeSingle();
+  if (asker?.email && course?.slug) {
+    const { questionAnsweredEmail, sendMail } = await import("../lib/mail.js");
+    const { urls } = await import("../lib/auth.js");
+    await sendMail({
+      to: asker.email,
+      subject: `Reply on ${course.title}`,
+      html: questionAnsweredEmail({ course: course.title, href: `${urls().learn}/courses/${course.slug}` }),
+    });
+  }
   return c.json({ question: data });
 });

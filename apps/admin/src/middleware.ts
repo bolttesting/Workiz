@@ -37,7 +37,10 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
   const web = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000";
-  if (!user) return NextResponse.redirect(`${web}/sign-in`);
+  if (!user) {
+    const next = encodeURIComponent(request.nextUrl.href);
+    return NextResponse.redirect(`${web}/sign-in?next=${next}`);
+  }
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   if (profile?.role !== "super_admin") {
     return NextResponse.redirect(process.env.NEXT_PUBLIC_LEARN_URL ?? "http://localhost:3001");

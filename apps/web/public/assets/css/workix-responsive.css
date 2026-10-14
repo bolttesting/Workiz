@@ -766,9 +766,9 @@ svg {
 
   /* Help widget — clear of scroll-top on the right */
   .workiz-help {
-    left: max(12px, env(safe-area-inset-left)) !important;
-    bottom: max(16px, env(safe-area-inset-bottom)) !important;
-    right: auto !important;
+    left: auto !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: max(84px, calc(env(safe-area-inset-bottom) + 68px)) !important;
     max-width: calc(100vw - 88px);
   }
 
@@ -921,5 +921,37 @@ svg {
   .workiz-testimonials__title {
     white-space: normal !important;
     text-wrap: balance;
+  }
+}
+
+/* Mobile hero: show a compact image instead of an empty full-height block,
+   and give "Company seats" an outlined pill (the theme's fixed 125px underline drifts when centred). */
+@media (max-width: 991px) {
+  section.hero_area.style-one {
+    min-height: 0 !important;
+  }
+
+  section.hero_area.style-one .workiz-hero-media {
+    padding-top: 0 !important;
+    margin-top: 24px !important;
+  }
+
+  section.hero_area.style-one .workiz-hero-media .hero-thumb {
+    display: block !important;
+  }
+
+  section.hero_area.style-one .workiz-hero-media .hero-thumb img {
+    width: min(100%, 320px) !important;
+    height: auto !important;
+  }
+
+  section.hero_area.style-one .hero-course-btn a {
+    padding: 14px 24px !important;
+    border: 1px solid rgba(16, 40, 70, 0.35);
+    border-radius: 999px;
+  }
+
+  section.hero_area.style-one .hero-course-btn a::before {
+    display: none;
   }
 }

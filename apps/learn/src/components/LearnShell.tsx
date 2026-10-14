@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { createBrowserSupabase } from "@workix/db/browser";
 import { StripeReturnConfirm } from "@/components/StripeReturnConfirm";
 import { formatRole } from "@/components/LearnUi";
+import { apiClient } from "@/lib/api";
 
 const web = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000";
 
@@ -29,6 +30,7 @@ function initials(name: string) {
 
 export function LearnShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [name, setName] = useState("Learner");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("individual_learner");
@@ -37,6 +39,10 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [continueHref, setContinueHref] = useState<string | null>(null);
+  const [teamOverdue, setTeamOverdue] = useState(0);
+  const [query, setQuery] = useState("");
+  const [searchItems, setSearchItems] = useState<{ label: string; href: string; hint: string }[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,6 +63,110 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("workix-profile", onProfile);
     return () => window.removeEventListener("workix-profile", onProfile);
   }, []);
+
+  useEffect(() => {
+    setCollapsed(window.localStorage.getItem("workix-learn-sidebar") === "collapsed");
+  }, []);
+
+  useEffect(() => {
+    if (role !== "individual_learner" && role !== "company_learner") {
+      setContinueHref(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [owned, progress] = await Promise.all([
+          apiClient<{
+            enrollments: { course_id: string; source: string }[];
+            courses: { id: string; slug: string; title: string }[];
+            gates?: Record<string, { title: string; slug: string } | null>;
+            outlines?: Record<string, { id: string }[]>;
+          }>("/me/enrollments"),
+          apiClient<{ progress: { lesson_id: string; completed: boolean }[] }>("/me/progress"),
+        ]);
+        if (cancelled) return;
+        const done = new Set(progress.progress.filter((row) => row.completed).map((row) => row.lesson_id));
+        const sourceOf = new Map(owned.enrollments.map((row) => [row.course_id, row.source]));
+        const open = owned.courses.filter((item) => {
+          if (owned.gates?.[item.id]) return false;
+          const outline = owned.outlines?.[item.id] ?? [];
+          return outline.length === 0 || outline.some((lesson) => !done.has(lesson.id));
+        });
+        const preferred =
+          role === "individual_learner"
+            ? open.find((item) => sourceOf.get(item.id) !== "seat") ?? open[0]
+            : open.find((item) => sourceOf.get(item.id) === "seat") ?? open[0];
+        setContinueHref(preferred ? `/courses/${preferred.slug}` : null);
+        setSearchItems(
+          owned.courses.map((item) => ({
+            label: item.title,
+            hint: item.slug,
+            href: `/courses/${item.slug}`,
+          })),
+        );
+      } catch {
+        if (!cancelled) setContinueHref(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [role]);
+
+  useEffect(() => {
+    if (role !== "company_admin" && !(role === "company_learner" && departmentLead)) {
+      setTeamOverdue(0);
+      return;
+    }
+    let cancelled = false;
+    apiClient<{ rows: { courses: { dueStatus: string }[] }[] }>("/orgs/progress")
+      .then((res) => {
+        if (cancelled) return;
+        const count = (res.rows ?? []).reduce(
+          (sum, person) => sum + person.courses.filter((course) => course.dueStatus === "overdue").length,
+          0,
+        );
+        setTeamOverdue(count);
+      })
+      .catch(() => {
+        if (!cancelled) setTeamOverdue(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [role, departmentLead, pathname]);
+
+  useEffect(() => {
+    if (role !== "company_admin") return;
+    let cancelled = false;
+    Promise.all([
+      apiClient<{
+        members: { full_name: string | null; email: string }[];
+      }>("/orgs/me"),
+      apiClient<{ courses: { title: string; slug: string }[] }>("/courses").catch(() => ({ courses: [] })),
+    ])
+      .then(([res, catalog]) => {
+        if (cancelled) return;
+        setSearchItems([
+          ...(res.members ?? []).map((member) => {
+            const label = member.full_name?.trim() || member.email;
+            return { label, hint: member.email, href: `/team?person=${encodeURIComponent(label)}` };
+          }),
+          ...(catalog.courses ?? []).map((course) => ({
+            label: course.title,
+            hint: "Course",
+            href: `/courses/${course.slug}`,
+          })),
+        ]);
+      })
+      .catch(() => {
+        if (!cancelled) setSearchItems([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [role]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -94,7 +204,9 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
   const nav = links
     .filter((link) => {
       if (role === "company_learner" && link.href === "/invoices") return false;
-      if (role === "company_admin" && link.href === "/my-courses") return false;
+      if (role === "company_admin" && (link.href === "/my-courses" || link.href === "/certificates")) {
+        return false;
+      }
       return true;
     })
     .map((link) =>
@@ -126,7 +238,13 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
             className="workiz-sidebar-collapse d-none d-xl-inline-flex"
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-pressed={collapsed}
-            onClick={() => setCollapsed((v) => !v)}
+            onClick={() =>
+              setCollapsed((v) => {
+                const next = !v;
+                window.localStorage.setItem("workix-learn-sidebar", next ? "collapsed" : "open");
+                return next;
+              })
+            }
           >
             <i className={collapsed ? "ri-menu-unfold-line" : "ri-menu-fold-line"} />
           </button>
@@ -147,7 +265,10 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
                 <li key={link.href} className={active ? "active-page" : ""}>
                   <Link href={link.href} onClick={() => setMobileOpen(false)} title={link.label}>
                     <i className={link.icon} />
-                    <span>{link.label}</span>
+                    <span>
+                      {link.label}
+                      {link.href === "/team" && teamOverdue > 0 ? ` (${teamOverdue})` : ""}
+                    </span>
                   </Link>
                 </li>
               );
@@ -162,6 +283,45 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
             <button type="button" className="workiz-topbar__ham d-xl-none" aria-label="Open sidebar" onClick={() => setMobileOpen(true)}>
               <i className="ri-menu-line" />
             </button>
+            <div className="workiz-topbar-search">
+              <input
+                aria-label={role === "company_admin" ? "Search people and courses" : "Search courses"}
+                placeholder={role === "company_admin" ? "Search people and courses" : "Search courses"}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+              {query.trim() ? (
+                <ul className="workiz-topbar-search__menu">
+                  {searchItems.filter((item) => `${item.label} ${item.hint}`.toLowerCase().includes(query.trim().toLowerCase())).length === 0 ? (
+                    <li className="px-10 py-8 text-secondary-light">No matches</li>
+                  ) : (
+                    searchItems
+                      .filter((item) => `${item.label} ${item.hint}`.toLowerCase().includes(query.trim().toLowerCase()))
+                      .slice(0, 6)
+                      .map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              const href = item.href;
+                              setQuery("");
+                              router.push(href);
+                            }}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))
+                  )}
+                </ul>
+              ) : null}
+            </div>
+            {continueHref && !pathname.startsWith("/courses/") ? (
+              <Link href={continueHref} className="btn btn-primary-600 btn-sm radius-8">
+                Continue
+              </Link>
+            ) : null}
           </div>
           <div className="workiz-topbar__right">
             <div className="workiz-profile" ref={menuRef}>
@@ -198,6 +358,10 @@ export function LearnShell({ children }: { children: React.ReactNode }) {
                   <Link href="/catalog" role="menuitem" className="workiz-profile__item" onClick={() => setMenuOpen(false)}>
                     <i className="ri-book-2-line" aria-hidden="true" />
                     Catalog
+                  </Link>
+                  <Link href="/certificates" role="menuitem" className="workiz-profile__item" onClick={() => setMenuOpen(false)}>
+                    <i className="ri-award-line" aria-hidden="true" />
+                    Certificates
                   </Link>
                   <a href={web} role="menuitem" className="workiz-profile__item" onClick={() => setMenuOpen(false)}>
                     <i className="ri-global-line" aria-hidden="true" />

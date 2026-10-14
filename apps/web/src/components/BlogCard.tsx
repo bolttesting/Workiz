@@ -11,17 +11,12 @@ export function BlogCard({ post }: { post: BlogPost }) {
         </div>
       </div>
       <div className="blog-content">
-        <div className="blog-author">
-          <h4>
-            <img src={post.authorImage} alt={post.author} />
-            {post.author}
-          </h4>
-        </div>
         <div className="blog-title">
           <h3>
             <Link href={`/blog/${post.slug}`}>{post.title}</Link>
           </h3>
         </div>
+        <p className="workiz-blog-byline">{post.author}</p>
         <div className="blog-btn">
           <Link href={`/blog/${post.slug}`}>Continue Reading</Link>
         </div>

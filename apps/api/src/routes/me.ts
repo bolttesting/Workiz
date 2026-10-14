@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import { ensureInvoiceForOrder } from "../lib/access.js";
 import { adminDb } from "../lib/db.js";
 import { canDownloadInvoice, loadInvoiceForPdf } from "../lib/invoice-pdf.js";
@@ -9,14 +10,16 @@ import { companyNameForUser, getOrgNote } from "../lib/org-note.js";
 import { getPlatformSettings } from "../lib/platform-settings.js";
 import { leadFlags } from "../lib/leads.js";
 import { buildCertificatePdf } from "../lib/pdf.js";
-import type { Authed } from "../lib/auth.js";
+import { urls, type Authed } from "../lib/auth.js";
 
 const AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export const me = new Hono<{ Variables: { auth: Authed } }>();
 
+type OutlineLesson = { id: string; title: string; durationSeconds: number; type: string; quizId: string | null };
+
 async function lessonOutlines(courseIds: string[]) {
-  const outlines: Record<string, { id: string; title: string }[]> = {};
+  const outlines: Record<string, OutlineLesson[]> = {};
   for (const id of courseIds) outlines[id] = [];
   if (!courseIds.length) return outlines;
   const { data: modules } = await adminDb
@@ -26,8 +29,12 @@ async function lessonOutlines(courseIds: string[]) {
     .order("sort_order");
   const moduleIds = (modules ?? []).map((mod) => mod.id);
   const { data: lessons } = moduleIds.length
-    ? await adminDb.from("lessons").select("id, title, module_id, sort_order").in("module_id", moduleIds).order("sort_order")
-    : { data: [] as { id: string; title: string; module_id: string; sort_order: number }[] };
+    ? await adminDb
+        .from("lessons")
+        .select("id, title, module_id, sort_order, duration_seconds, type, quiz_id")
+        .in("module_id", moduleIds)
+        .order("sort_order")
+    : { data: [] as { id: string; title: string; module_id: string; sort_order: number; duration_seconds?: number; type?: string; quiz_id?: string | null }[] };
   const byCourse = new Map<string, { id: string; sort_order: number }[]>();
   for (const mod of modules ?? []) {
     const list = byCourse.get(mod.course_id) ?? [];
@@ -39,7 +46,13 @@ async function lessonOutlines(courseIds: string[]) {
     outlines[courseId] = mods.flatMap((mod) =>
       (lessons ?? [])
         .filter((lesson) => lesson.module_id === mod.id)
-        .map((lesson) => ({ id: lesson.id, title: lesson.title })),
+        .map((lesson) => ({
+          id: lesson.id,
+          title: lesson.title,
+          durationSeconds: Number(lesson.duration_seconds ?? 0),
+          type: String(lesson.type ?? "video"),
+          quizId: lesson.quiz_id ? String(lesson.quiz_id) : null,
+        })),
     );
   }
   return outlines;
@@ -113,7 +126,35 @@ me.get("/enrollments", async (c) => {
   const { data: courses } = ids.length ? await adminDb.from("courses").select("*").in("id", ids) : { data: [] as never[] };
   const gates = await gatesForUser(auth.profile, ids);
   const outlines = await lessonOutlines(ids);
-  return c.json({ enrollments: enrollments ?? [], courses: courses ?? [], gates, outlines });
+  const quizLessons = Object.entries(outlines).flatMap(([courseId, lessons]) =>
+    lessons.filter((lesson) => lesson.quizId).map((lesson) => ({ courseId, title: lesson.title, quizId: lesson.quizId as string })),
+  );
+  const quizIds = quizLessons.map((lesson) => lesson.quizId);
+  const { data: attempts } = quizIds.length
+    ? await adminDb
+        .from("quiz_attempts")
+        .select("quiz_id, score, passed, created_at")
+        .eq("user_id", auth.userId)
+        .in("quiz_id", quizIds)
+    : { data: [] as { quiz_id: string; score: number; passed: boolean; created_at: string }[] };
+  const latest = new Map<string, { score: number; passed: boolean; created_at: string }>();
+  for (const attempt of attempts ?? []) {
+    const prev = latest.get(attempt.quiz_id);
+    if (!prev || String(attempt.created_at) > prev.created_at) {
+      latest.set(attempt.quiz_id, { score: attempt.score, passed: Boolean(attempt.passed), created_at: String(attempt.created_at) });
+    }
+  }
+  const failedQuizzes = quizLessons
+    .filter((lesson) => {
+      const attempt = latest.get(lesson.quizId);
+      return Boolean(attempt && !attempt.passed);
+    })
+    .map((lesson) => ({
+      courseId: lesson.courseId,
+      title: lesson.title,
+      score: latest.get(lesson.quizId)?.score ?? 0,
+    }));
+  return c.json({ enrollments: enrollments ?? [], courses: courses ?? [], gates, outlines, failedQuizzes });
 });
 
 me.get("/progress", async (c) => {
@@ -159,6 +200,7 @@ me.get("/certificates/:id/pdf", async (c) => {
     number,
     companyName,
     issuer: platform.certificateIssuer,
+    verifyUrl: `${urls().web}/verify`,
   });
   const filename = `${course.title.replace(/[^\w]+/g, "-").replace(/^-|-$/g, "") || "certificate"}.pdf`;
   return c.body(new Uint8Array(buffer), 200, {
@@ -202,4 +244,30 @@ me.get("/invoices/:id/pdf", async (c) => {
     "Content-Type": "application/pdf",
     "Content-Disposition": `attachment; filename="${filename}"`,
   });
+});
+
+me.get("/lessons/:id/note", async (c) => {
+  const auth = c.get("auth");
+  const { data, error } = await adminDb
+    .from("lesson_notes")
+    .select("body")
+    .eq("user_id", auth.userId)
+    .eq("lesson_id", c.req.param("id"))
+    .maybeSingle();
+  if (error) return c.json({ note: "" });
+  return c.json({ note: typeof data?.body === "string" ? data.body : "" });
+});
+
+me.put("/lessons/:id/note", async (c) => {
+  const auth = c.get("auth");
+  if (auth.profile.role === "company_admin") return c.json({ error: "A preview does not save notes." }, 403);
+  const body = z.object({ body: z.string().max(4000) }).parse(await c.req.json());
+  const { error } = await adminDb.from("lesson_notes").upsert({
+    user_id: auth.userId,
+    lesson_id: c.req.param("id"),
+    body: body.body,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) return c.json({ error: "Notes are not available until the latest database update is applied." }, 400);
+  return c.json({ ok: true });
 });

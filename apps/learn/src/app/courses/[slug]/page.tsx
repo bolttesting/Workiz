@@ -52,7 +52,14 @@ export default function PlayerPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [speed, setSpeed] = useState(1);
+  const [note, setNote] = useState("");
+  const [noteState, setNoteState] = useState<"idle" | "saving" | "saved">("idle");
+  const [captionUrl, setCaptionUrl] = useState<string | null>(null);
+  const [courseFinished, setCourseFinished] = useState(false);
+  const [preview, setPreview] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const previewRef = useRef(false);
   const positionsRef = useRef<Record<string, number>>({});
   const lastSavedRef = useRef(0);
 
@@ -71,14 +78,22 @@ export default function PlayerPage() {
       apiClient<{ progress: { lesson_id: string; completed: boolean; position_seconds?: number }[] }>("/me/progress").catch(() => ({
         progress: [] as { lesson_id: string; completed: boolean; position_seconds?: number }[],
       })),
+      apiClient<{ profile: { role: string } }>("/me").catch(() => ({ profile: { role: "" } })),
     ])
-      .then(([res, progress]) => {
+      .then(([res, progress, me]) => {
         if (cancelled) return;
+        const looking = me.profile.role === "company_admin";
+        previewRef.current = looking;
+        setPreview(looking);
         const ordered = res.modules.flatMap((mod) => res.lessons.filter((lesson) => lesson.module_id === mod.id));
-        const done = new Set(progress.progress.filter((row) => row.completed).map((row) => row.lesson_id));
+        const done = new Set(
+          looking ? [] : progress.progress.filter((row) => row.completed).map((row) => row.lesson_id),
+        );
         const positions: Record<string, number> = {};
-        for (const row of progress.progress) {
-          if (!row.completed && row.position_seconds && row.position_seconds > 2) positions[row.lesson_id] = row.position_seconds;
+        if (!looking) {
+          for (const row of progress.progress) {
+            if (!row.completed && row.position_seconds && row.position_seconds > 2) positions[row.lesson_id] = row.position_seconds;
+          }
         }
         positionsRef.current = positions;
         const resume = ordered.find((lesson) => !done.has(lesson.id)) ?? ordered[0] ?? null;
@@ -114,7 +129,38 @@ export default function PlayerPage() {
   const doneCount = ordered.filter((lesson) => completed.has(lesson.id)).length;
   const pct = ordered.length ? Math.round((doneCount / ordered.length) * 100) : 0;
   const activeResources = active ? resources.filter((file) => file.lesson_id === active.id) : [];
+  const captionFile = activeResources.find(
+    (file) => file.content_type.includes("vtt") || file.title.toLowerCase().endsWith(".vtt"),
+  );
+  const handouts = activeResources.filter((file) => file.id !== captionFile?.id);
   const activeDone = active ? completed.has(active.id) : false;
+
+  useEffect(() => {
+    if (!activeId || preview) return;
+    setNote("");
+    setNoteState("idle");
+    apiClient<{ note: string }>(`/me/lessons/${activeId}/note`)
+      .then((res) => setNote(res.note))
+      .catch(() => setNote(""));
+  }, [activeId, preview]);
+
+  useEffect(() => {
+    if (!captionFile) {
+      setCaptionUrl(null);
+      return;
+    }
+    let cancelled = false;
+    apiClient<{ url: string }>(`/media/resources/${captionFile.id}/download`)
+      .then((res) => {
+        if (!cancelled) setCaptionUrl(res.url);
+      })
+      .catch(() => {
+        if (!cancelled) setCaptionUrl(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [captionFile?.id]);
 
   useEffect(() => {
     if (!active || active.type !== "video" || !unlocked) return;
@@ -155,7 +201,12 @@ export default function PlayerPage() {
         method: "POST",
         body: JSON.stringify({ lessonId, completed: true }),
       });
-      setCompleted((current) => new Set(current).add(lessonId));
+      const nextDone = new Set(completed).add(lessonId);
+      setCompleted(nextDone);
+      const index = ordered.findIndex((lesson) => lesson.id === lessonId);
+      const upcoming = ordered[index + 1];
+      if (upcoming) setActiveId(upcoming.id);
+      else if (ordered.length > 0 && ordered.every((lesson) => nextDone.has(lesson.id))) setCourseFinished(true);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -197,7 +248,7 @@ export default function PlayerPage() {
           <p className="text-secondary-light mb-16">
             {waitingOn
               ? `Finish ${waitingOn.title} first. Your company set opens this course after that one.`
-              : "Buy it, or open it from a company seat, before the lessons will play."}
+              : "This course is not open for you yet. Ask your admin to assign it, or buy it for yourself."}
           </p>
           {waitingOn ? (
             <Link href={`/courses/${waitingOn.slug}`} className="btn btn-primary-600 radius-8">
@@ -214,20 +265,24 @@ export default function PlayerPage() {
         <div className="workiz-course">
           <div className="workiz-player">
             <aside className="workiz-player-outline" aria-label="Curriculum">
-              <Link href="/my-courses" className="workiz-course__back">
-                My courses
+              <Link href={preview ? "/catalog" : "/my-courses"} className="workiz-course__back">
+                {preview ? "Catalog" : "My courses"}
               </Link>
               <h1>{course.title}</h1>
               {course.subtitle ? <p className="workiz-course__lede">{course.subtitle}</p> : null}
               <div className="workiz-player-outline__head">
                 <h2>Lessons</h2>
-                <span>
-                  {doneCount} / {ordered.length}
-                </span>
+                {preview ? null : (
+                  <span>
+                    {doneCount} / {ordered.length}
+                  </span>
+                )}
               </div>
-              <div className="workiz-player-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-                <span style={{ width: `${pct}%` }} />
-              </div>
+              {preview ? null : (
+                <div className="workiz-player-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                  <span style={{ width: `${pct}%` }} />
+                </div>
+              )}
               <div className="workiz-player-lessons">
                 {modules.map((mod) => {
                   const items = lessons.filter((lesson) => lesson.module_id === mod.id);
@@ -255,7 +310,7 @@ export default function PlayerPage() {
                   );
                 })}
               </div>
-              {pct === 100 && ordered.length > 0 ? (
+              {!preview && pct === 100 && ordered.length > 0 ? (
                 <Link href="/certificates" className="btn btn-primary-600 btn-sm radius-8 workiz-course__cert">
                   View certificate
                 </Link>
@@ -268,11 +323,15 @@ export default function PlayerPage() {
                     <div className="workiz-player-screen">
                       <video
                         ref={videoRef}
+                        key={`${active.id}-${captionUrl ?? "plain"}`}
                         controls
                         className="workiz-player-video"
+                        onLoadedMetadata={(event) => {
+                          event.currentTarget.playbackRate = speed;
+                        }}
                         onTimeUpdate={() => {
                           const video = videoRef.current;
-                          if (!video || !slug) return;
+                          if (!video || !slug || previewRef.current) return;
                           const seconds = Math.floor(video.currentTime);
                           if (seconds < 3 || Math.abs(seconds - lastSavedRef.current) < 8) return;
                           const spent = Math.min(20, Math.max(0, seconds - lastSavedRef.current));
@@ -283,8 +342,12 @@ export default function PlayerPage() {
                             body: JSON.stringify({ lessonId: active.id, positionSeconds: seconds, spentSeconds: spent }),
                           }).catch(() => undefined);
                         }}
-                        onEnded={() => void completeLesson(active.id)}
-                      />
+                        onEnded={() => {
+                          if (!previewRef.current) void completeLesson(active.id);
+                        }}
+                      >
+                        {captionUrl ? <track kind="subtitles" src={captionUrl} srcLang="en" label="English" default /> : null}
+                      </video>
                     </div>
                   ) : null}
 
@@ -293,7 +356,11 @@ export default function PlayerPage() {
                   ) : null}
 
                   {active.type === "quiz" && active.quiz_id ? (
-                    <QuizBlock quizId={active.quiz_id} onPassed={() => setCompleted((current) => new Set(current).add(active.id))} />
+                    preview ? (
+                      <p className="text-secondary-light mb-0">Learners take this quiz. A preview does not record a score.</p>
+                    ) : (
+                      <QuizBlock quizId={active.quiz_id} onPassed={() => setCompleted((current) => new Set(current).add(active.id))} />
+                    )
                   ) : null}
 
                   <div className="workiz-player-dock">
@@ -305,8 +372,25 @@ export default function PlayerPage() {
                       </p>
                     </div>
                     <div className="workiz-player-dock__actions">
-                      {activeDone ? <StatusBadge label="Complete" tone="success" /> : null}
-                      {active.type !== "quiz" ? (
+                      {active.type === "video" ? (
+                        <div className="btn-group btn-group-sm" role="group" aria-label="Playback speed">
+                          {[1, 1.25, 1.5].map((rate) => (
+                            <button
+                              key={rate}
+                              type="button"
+                              className={`btn btn-sm radius-8 ${speed === rate ? "btn-primary-600" : "btn-outline-primary-600"}`}
+                              onClick={() => {
+                                setSpeed(rate);
+                                if (videoRef.current) videoRef.current.playbackRate = rate;
+                              }}
+                            >
+                              {rate}×
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      {!preview && activeDone ? <StatusBadge label="Complete" tone="success" /> : null}
+                      {!preview && active.type !== "quiz" ? (
                         <button
                           type="button"
                           className="btn btn-primary-600 btn-sm radius-8"
@@ -335,9 +419,17 @@ export default function PlayerPage() {
                     </div>
                   </div>
 
-                  {activeResources.length ? (
+                  {!preview && courseFinished ? (
+                    <div className="alert alert-success radius-8 mt-16" role="status">
+                      You finished this course.
+                      <Link href="/certificates" className="fw-semibold ms-8">
+                        View certificate
+                      </Link>
+                    </div>
+                  ) : null}
+                  {handouts.length ? (
                     <div className="workiz-player-files">
-                      {activeResources.map((file) => (
+                      {handouts.map((file) => (
                         <button
                           key={file.id}
                           type="button"
@@ -351,7 +443,44 @@ export default function PlayerPage() {
                       ))}
                     </div>
                   ) : null}
-                  <CourseAsk slug={slug} />
+                  {preview ? null : (
+                  <form
+                    className="mt-16"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      if (!active) return;
+                      setNoteState("saving");
+                      void apiClient(`/me/lessons/${active.id}/note`, {
+                        method: "PUT",
+                        body: JSON.stringify({ body: note }),
+                      })
+                        .then(() => setNoteState("saved"))
+                        .catch((err) => {
+                          setNoteState("idle");
+                          setError((err as Error).message);
+                        });
+                    }}
+                  >
+                    <label className="form-label" htmlFor="lesson-note">
+                      Your notes
+                    </label>
+                    <textarea
+                      id="lesson-note"
+                      className="form-control radius-8"
+                      rows={3}
+                      value={note}
+                      onChange={(event) => {
+                        setNote(event.target.value);
+                        setNoteState("idle");
+                      }}
+                      placeholder="Only you can see these."
+                    />
+                    <button type="submit" className="btn btn-outline-primary-600 btn-sm radius-8 mt-8" disabled={noteState === "saving"}>
+                      {noteState === "saving" ? "Saving…" : noteState === "saved" ? "Saved" : "Save note"}
+                    </button>
+                  </form>
+                  )}
+                  {preview ? null : <CourseAsk slug={slug} />}
                 </>
               ) : (
                 <p className="workiz-player-empty">This course has no lessons yet.</p>
@@ -368,7 +497,7 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
   const [data, setData] = useState<QuizPayload | null>(null);
   const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<{ score: number; passed: boolean; missed?: { id: string; prompt: string }[] } | null>(null);
+  const [result, setResult] = useState<{ score: number; passed: boolean; lessonTitle?: string | null; missed?: { id: string; prompt: string }[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -389,7 +518,7 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
     setSubmitting(true);
     setError(null);
     try {
-      const res = await apiClient<{ score: number; passed: boolean; missed?: { id: string; prompt: string }[] }>(`/quizzes/${quizId}/attempt`, {
+      const res = await apiClient<{ score: number; passed: boolean; lessonTitle?: string | null; missed?: { id: string; prompt: string }[] }>(`/quizzes/${quizId}/attempt`, {
         method: "POST",
         body: JSON.stringify({ answers }),
       });
@@ -456,12 +585,12 @@ function QuizBlock({ quizId, onPassed }: { quizId: string; onPassed: () => void 
         ) : result ? (
           <>
             <p className="mt-12 mb-8">
-              Score {result.score}%. Pass mark is {data.quiz.passing_score}%. This lesson stays open until you pass.
+              Score {result.score}%. Pass mark is {data.quiz.passing_score}%. Restudy {result.lessonTitle || "this lesson"} and try again.
             </p>
             {result.missed?.length ? (
               <ul className="mb-8">
                 {result.missed.map((question) => (
-                  <li key={question.id}>Missed: {question.prompt}</li>
+                  <li key={question.id}>{question.prompt}</li>
                 ))}
               </ul>
             ) : null}

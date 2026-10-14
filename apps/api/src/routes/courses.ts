@@ -2,10 +2,12 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { gatesForUser } from "../lib/course-gate.js";
 import { maybeIssueCertificate } from "../lib/issue-certificate.js";
+import { sanitizeRichText } from "../lib/sanitize.js";
 import { addSecondsSpent } from "../lib/time-spent.js";
 import { adminDb } from "../lib/db.js";
 import { hasCourseAccess } from "../lib/access.js";
 import { getBearer, type Authed } from "../lib/auth.js";
+import { lessonPlayback } from "../lib/playback.js";
 
 export const courses = new Hono<{ Variables: { auth?: Authed } }>();
 
@@ -17,6 +19,27 @@ courses.get("/", async (c) => {
     .order("created_at", { ascending: false });
   if (error) return c.json({ error: error.message }, 500);
   return c.json({ courses: data ?? [] });
+});
+
+/** Public playback for lessons marked as free previews on a published course. No login needed. */
+courses.get("/:slug/preview/:lessonId", async (c) => {
+  const { data: course } = await adminDb
+    .from("courses")
+    .select("id, published")
+    .eq("slug", c.req.param("slug"))
+    .maybeSingle();
+  if (!course?.published) return c.json({ error: "Not found" }, 404);
+  const { data: lesson } = await adminDb
+    .from("lessons")
+    .select("id, module_id, type, is_preview")
+    .eq("id", c.req.param("lessonId"))
+    .maybeSingle();
+  if (!lesson?.is_preview || lesson.type !== "video") return c.json({ error: "Not found" }, 404);
+  const { data: module } = await adminDb.from("modules").select("course_id").eq("id", lesson.module_id).maybeSingle();
+  if (module?.course_id !== course.id) return c.json({ error: "Not found" }, 404);
+  const playback = await lessonPlayback(lesson.id);
+  if (!playback.ok) return c.json({ error: playback.error }, playback.code);
+  return c.json({ status: playback.status, url: playback.url, type: playback.type });
 });
 
 courses.get("/:slug", async (c) => {
@@ -52,7 +75,7 @@ courses.get("/:slug", async (c) => {
 
   const safeLessons = (lessons ?? []).map((lesson) => ({
     ...lesson,
-    article_content: unlocked || lesson.is_preview ? lesson.article_content : null,
+    article_content: unlocked || lesson.is_preview ? sanitizeRichText(lesson.article_content) || null : null,
   }));
   const lessonIds = (lessons ?? []).map((l) => l.id);
   const { data: resourceRows } = lessonIds.length
@@ -104,6 +127,7 @@ courses.post("/:slug/progress", async (c) => {
   if (!userData.user) return c.json({ error: "Unauthorized" }, 401);
   const { data: profile } = await adminDb.from("profiles").select("*").eq("id", userData.user.id).single();
   if (!profile) return c.json({ error: "Unauthorized" }, 401);
+  if (profile.role === "company_admin") return c.json({ error: "A preview does not save progress." }, 403);
   const auth = { userId: userData.user.id, email: userData.user.email ?? profile.email, profile };
   const parsed = progressSchema.safeParse(await c.req.json());
   if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);

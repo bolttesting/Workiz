@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import { adminDb } from "../lib/db.js";
-import { inviteEmail, sendMail } from "../lib/mail.js";
+import { inviteEmail, learnerReminderEmail, sendMail } from "../lib/mail.js";
 import { inviteSignInLink } from "../lib/invite-link.js";
 import { courseIdsForInvites, enrollInviteCourses, setInviteCourseIds } from "../lib/invite-courses.js";
 import { inviteDepartments, memberDepartments, setInviteDepartment, setMemberDepartment } from "../lib/departments.js";
@@ -16,6 +16,7 @@ import { leadFlags, setDepartmentLead } from "../lib/leads.js";
 import { loadCompanyBilling, scheduleCompanyCancel } from "../lib/billing.js";
 import { getPlatformSettings } from "../lib/platform-settings.js";
 import { urls, type Authed } from "../lib/auth.js";
+import { buildTrainingRecordPdf } from "../lib/record-pdf.js";
 
 const dueField = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional();
 
@@ -139,6 +140,84 @@ orgs.post("/members/:id/courses", async (c) => {
   }
   if (dueAt) await setEnrollmentDue(memberId, courseId, dueAt);
   return c.json({ ok: true, title: course.title });
+});
+
+orgs.get("/catalog", async (c) => {
+  const auth = c.get("auth");
+  if (auth.profile.role !== "company_admin" && auth.profile.role !== "super_admin") {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+  if (!auth.profile.organization_id) return c.json({ learnerCount: 0, departments: [], people: [], courses: [] });
+  const orgId = auth.profile.organization_id;
+  const { data: courseRows, error: courseError } = await adminDb
+    .from("courses")
+    .select("*")
+    .eq("published", true)
+    .order("title");
+  if (courseError) return c.json({ error: courseError.message }, 500);
+  const published = courseRows ?? [];
+  const courseIds = published.map((course) => course.id);
+  const { data: modules } = courseIds.length
+    ? await adminDb.from("modules").select("id, course_id").in("course_id", courseIds)
+    : { data: [] as { id: string; course_id: string }[] };
+  const moduleIds = (modules ?? []).map((mod) => mod.id);
+  const { data: lessons } = moduleIds.length
+    ? await adminDb.from("lessons").select("module_id, type, duration_seconds, quiz_id").in("module_id", moduleIds)
+    : { data: [] as { module_id: string; type: string; duration_seconds: number | null; quiz_id: string | null }[] };
+  const courseOfModule = new Map((modules ?? []).map((mod) => [mod.id, mod.course_id]));
+  const stats = new Map<string, { lessons: number; seconds: number; hasQuiz: boolean }>();
+  for (const lesson of lessons ?? []) {
+    const courseId = courseOfModule.get(lesson.module_id);
+    if (!courseId) continue;
+    const row = stats.get(courseId) ?? { lessons: 0, seconds: 0, hasQuiz: false };
+    row.lessons += 1;
+    row.seconds += Number(lesson.duration_seconds ?? 0);
+    if (lesson.type === "quiz" || lesson.quiz_id) row.hasQuiz = true;
+    stats.set(courseId, row);
+  }
+  const { data: members } = await adminDb
+    .from("profiles")
+    .select("id, email, full_name")
+    .eq("organization_id", orgId)
+    .eq("role", "company_learner");
+  const people = members ?? [];
+  const departmentsByMember = await memberDepartments(people.map((person) => person.id));
+  const memberIds = people.map((person) => person.id);
+  const { data: enrollments } = memberIds.length && courseIds.length
+    ? await adminDb.from("enrollments").select("user_id, course_id").in("user_id", memberIds).in("course_id", courseIds)
+    : { data: [] as { user_id: string; course_id: string }[] };
+  const assignedIds = new Map<string, string[]>();
+  for (const row of enrollments ?? []) {
+    const list = assignedIds.get(row.course_id) ?? [];
+    list.push(row.user_id);
+    assignedIds.set(row.course_id, list);
+  }
+  const departments = [...new Set(Object.values(departmentsByMember).map((name) => name?.trim()).filter((name): name is string => Boolean(name)))].sort((a, b) =>
+    a.localeCompare(b),
+  );
+  return c.json({
+    learnerCount: people.length,
+    departments,
+    people: people.map((person) => ({
+      id: person.id,
+      name: person.full_name?.trim() || person.email,
+      email: person.email,
+      department: departmentsByMember[person.id] ?? null,
+    })),
+    courses: published.map((course) => {
+      const fact = stats.get(course.id) ?? { lessons: 0, seconds: 0, hasQuiz: false };
+      const ids = assignedIds.get(course.id) ?? [];
+      return {
+        id: course.id,
+        lessons: fact.lessons,
+        durationSeconds: fact.seconds,
+        hasQuiz: fact.hasQuiz,
+        certificateMonths: typeof course.certificate_months === "number" ? course.certificate_months : null,
+        assigned: ids.length,
+        assignedIds: ids,
+      };
+    }),
+  });
 });
 
 orgs.post("/assign", async (c) => {
@@ -645,7 +724,8 @@ orgs.delete("/invites/:id", async (c) => {
 
 orgs.get("/certificates", async (c) => {
   const auth = c.get("auth");
-  if (auth.profile.role !== "company_admin" && auth.profile.role !== "super_admin") {
+  const lead = auth.profile.role === "company_learner" && Boolean((await leadFlags([auth.userId]))[auth.userId]);
+  if (auth.profile.role !== "company_admin" && auth.profile.role !== "super_admin" && !lead) {
     return c.json({ error: "Forbidden" }, 403);
   }
   if (!auth.profile.organization_id) return c.json({ certificates: [] });
@@ -654,15 +734,20 @@ orgs.get("/certificates", async (c) => {
     .select("id, email, full_name")
     .eq("organization_id", auth.profile.organization_id)
     .eq("role", "company_learner");
-  const people = members ?? [];
+  let people = members ?? [];
+  if (lead) {
+    const departments = await memberDepartments(people.map((member) => member.id).concat(auth.userId));
+    const own = (departments[auth.userId] ?? "").toLowerCase();
+    people = people.filter((member) => (departments[member.id] ?? "").toLowerCase() === own);
+  }
   const memberIds = people.map((member) => member.id);
   const withNumber = memberIds.length
-    ? await adminDb.from("certificates").select("id, user_id, course_id, issued_at, number").in("user_id", memberIds)
-    : { data: [] as { id: string; user_id: string; course_id: string; issued_at: string; number?: string | null }[], error: null };
+    ? await adminDb.from("certificates").select("id, user_id, course_id, issued_at, expires_at, number").in("user_id", memberIds)
+    : { data: [] as { id: string; user_id: string; course_id: string; issued_at: string; expires_at?: string | null; number?: string | null }[], error: null };
   const certificates = withNumber.error
     ? (
         await adminDb.from("certificates").select("id, user_id, course_id, issued_at").in("user_id", memberIds)
-      ).data?.map((row) => ({ ...row, number: null as string | null }))
+      ).data?.map((row) => ({ ...row, number: null as string | null, expires_at: null as string | null }))
     : withNumber.data;
   const courseIds = Array.from(new Set((certificates ?? []).map((row) => row.course_id)));
   const { data: courses } = courseIds.length
@@ -682,6 +767,7 @@ orgs.get("/certificates", async (c) => {
           email: person?.email ?? "",
           courseTitle: titles.get(row.course_id) ?? "Course",
           issuedAt: row.issued_at,
+          expiresAt: "expires_at" in row ? row.expires_at ?? null : null,
           number,
         };
       }),
@@ -880,6 +966,55 @@ orgs.post("/course-sets/:id/assign", async (c) => {
   return c.json({ ok: true, name: set.name, assigned, courses: set.courseIds.length });
 });
 
+orgs.post("/remind", async (c) => {
+  const auth = c.get("auth");
+  const denied = requireCompanyManager(auth);
+  if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
+  const body = z.object({ userIds: z.array(z.string().uuid()).min(1).max(40) }).parse(await c.req.json());
+  const orgId = auth.profile.organization_id as string;
+  const { data: people } = await adminDb
+    .from("profiles")
+    .select("id, email, full_name, organization_id")
+    .in("id", body.userIds);
+  const members = (people ?? []).filter((person) => person.organization_id === orgId && person.email);
+  if (!members.length) return c.json({ sent: 0 });
+  const ids = members.map((person) => person.id);
+  const { data: enrollments } = await adminDb.from("enrollments").select("user_id, course_id").in("user_id", ids);
+  const dues = await enrollmentDues(enrollments ?? []);
+  const courseIds = [...new Set((enrollments ?? []).map((row) => row.course_id))];
+  const { data: courses } = courseIds.length
+    ? await adminDb.from("courses").select("id, title, slug").in("id", courseIds)
+    : { data: [] as { id: string; title: string; slug: string }[] };
+  const courseById = new Map((courses ?? []).map((course) => [course.id, course]));
+  const learn = urls().learn;
+  let sent = 0;
+  for (const member of members) {
+    const overdue = (enrollments ?? []).find((row) => {
+      if (row.user_id !== member.id) return false;
+      const due = dues[`${row.user_id}:${row.course_id}`] ?? null;
+      return dueState(due, false) === "overdue";
+    });
+    const course = overdue ? courseById.get(overdue.course_id) : undefined;
+    const due = overdue ? dues[`${overdue.user_id}:${overdue.course_id}`] : null;
+    if (!course || !due) continue;
+    const mail = await sendMail({
+      to: member.email,
+      subject: `${course.title} is overdue`,
+      html: learnerReminderEmail({
+        course: course.title,
+        dueAt: due,
+        overdue: true,
+        href: `${learn}/courses/${course.slug}`,
+      }),
+    });
+    if (mail.sent) {
+      sent += 1;
+      await logActivity(orgId, auth.userId, "Reminded", member.full_name?.trim() || member.email);
+    }
+  }
+  return c.json({ sent });
+});
+
 orgs.get("/activity", async (c) => {
   const auth = c.get("auth");
   const denied = requireCompanyManager(auth);
@@ -927,3 +1062,155 @@ orgs.patch("/note", async (c) => {
   await logActivity(auth.profile.organization_id as string, auth.userId, "Dashboard note", note ? "Updated" : "Cleared");
   return c.json({ note });
 });
+
+orgs.post("/requests", async (c) => {
+  const auth = c.get("auth");
+  if (auth.profile.role !== "company_learner" || !auth.profile.organization_id) {
+    return c.json({ error: "Only a company learner can ask for a course." }, 403);
+  }
+  const { courseId } = z.object({ courseId: z.string().uuid() }).parse(await c.req.json());
+  const { data: course } = await adminDb.from("courses").select("id, published").eq("id", courseId).maybeSingle();
+  if (!course?.published) return c.json({ error: "Course unavailable" }, 404);
+  const { data: owned } = await adminDb
+    .from("enrollments")
+    .select("id")
+    .eq("user_id", auth.userId)
+    .eq("course_id", courseId)
+    .maybeSingle();
+  if (owned) return c.json({ error: "This course is already assigned to you." }, 400);
+  const { error } = await adminDb.from("course_requests").insert({
+    organization_id: auth.profile.organization_id,
+    user_id: auth.userId,
+    course_id: courseId,
+  });
+  if (error) {
+    if (/duplicate|unique/i.test(error.message)) return c.json({ error: "You already asked for this course." }, 400);
+    return c.json({ error: "Course requests need the latest database update." }, 400);
+  }
+  return c.json({ ok: true });
+});
+
+orgs.get("/requests", async (c) => {
+  const auth = c.get("auth");
+  const denied = requireCompanyManager(auth);
+  if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
+  const { data, error } = await adminDb
+    .from("course_requests")
+    .select("id, user_id, course_id, status, created_at")
+    .eq("organization_id", auth.profile.organization_id)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+  if (error) return c.json({ requests: [] });
+  const userIds = [...new Set((data ?? []).map((row) => row.user_id))];
+  const courseIds = [...new Set((data ?? []).map((row) => row.course_id))];
+  const { data: people } = userIds.length
+    ? await adminDb.from("profiles").select("id, full_name, email").in("id", userIds)
+    : { data: [] as { id: string; full_name: string | null; email: string }[] };
+  const { data: courses } = courseIds.length
+    ? await adminDb.from("courses").select("id, title").in("id", courseIds)
+    : { data: [] as { id: string; title: string }[] };
+  const person = new Map((people ?? []).map((row) => [row.id, row]));
+  const course = new Map((courses ?? []).map((row) => [row.id, row.title]));
+  return c.json({
+    requests: (data ?? []).map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      name: person.get(row.user_id)?.full_name ?? null,
+      email: person.get(row.user_id)?.email ?? "",
+      courseId: row.course_id,
+      courseTitle: course.get(row.course_id) ?? "Course",
+      createdAt: row.created_at,
+    })),
+  });
+});
+
+orgs.post("/requests/:id/assign", async (c) => {
+  const auth = c.get("auth");
+  const denied = requireCompanyManager(auth);
+  if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
+  const { data: request } = await adminDb
+    .from("course_requests")
+    .select("*")
+    .eq("id", c.req.param("id"))
+    .eq("organization_id", auth.profile.organization_id)
+    .maybeSingle();
+  if (!request || request.status !== "pending") return c.json({ error: "Request not found" }, 404);
+  const { data: existing } = await adminDb
+    .from("enrollments")
+    .select("id")
+    .eq("user_id", request.user_id)
+    .eq("course_id", request.course_id)
+    .maybeSingle();
+  if (!existing) {
+    const { error } = await adminDb.from("enrollments").insert({
+      user_id: request.user_id,
+      course_id: request.course_id,
+      source: "seat",
+    });
+    if (error) return c.json({ error: error.message }, 400);
+  }
+  await adminDb.from("course_requests").update({ status: "assigned" }).eq("id", request.id);
+  await logActivity(auth.profile.organization_id as string, auth.userId, "Assigned", "From a course request");
+  return c.json({ ok: true });
+});
+
+orgs.post("/requests/:id/dismiss", async (c) => {
+  const auth = c.get("auth");
+  const denied = requireCompanyManager(auth);
+  if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
+  await adminDb
+    .from("course_requests")
+    .update({ status: "dismissed" })
+    .eq("id", c.req.param("id"))
+    .eq("organization_id", auth.profile.organization_id);
+  return c.json({ ok: true });
+});
+
+orgs.get("/members/:id/record", async (c) => {
+  const auth = c.get("auth");
+  const denied = requireCompanyManager(auth);
+  if (denied) return c.json({ error: denied }, denied === "Forbidden" ? 403 : 400);
+  const memberId = c.req.param("id");
+  const { data: member } = await adminDb.from("profiles").select("id, email, full_name, organization_id").eq("id", memberId).maybeSingle();
+  if (!member || member.organization_id !== auth.profile.organization_id) return c.json({ error: "Not found" }, 404);
+  const { data: org } = await adminDb.from("organizations").select("name").eq("id", member.organization_id).maybeSingle();
+  const { data: enrollments } = await adminDb.from("enrollments").select("course_id, due_at").eq("user_id", memberId);
+  const courseIds = (enrollments ?? []).map((row) => row.course_id);
+  const { data: courses } = courseIds.length
+    ? await adminDb.from("courses").select("id, title").in("id", courseIds)
+    : { data: [] as { id: string; title: string }[] };
+  const { data: certificates } = await adminDb.from("certificates").select("course_id, number, issued_at").eq("user_id", memberId);
+  const spent = await secondsForUsers([memberId]);
+  let seconds = 0;
+  for (const [id, value] of spent) {
+    if (id.startsWith(`${memberId}:`)) seconds += value;
+  }
+  const courseTitle = new Map((courses ?? []).map((course) => [course.id, course.title]));
+  const certByCourse = new Map((certificates ?? []).map((cert) => [cert.course_id, cert.number as string | null]));
+  const timeLabel = formatRecordTime(seconds);
+  const buffer = await buildTrainingRecordPdf({
+    person: member.full_name?.trim() || member.email,
+    email: member.email,
+    company: org?.name ?? "Company",
+    rows: (enrollments ?? []).map((row) => ({
+      course: courseTitle.get(row.course_id) ?? "Course",
+      status: certByCourse.has(row.course_id) ? "Certificate issued" : "In progress",
+      dueAt: row.due_at ? String(row.due_at).slice(0, 10) : null,
+      spent: timeLabel,
+      certificate: certByCourse.get(row.course_id) ?? null,
+    })),
+  });
+  const filename = `${(member.full_name || "learner").replace(/[^\w]+/g, "-")}-training-record.pdf`;
+  return c.body(new Uint8Array(buffer), 200, {
+    "Content-Type": "application/pdf",
+    "Content-Disposition": `attachment; filename="${filename}"`,
+  });
+});
+
+function formatRecordTime(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours) return `${hours}h ${minutes}m`;
+  if (minutes) return `${minutes}m`;
+  return seconds ? `${seconds}s` : "0m";
+}

@@ -219,31 +219,6 @@ export function SiteFooter() {
     </>
   );
 
-  const socials = (
-    <ul>
-      <li>
-        <a href="#" aria-label="Facebook">
-          <i className="fab fa-facebook-f" />
-        </a>
-      </li>
-      <li>
-        <a href="#" aria-label="X">
-          <i className="fa-brands fa-x-twitter" />
-        </a>
-      </li>
-      <li>
-        <a href="#" aria-label="LinkedIn">
-          <i className="fab fa-linkedin-in" />
-        </a>
-      </li>
-      <li>
-        <a href="#" aria-label="Pinterest">
-          <i className="fab fa-pinterest-p" />
-        </a>
-      </li>
-    </ul>
-  );
-
   return (
     <>
       {/* Desktop: original multi-column footer */}
@@ -264,7 +239,7 @@ export function SiteFooter() {
                   SUBSCRIBE TO OUR <span>NEWSLETTER</span>
                 </h3>
                 <p className="workiz-newsletter-lede">
-                  Get useful learning insights, training updates, and new course announcements in your inbox.
+                  Training updates and new courses, in your inbox.
                 </p>
               </div>
             </div>
@@ -372,13 +347,10 @@ export function SiteFooter() {
         <div className="footer-bottom-area">
           <div className="container">
             <div className="row footer-bottom">
-              <div className="col-lg-6">
+              <div className="col-12">
                 <div className="footer-bottom-desc">
                   <p>{copy}</p>
                 </div>
-              </div>
-              <div className="col-lg-6">
-                <div className="footer-bottom-social-icon">{socials}</div>
               </div>
             </div>
           </div>
@@ -393,7 +365,7 @@ export function SiteFooter() {
               SUBSCRIBE TO OUR <span>NEWSLETTER</span>
             </div>
             <p className="workiz-newsletter-lede">
-              Get useful learning insights, training updates, and new course announcements in your inbox.
+              Training updates and new courses, in your inbox.
             </p>
             <form className="workiz-footer__subscribe-form" action="/contact">
               <span className="workiz-footer__subscribe-icon" aria-hidden="true">
@@ -442,21 +414,6 @@ export function SiteFooter() {
                 </div>
               );
             })}
-          </div>
-
-          <div className="workiz-footer__social">
-            <a href="#" aria-label="Facebook">
-              <i className="fab fa-facebook-f" />
-            </a>
-            <a href="#" aria-label="X">
-              <i className="fa-brands fa-x-twitter" />
-            </a>
-            <a href="#" aria-label="LinkedIn">
-              <i className="fab fa-linkedin-in" />
-            </a>
-            <a href="#" aria-label="Pinterest">
-              <i className="fab fa-pinterest-p" />
-            </a>
           </div>
 
           <p className="workiz-footer__copy">{copy}</p>

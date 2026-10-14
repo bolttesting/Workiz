@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api";
 import { createBrowserSupabase } from "@workix/db/browser";
 import { useEffect, useRef, useState } from "react";
@@ -33,11 +33,15 @@ function initials(name: string) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [unanswered, setUnanswered] = useState(0);
   const [name, setName] = useState("Admin");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [query, setQuery] = useState("");
+  const [searchItems, setSearchItems] = useState<{ label: string; href: string; hint: string }[]>([]);
+  const searchLoaded = useRef(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -55,6 +59,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       setEmail(profile?.email || data.user.email || "");
       setAvatarUrl(profile?.avatar_url || null);
     });
+  }, []);
+
+  useEffect(() => {
+    setCollapsed(window.localStorage.getItem("workix-admin-sidebar") === "collapsed");
   }, []);
 
   useEffect(() => {
@@ -97,7 +105,49 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   function toggleCollapsed() {
-    setCollapsed((v) => !v);
+    setCollapsed((v) => {
+      const next = !v;
+      window.localStorage.setItem("workix-admin-sidebar", next ? "collapsed" : "open");
+      return next;
+    });
+  }
+
+  function loadSearch() {
+    if (searchLoaded.current) return;
+    searchLoaded.current = true;
+    void Promise.all([
+      apiClient<{ organizations: { id: string; name: string }[] }>("/admin/organizations"),
+      apiClient<{ orders: { id: string; kind: string; status: string; amount_cents: number }[] }>("/admin/orders"),
+      apiClient<{ courses: { id: string; title: string }[] }>("/admin/courses"),
+      apiClient<{ users: { id: string; full_name: string | null; email: string }[] }>("/admin/users"),
+    ])
+      .then(([orgs, orders, courses, users]) => {
+        setSearchItems([
+          ...orgs.organizations.map((org) => ({
+            label: org.name,
+            hint: "Company",
+            href: `/organizations?q=${encodeURIComponent(org.name)}`,
+          })),
+          ...courses.courses.slice(0, 80).map((course) => ({
+            label: course.title,
+            hint: "Course",
+            href: `/courses/${course.id}`,
+          })),
+          ...users.users.slice(0, 80).map((person) => ({
+            label: person.full_name?.trim() || person.email,
+            hint: "Person",
+            href: `/users?q=${encodeURIComponent(person.email)}`,
+          })),
+          ...orders.orders.slice(0, 80).map((order) => ({
+            label: `${order.kind} · ${order.status}`,
+            hint: order.id,
+            href: `/orders?q=${encodeURIComponent(order.id)}`,
+          })),
+        ]);
+      })
+      .catch(() => {
+        searchLoaded.current = false;
+      });
   }
 
   return (
@@ -162,6 +212,45 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               <i className="ri-menu-line" />
             </button>
+            <div className="workiz-topbar-search">
+              <input
+                aria-label="Search companies and orders"
+                placeholder="Search companies or orders"
+                value={query}
+                onFocus={loadSearch}
+                onChange={(event) => {
+                  loadSearch();
+                  setQuery(event.target.value);
+                }}
+              />
+              {query.trim() ? (
+                <ul className="workiz-topbar-search__menu">
+                  {searchItems.filter((item) => `${item.label} ${item.hint}`.toLowerCase().includes(query.trim().toLowerCase())).length === 0 ? (
+                    <li className="px-10 py-8 text-secondary-light">No matches</li>
+                  ) : (
+                    searchItems
+                      .filter((item) => `${item.label} ${item.hint}`.toLowerCase().includes(query.trim().toLowerCase()))
+                      .slice(0, 8)
+                      .map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              const href = item.href;
+                              setQuery("");
+                              router.push(href);
+                            }}
+                          >
+                            {item.label}
+                            <span className="d-block text-sm text-secondary-light">{item.hint === item.label ? "" : item.hint}</span>
+                          </Link>
+                        </li>
+                      ))
+                  )}
+                </ul>
+              ) : null}
+            </div>
           </div>
 
           <div className="workiz-topbar__right">

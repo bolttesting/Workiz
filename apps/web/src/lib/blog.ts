@@ -21,6 +21,14 @@ export type BlogPost = {
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
+const TEMPLATE_AUTHORS = new Set(["David X. Barmer", "Anjelina Watson", "John D. Alexon", "Workiz Team"]);
+
+function publisherName(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed || TEMPLATE_AUTHORS.has(trimmed)) return "WORKIZ";
+  return trimmed;
+}
+
 export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "strategies-for-online-learning",
@@ -28,7 +36,7 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt: "Practical habits that help employees finish assigned courses and help companies get value from every seat.",
     dateLabel: "28 JAN",
     dateFull: "28 January, 2026",
-    author: "John D. Alexon",
+    author: "WORKIZ",
     authorImage: "/assets/images/home-one/blog-autor1.png",
     thumb: "/assets/images/home-one/blog-thumb1.png",
     icon: "/assets/images/home-one/blog-icon1.png",
@@ -47,7 +55,7 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt: "Recorded lessons, quizzes, and certificates are becoming the default for busy teams.",
     dateLabel: "29 JAN",
     dateFull: "29 January, 2026",
-    author: "Anjelina Watson",
+    author: "WORKIZ",
     authorImage: "/assets/images/home-one/blog-autor2.png",
     thumb: "/assets/images/home-one/blog-thumb2.png",
     icon: "/assets/images/home-one/blog-icon2.png",
@@ -66,7 +74,7 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt: "Communication, leadership, and workplace habits travel with every role change.",
     dateLabel: "30 JAN",
     dateFull: "30 January, 2026",
-    author: "David X. Barmer",
+    author: "WORKIZ",
     authorImage: "/assets/images/home-one/blog-autor3.png",
     thumb: "/assets/images/home-one/blog-thumb3.png",
     icon: "/assets/images/home-one/blog-icon3.png",
@@ -88,7 +96,7 @@ function normalizePost(raw: Record<string, unknown>, index = 0): BlogPost {
     excerpt: String(raw.excerpt ?? ""),
     dateLabel: String(raw.dateLabel ?? ""),
     dateFull: String(raw.dateFull ?? ""),
-    author: String(raw.author ?? "Workiz Team"),
+    author: publisherName(String(raw.author ?? "")),
     authorImage: String(raw.authorImage ?? "/assets/images/home-one/blog-autor1.png"),
     thumb: String(raw.thumb ?? "/assets/images/home-one/blog-thumb1.png"),
     icon: String(raw.icon ?? `/assets/images/home-one/blog-icon${(index % 3) + 1}.png`),

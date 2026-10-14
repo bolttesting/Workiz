@@ -8,7 +8,7 @@ export type PublicContact = {
 export const CONTACT_DEFAULTS: PublicContact = {
   whatsapp: "+971 4 320 8888",
   phone: "+971 4 320 8888",
-  emails: ["hello@workiz.com"],
+  emails: ["hello@workiz.net"],
   address: "Workiz Support Solutions - FZCO, Dubai Silicon Oasis, Dubai, United Arab Emirates",
 };
 

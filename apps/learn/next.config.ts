@@ -20,7 +20,7 @@ loadRootEnv();
 
 const config: NextConfig = {
   output: "standalone",
-  transpilePackages: ["@workix/db", "@workix/config"],
+  transpilePackages: ["@workix/db", "@workix/config", "@workix/ui"],
   images: { unoptimized: true },
 };
 

@@ -106,25 +106,24 @@ export function SeatsCheckout() {
 
     try {
       if (authMode === "signup") {
-        const { data, error: err } = await sb.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              company_name: company,
-              intended_role: "company_admin",
-            },
-          },
+        const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+        const res = await fetch(`${api}/auth/sign-up`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            fullName,
+            companyName: company,
+            intendedRole: "company_admin",
+          }),
         });
-        if (err) throw err;
-        if (!data.session) {
-          setMessage("Check your email to confirm your account, then sign in here to checkout.");
-          setAuthMode("signin");
-          setAuthLoading(false);
-          return;
-        }
-        setAuthedEmail(data.session.user.email ?? email);
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        if (!res.ok) throw new Error(json.error || "Could not create the account.");
+        setMessage("Check your email to confirm your account, then sign in here to checkout.");
+        setAuthMode("signin");
+        setAuthLoading(false);
+        return;
       } else {
         const { data, error: err } = await sb.auth.signInWithPassword({ email, password });
         if (err) throw err;

@@ -2,7 +2,19 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { adminDb } from "../lib/db.js";
 import { canModerateCourse, hasCourseAccess } from "../lib/access.js";
-import { requireUser, type Authed } from "../lib/auth.js";
+import { requireUser, urls, type Authed } from "../lib/auth.js";
+import { questionAnsweredEmail, sendMail } from "../lib/mail.js";
+
+async function emailQuestionAnswer(question: { user_id: string; course_id: string }) {
+  const { data: asker } = await adminDb.from("profiles").select("email").eq("id", question.user_id).maybeSingle();
+  const { data: course } = await adminDb.from("courses").select("title, slug").eq("id", question.course_id).maybeSingle();
+  if (!asker?.email || !course?.slug) return;
+  await sendMail({
+    to: asker.email,
+    subject: `Reply on ${course.title}`,
+    html: questionAnsweredEmail({ course: course.title, href: `${urls().learn}/courses/${course.slug}` }),
+  });
+}
 
 async function courseBySlug(slug: string | undefined) {
   if (!slug) return null;
@@ -35,6 +47,39 @@ async function attachPeople<T extends { user_id: string }>(rows: T[]) {
 }
 
 export const courseEngagement = new Hono<{ Variables: { auth?: Authed } }>();
+
+/** "Sara Ahmed" -> "Sara A." so public testimonials don't publish full names. */
+function shortName(fullName: string | null | undefined) {
+  const parts = (fullName ?? "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "WORKIZ learner";
+  return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1]!.charAt(0)}.` : parts[0]!;
+}
+
+/** Recent 4–5 star reviews on published courses, for the marketing home page. */
+courseEngagement.get("/reviews/featured", async (c) => {
+  const { data, error } = await adminDb
+    .from("course_reviews")
+    .select("id, rating, body, created_at, user_id, course:courses!inner(title, slug, published)")
+    .gte("rating", 4)
+    .eq("course.published", true)
+    .order("created_at", { ascending: false })
+    .limit(12);
+  if (error) return c.json({ error: error.message }, 500);
+  const rows = (data ?? []).filter((row) => row.body.trim().length >= 20).slice(0, 6);
+  const withPeople = await attachPeople(rows);
+  return c.json({
+    reviews: withPeople.map((row) => {
+      const course = row.course as unknown as { title: string; slug: string };
+      return {
+        id: row.id,
+        rating: row.rating,
+        body: row.body,
+        name: shortName(row.user?.full_name),
+        course: { title: course.title, slug: course.slug },
+      };
+    }),
+  });
+});
 
 courseEngagement.get("/:slug/reviews", async (c) => {
   const slug = c.req.param("slug");
@@ -109,6 +154,7 @@ courseEngagement.post("/:slug/questions", requireUser, async (c) => {
   const slug = c.req.param("slug");
   const course = await courseBySlug(slug);
   if (!course || !course.published) return c.json({ error: "Not found" }, 404);
+  if (auth.profile.role === "company_admin") return c.json({ error: "A preview does not send a question." }, 403);
   if (!(await hasCourseAccess(auth.profile, course.id))) {
     return c.json({ error: "Buy or enroll in this course before asking a question." }, 403);
   }
@@ -147,5 +193,6 @@ courseEngagement.post("/questions/:id/answer", requireUser, async (c) => {
     .select("*")
     .single();
   if (error) return c.json({ error: error.message }, 400);
+  await emailQuestionAnswer(question);
   return c.json({ question: data });
 });

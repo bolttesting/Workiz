@@ -71,37 +71,35 @@ html {
 }
 
 /* Scroll-triggered section reveals (marketing) */
-[data-reveal] {
-  opacity: 0;
-  transform: translate3d(0, 28px, 0);
+/* Hidden only after ScrollRevealRoot sets .reveal-ready, so no-JS and pre-hydration stay readable. */
+[data-reveal].is-revealed {
   transition:
-    opacity 0.55s cubic-bezier(0.23, 1, 0.32, 1),
-    transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+    opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   transition-delay: var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
 }
 
-[data-reveal].is-revealed {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-  will-change: auto;
+.reveal-ready [data-reveal]:not(.is-revealed) {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
 }
 
 [data-reveal-stagger] > [data-reveal]:nth-child(1) {
   --reveal-delay: 0ms;
 }
 [data-reveal-stagger] > [data-reveal]:nth-child(2) {
-  --reveal-delay: 90ms;
+  --reveal-delay: 60ms;
 }
 [data-reveal-stagger] > [data-reveal]:nth-child(3) {
-  --reveal-delay: 180ms;
+  --reveal-delay: 120ms;
 }
 [data-reveal-stagger] > [data-reveal]:nth-child(4) {
-  --reveal-delay: 270ms;
+  --reveal-delay: 180ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
+  [data-reveal],
+  .reveal-ready [data-reveal]:not(.is-revealed) {
     opacity: 1;
     transform: none;
     transition: none;
@@ -134,10 +132,10 @@ html {
   --font-sans: Outfit, ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Auth entrance: short, no blur, so the form is usable within ~0.5s. */
 @keyframes fadeSlideIn {
   to {
     opacity: 1;
-    filter: blur(0px);
     transform: translateY(0px);
   }
 }
@@ -145,7 +143,6 @@ html {
 @keyframes slideRightIn {
   to {
     opacity: 1;
-    filter: blur(0px);
     transform: translateX(0px);
   }
 }
@@ -153,70 +150,66 @@ html {
 @keyframes testimonialIn {
   to {
     opacity: 1;
-    filter: blur(0px);
     transform: translateY(0px) scale(1);
   }
 }
 
 .animate-element {
   opacity: 0;
-  filter: blur(4px);
-  transform: translateY(12px);
-  animation: fadeSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: translateY(8px);
+  animation: fadeSlideIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-slide-right {
   opacity: 0;
-  filter: blur(4px);
-  transform: translateX(24px);
-  animation: slideRightIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: translateX(16px);
+  animation: slideRightIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-testimonial {
   opacity: 0;
-  filter: blur(4px);
-  transform: translateY(16px) scale(0.96);
-  animation: testimonialIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: translateY(10px) scale(0.98);
+  animation: testimonialIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-delay-100 {
-  animation-delay: 0.1s;
+  animation-delay: 0.03s;
 }
 .animate-delay-200 {
-  animation-delay: 0.2s;
+  animation-delay: 0.06s;
 }
 .animate-delay-250 {
-  animation-delay: 0.25s;
+  animation-delay: 0.075s;
 }
 .animate-delay-300 {
-  animation-delay: 0.3s;
+  animation-delay: 0.09s;
 }
 .animate-delay-400 {
-  animation-delay: 0.4s;
+  animation-delay: 0.12s;
 }
 .animate-delay-500 {
-  animation-delay: 0.5s;
+  animation-delay: 0.15s;
 }
 .animate-delay-600 {
-  animation-delay: 0.6s;
+  animation-delay: 0.18s;
 }
 .animate-delay-700 {
-  animation-delay: 0.7s;
+  animation-delay: 0.21s;
 }
 .animate-delay-800 {
-  animation-delay: 0.8s;
+  animation-delay: 0.24s;
 }
 .animate-delay-900 {
-  animation-delay: 0.9s;
+  animation-delay: 0.27s;
 }
 .animate-delay-1000 {
-  animation-delay: 1s;
+  animation-delay: 0.3s;
 }
 .animate-delay-1200 {
-  animation-delay: 1.2s;
+  animation-delay: 0.36s;
 }
 .animate-delay-1400 {
-  animation-delay: 1.4s;
+  animation-delay: 0.42s;
 }
 
 .custom-checkbox {
@@ -260,7 +253,7 @@ html {
 }
 
 .custom-checkbox:focus-visible {
-  outline: 2px solid #b69856;
+  outline: 2px solid #102846;
   outline-offset: 2px;
 }
 

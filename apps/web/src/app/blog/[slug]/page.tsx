@@ -20,14 +20,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await fetchBlogPost(slug);
-  if (!post) return { title: "Blog | Workiz" };
+  if (!post) return { title: "Blog" };
   return {
-    title: post.seo_title || `${post.title} | Workiz`,
+    // A custom SEO title is used as written; otherwise the layout template appends "| WORKIZ".
+    title: post.seo_title ? { absolute: post.seo_title } : post.title,
     description: post.seo_description || post.excerpt,
     keywords: post.seo_keywords || undefined,
     openGraph: {
       title: post.seo_title || post.title,
       description: post.seo_description || post.excerpt,
+      type: "article",
       images: post.og_image_url || post.thumb ? [{ url: post.og_image_url || post.thumb }] : undefined,
     },
   };
@@ -56,7 +58,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
                 <div className="blog-content">
                   <ul className="blog-author">
                     <li className="autor-name">
-                      <img src={post.authorImage} alt={post.author} />
+                      {post.author === "WORKIZ" ? null : <img src={post.authorImage} alt="" />}
                       <span>{post.author}</span>
                     </li>
                     <li className="detail-calender">

@@ -408,3 +408,14 @@ section.hero_area.style-one .hero-autor-box .autor-thumb img {
     top: -12px;
   }
 }
+
+/* Hero badge holds a word ("Self-paced"), not a number: keep it on one line. */
+section.hero_area.style-one .hero-autor-content h3 {
+  font-size: 22px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+section.hero_area.style-one .hero-autor-content p {
+  font-size: 14px;
+  line-height: 1.4;
+}

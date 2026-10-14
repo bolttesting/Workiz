@@ -157,7 +157,7 @@ export function LegalPage({
               </div>
             ) : (
               <p className="workiz-legal__footer-note">
-                Questions? Contact us at <a href="mailto:hello@workiz.com">hello@workiz.com</a>.
+                Questions? Contact us at <a href="mailto:hello@workiz.net">hello@workiz.net</a>.
               </p>
             )}
           </div>

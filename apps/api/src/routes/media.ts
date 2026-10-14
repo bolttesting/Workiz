@@ -3,6 +3,7 @@ import { adminDb } from "../lib/db.js";
 import { hasCourseAccess } from "../lib/access.js";
 import { presignGet, s3Configured } from "../lib/s3.js";
 import { resolveMediaUrl } from "../lib/media-store.js";
+import { lessonPlayback } from "../lib/playback.js";
 import type { Authed } from "../lib/auth.js";
 
 export const media = new Hono<{ Variables: { auth: Authed } }>();
@@ -17,25 +18,9 @@ media.get("/lessons/:id/playback", async (c) => {
   const allowed = lesson.is_preview || (await hasCourseAccess(auth.profile, module.course_id));
   if (!allowed) return c.json({ error: "No access" }, 403);
 
-  const { data: asset } = await adminDb.from("media_assets").select("*").eq("lesson_id", lessonId).maybeSingle();
-  if (!asset) return c.json({ error: "No media" }, 404);
-
-  const direct = resolveMediaUrl(asset.original_key, asset.public_url);
-  if (direct) {
-    return c.json({ status: asset.status || "ready", url: direct, type: "mp4" });
-  }
-
-  if (!s3Configured()) {
-    return c.json({ error: "Video URL missing and S3 is not configured" }, 404);
-  }
-
-  if (asset.status !== "ready" || !asset.hls_prefix) {
-    const fallback = await presignGet(asset.original_key, 300);
-    return c.json({ status: asset.status, url: fallback, type: "mp4" });
-  }
-  const manifestKey = `${asset.hls_prefix.replace(/\/$/, "")}/index.m3u8`;
-  const url = await presignGet(manifestKey, 180);
-  return c.json({ status: "ready", url, type: "hls" });
+  const playback = await lessonPlayback(lessonId);
+  if (!playback.ok) return c.json({ error: playback.error }, playback.code);
+  return c.json({ status: playback.status, url: playback.url, type: playback.type });
 });
 
 media.get("/files/:key{.+}", async (c) => {

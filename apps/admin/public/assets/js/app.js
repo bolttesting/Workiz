@@ -245,18 +245,16 @@
     });
   });
 
-  // Load saved color on refresh
+  // Load saved color on refresh. The picker is not on every page.
   const savedColor = localStorage.getItem("templateColor");
-  if (savedColor && colors[savedColor]) {
-    applyColor(savedColor);
-    document
-      .querySelector(`.color-picker-btn[data-color="${savedColor}"]`)
-      .classList.add("active");
-  } else {
-    // Default (base)
-    document
-      .querySelector(`.color-picker-btn[data-color="base"]`)
-      .classList.add("active");
+  const picker = document.querySelector(
+    savedColor && colors[savedColor]
+      ? `.color-picker-btn[data-color="${savedColor}"]`
+      : `.color-picker-btn[data-color="base"]`,
+  );
+  if (picker) {
+    if (savedColor && colors[savedColor]) applyColor(savedColor);
+    picker.classList.add("active");
   }
   // =========================== Color Schema js End ================================
 

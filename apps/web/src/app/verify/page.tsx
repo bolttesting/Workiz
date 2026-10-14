@@ -10,6 +10,7 @@ type Result = {
   companyName?: string | null;
   courseTitle?: string;
   issuedAt?: string;
+  expiresAt?: string | null;
 };
 
 export default function VerifyCertificatePage() {
@@ -50,9 +51,8 @@ export default function VerifyCertificatePage() {
           <div className="row justify-content-center">
             <div className="col-lg-7">
               <form className="card radius-12 shadow-1 p-4" onSubmit={onSubmit}>
-                <h3 className="mb-8">Certificate check</h3>
                 <p className="text-secondary-light mb-16">
-                  Enter the number printed on a WORKIZ certificate. You will see the learner name, the course, and the date it was issued.
+                  Enter the WX- number printed at the bottom of the certificate. You will see the learner, the course, and the date it was issued.
                 </p>
                 <label className="form-label" htmlFor="certificate-code">
                   Certificate number
@@ -65,7 +65,7 @@ export default function VerifyCertificatePage() {
                   placeholder="WX-XXXXXXXX"
                   autoComplete="off"
                 />
-                <button className="btn btn-primary-600 radius-8" type="submit" disabled={busy}>
+                <button className="workiz-verify-btn" type="submit" disabled={busy}>
                   {busy ? "Checking…" : "Check certificate"}
                 </button>
                 {error ? (
@@ -84,6 +84,7 @@ export default function VerifyCertificatePage() {
                     {result.companyName ? <div>{result.companyName}</div> : null}
                     <div>{result.courseTitle}</div>
                     <div>Issued {result.issuedAt?.slice(0, 10)}</div>
+                    {result.expiresAt ? <div>Valid through {result.expiresAt.slice(0, 10)}</div> : null}
                     {result.number ? <div>Number {result.number}</div> : null}
                   </div>
                 ) : null}

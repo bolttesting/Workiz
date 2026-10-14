@@ -2,9 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { createBrowserSupabase } from "@workix/db/browser";
 import { SignInPage } from "@/components/ui/sign-in";
-import { AUTH_HERO_IMAGE, AUTH_TESTIMONIALS } from "@/lib/auth-ui";
+import { AUTH_HERO_IMAGE } from "@/lib/auth-ui";
 import { getSafeNextPath } from "@/lib/auth-next";
 
 function SignUpForm() {
@@ -25,20 +24,16 @@ function SignUpForm() {
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
 
-    const sb = createBrowserSupabase();
-    const { data, error: err } = await sb.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
+    const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+    const res = await fetch(`${api}/auth/sign-up`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, fullName }),
     });
-    if (err) {
-      setError(err.message);
+    const json = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) {
+      setError(json.error || "Could not create the account.");
       setLoading(false);
-      return;
-    }
-
-    if (data.session) {
-      window.location.href = nextPath;
       return;
     }
 
@@ -50,13 +45,12 @@ function SignUpForm() {
     <SignInPage
       mode="sign-up"
       title={
-        <span className="font-light tracking-tighter text-foreground">
-          Create your <span className="font-semibold">Workiz</span> account
+        <span className="font-light text-foreground">
+          Create your account
         </span>
       }
-      description="Create an account to buy courses for yourself, or access training assigned by your company."
+      description="Buy courses for yourself. If your company assigned training, use the invite from your admin."
       heroImageSrc={AUTH_HERO_IMAGE}
-      testimonials={AUTH_TESTIMONIALS}
       loading={loading}
       error={error}
       message={message}

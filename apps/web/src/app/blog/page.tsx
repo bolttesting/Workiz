@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
 import { BlogCard } from "@/components/BlogCard";
 import { fetchBlogPosts } from "@/lib/blog";
+
+export const metadata: Metadata = { title: "Blog", description: "Insights on learning, professional development and workplace skills from the WORKIZ team." };
 
 export default async function BlogPage() {
   const posts = await fetchBlogPosts();

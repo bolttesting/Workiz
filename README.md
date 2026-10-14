@@ -30,7 +30,7 @@ Not in v1: Google Meet, instructor marketplace, school SIS modules, Arabic/RTL.
 3. Create a user in Auth, then promote them:
 
 ```sql
-update public.profiles set role = 'super_admin' where email = 'you@workix.com';
+update public.profiles set role = 'super_admin' where email = 'you@workiz.net';
 ```
 
 To add an instructor: create their login, then in Admin → Instructors promote them and assign a course.
@@ -55,7 +55,7 @@ docker compose -f infra/docker-compose.yml --env-file .env up -d --build
 
 Put Cloudflare or CloudFront in front of the S3/R2 bucket. Do not proxy video through the VPS.
 
-Set `COOKIE_DOMAIN=.workix.com` in production so www / learn / admin share the session.
+Set `COOKIE_DOMAIN=.workiz.net` in production so www / learn / admin share the session.
 
 ## First content
 

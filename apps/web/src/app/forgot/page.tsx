@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createBrowserSupabase } from "@workix/db/browser";
 import { SignInPage } from "@/components/ui/sign-in";
-import { AUTH_HERO_IMAGE, AUTH_TESTIMONIALS } from "@/lib/auth-ui";
+import { AUTH_HERO_IMAGE } from "@/lib/auth-ui";
 
 export default function ForgotRoute() {
   const router = useRouter();
@@ -17,9 +16,11 @@ export default function ForgotRoute() {
     setMessage(null);
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "");
-    const sb = createBrowserSupabase();
-    await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_WEB_URL}/sign-in`,
+    const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+    await fetch(`${api}/auth/forgot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     });
     setMessage("If that email exists, a reset link is on the way.");
     setLoading(false);
@@ -30,13 +31,12 @@ export default function ForgotRoute() {
       <SignInPage
         mode="forgot"
         title={
-          <span className="font-light tracking-tighter text-foreground">
+          <span className="font-light text-foreground">
             Reset your <span className="font-semibold">password</span>
           </span>
         }
         description="Enter your email and we'll send a secure reset link."
         heroImageSrc={AUTH_HERO_IMAGE}
-        testimonials={AUTH_TESTIMONIALS}
         loading={loading}
         message={message}
         onSignIn={handleReset}

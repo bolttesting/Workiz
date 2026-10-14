@@ -8,5 +8,16 @@
   },
   "dependencies": {
     "@workix/config": "workspace:*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/react": "^19.1.2",
+    "typescript": "^5.8.3"
   }
 }

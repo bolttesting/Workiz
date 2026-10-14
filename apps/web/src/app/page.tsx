@@ -2,13 +2,23 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { HomeCoursesCarousel } from "@/components/HomeCoursesCarousel";
-import { HomePageScripts } from "@/components/HomePageScripts";
 import { BlogCard } from "@/components/BlogCard";
 import { fetchBlogPosts } from "@/lib/blog";
 import { publicApi } from "@/lib/session";
 import type { Course } from "@workix/db/types";
 
 type HomeInstructor = { slug: string; name: string; headline: string; photo: string };
+type HomeReview = { id: string; rating: number; body: string; name: string; course: { title: string; slug: string } };
+
+async function loadReviews(): Promise<HomeReview[]> {
+  try {
+    const res = await fetch(`${publicApi()}/courses/reviews/featured`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    return ((await res.json()) as { reviews?: HomeReview[] }).reviews ?? [];
+  } catch {
+    return [];
+  }
+}
 
 async function loadHome() {
   try {
@@ -43,7 +53,6 @@ async function loadHome() {
 export default function HomePage() {
   return (
     <>
-      <HomePageScripts />
       <SiteHeader />
 
       <section className="hero_area style-one d-flex align-items-center">
@@ -51,24 +60,23 @@ export default function HomePage() {
           <div className="row align-items-center">
             <div className="col-lg-6">
               <div className="hero_content">
-                <h5>
-                  <i className="bi bi-check2" /> ONLINE LEARNING PLATFORM
-                </h5>
-                <h1>Professional Training</h1>
-                <h1>for Modern Teams</h1>
+                <h1>
+                  Professional Training
+                  <br />
+                  for Modern Teams
+                </h1>
                 <p>
-                  Give your team access to practical online training that builds useful skills, strengthens workplace
-                  performance, and supports continuous development.
+                  Buy a course for yourself, or give your team seats and assign the same training by department.
                 </p>
                 <div className="hero-button">
                   <div className="hero-btn">
                     <Link href="/courses">
-                      Explore Courses <i className="flaticon flaticon-right-arrow" />
+                      Buy a course <i className="flaticon flaticon-right-arrow" />
                     </Link>
                   </div>
                   <div className="hero-course-btn">
                     <Link href="/pricing">
-                      For Companies <i className="flaticon flaticon-right-arrow" />
+                      Company seats <i className="flaticon flaticon-right-arrow" />
                     </Link>
                   </div>
                 </div>
@@ -103,9 +111,8 @@ export default function HomePage() {
                     <img src="/assets/images/home-one/hero-autor.png" alt="" />
                   </div>
                   <div className="hero-autor-content">
-                    <h3 className="counter">1200</h3>
-                    <span>+</span>
-                    <p>Learners</p>
+                    <h3>Self-paced</h3>
+                    <p>Certificate on completion</p>
                   </div>
                 </div>
               </div>
@@ -134,7 +141,7 @@ export default function HomePage() {
                   <img src="/assets/images/home-one/feature-icon1.png" alt="" />
                 </div>
                 <div className="feature-content">
-                  <h4 className="feature-title">Learn at Your Own Pace</h4>
+                  <h3 className="feature-title">Learn at your own pace</h3>
                   <p className="feature-desc">
                     Access course materials online and learn at a pace that fits your schedule.
                   </p>
@@ -151,7 +158,7 @@ export default function HomePage() {
                   <img src="/assets/images/home-one/feature-icon2.png" alt="" />
                 </div>
                 <div className="feature-content">
-                  <h4 className="feature-title">Practical Skills for Real Work</h4>
+                  <h3 className="feature-title">Practical skills for real work</h3>
                   <p className="feature-desc">
                     Build useful knowledge through training designed around workplace needs and everyday challenges.
                   </p>
@@ -168,7 +175,7 @@ export default function HomePage() {
                   <img src="/assets/images/home-one/feature-icon3.png" alt="" />
                 </div>
                 <div className="feature-content">
-                  <h4 className="feature-title">Training That Supports Growth</h4>
+                  <h3 className="feature-title">Training that supports growth</h3>
                   <p className="feature-desc">
                     Explore learning opportunities that help you strengthen existing skills and develop new ones.
                   </p>
@@ -244,7 +251,7 @@ export default function HomePage() {
                 </div>
                 <div className="about-btn">
                   <Link href="/about">
-                    Read More <i className="flaticon flaticon-right-arrow" />
+                    About WORKIZ <i className="flaticon flaticon-right-arrow" />
                   </Link>
                 </div>
               </div>
@@ -273,7 +280,7 @@ function HomePending() {
 }
 
 async function HomeBelow() {
-  const { courses, instructors, posts } = await loadHome();
+  const [{ courses, instructors, posts }, reviews] = await Promise.all([loadHome(), loadReviews()]);
   return (
     <>
       <div className="case-study-area style-one">
@@ -299,6 +306,38 @@ async function HomeBelow() {
           </div>
         </div>
       </div>
+
+      {reviews.length ? (
+        <section className="workiz-home-reviews" aria-labelledby="home-reviews-title">
+          <div className="container">
+            <div className="row section-title-space" data-reveal>
+              <div className="col-lg-8">
+                <div className="section_title">
+                  <h2 id="home-reviews-title" className="workiz-home-title">
+                    What learners say
+                  </h2>
+                  <p className="workiz-section-lede">Reviews from people who took WORKIZ courses.</p>
+                </div>
+              </div>
+            </div>
+            <div className="workiz-home-reviews__grid" data-reveal>
+              {reviews.map((review) => (
+                <figure key={review.id} className="workiz-home-review">
+                  <div className="workiz-home-review__stars" role="img" aria-label={`${review.rating} out of 5 stars`}>
+                    {"★".repeat(review.rating)}
+                    {"☆".repeat(5 - review.rating)}
+                  </div>
+                  <blockquote>{review.body}</blockquote>
+                  <figcaption>
+                    <strong>{review.name}</strong>
+                    <Link href={`/courses/${review.course.slug}`}>{review.course.title}</Link>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <div className="why-choose-area style-one">
         <div className="container">
@@ -336,7 +375,7 @@ async function HomeBelow() {
                 </div>
                 <div className="choose-btn">
                   <Link href="/courses">
-                    Explore Learning <i className="flaticon flaticon-right-arrow" />
+                    Buy a course <i className="flaticon flaticon-right-arrow" />
                   </Link>
                 </div>
               </div>
@@ -374,17 +413,14 @@ async function HomeBelow() {
           <div className="row">
             <div className="col-lg-6">
               <div className="course-design-thumb">
-                <img src="/assets/images/home-one/offer-video.png" alt="" width={648} height={400} loading="lazy" decoding="async" />
-                <div className="course-video-icon">
-                  <a
-                    className="video-vemo-icon venobox vbox-item"
-                    data-vbtype="youtube"
-                    data-autoplay="true"
-                    href="https://www.youtube.com/watch?v=Wx48y_fOfiY"
-                  >
-                    <i className="fa-classic fa-solid fa-play fa-fw" />
-                  </a>
-                </div>
+                <img
+                  src="/assets/images/home-one/offer-video.png"
+                  alt="Company training"
+                  width={648}
+                  height={400}
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
             </div>
             <div className="col-lg-6">
@@ -396,8 +432,8 @@ async function HomeBelow() {
                     behaviour, and effective collaboration.
                   </p>
                   <div className="course-offer-btn">
-                    <Link href="/courses">
-                      Explore Courses <i className="flaticon flaticon-right-arrow" />
+                    <Link href="/pricing">
+                      Company seats <i className="flaticon flaticon-right-arrow" />
                     </Link>
                   </div>
                 </div>
@@ -484,79 +520,6 @@ async function HomeBelow() {
         </div>
       </div>
       ) : null}
-
-      <section className="workiz-testimonials">
-        <div className="container">
-          <header className="workiz-testimonials__head" data-reveal>
-            <h2 className="workiz-testimonials__title">What learners say</h2>
-            <p className="workiz-testimonials__lede">
-              Learning is personal. We value feedback from people who take our courses and use what they learn in their
-              professional and everyday lives.
-            </p>
-          </header>
-
-          <div className="workiz-testimonials__layout">
-            <div className="workiz-testimonials__media" data-reveal>
-              <img src="/assets/images/home-one/testimonial-workiz.png" alt="Workiz learner testimonials" />
-              <div className="testi-dot-shape">
-                <img src="/assets/images/home-one/testi-dot.png" alt="" />
-              </div>
-              <div className="testi-map-shape">
-                <img src="/assets/images/home-one/testi-map.png" alt="" />
-              </div>
-            </div>
-
-            <div className="workiz-testimonials__quotes" data-reveal style={{ ["--reveal-delay" as string]: "100ms" }}>
-              <article className="workiz-quote-card workiz-quote-card--featured">
-                <div className="workiz-quote-card__mark" aria-hidden="true">
-                  “
-                </div>
-                <h3>Practical and Useful</h3>
-                <p>
-                  The courses were clear, flexible, and easy to apply at work. I gained confidence in communication and
-                  cultural awareness that I use every day.
-                </p>
-                <div className="workiz-quote-card__meta">
-                  <div className="workiz-quote-card__stars" aria-label="4.5 out of 5 stars">
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-classic fa-solid fa-star-half-stroke fa-fw" />
-                  </div>
-                  <div>
-                    <strong>Sonia Sara</strong>
-                    <span>Learner</span>
-                  </div>
-                </div>
-              </article>
-
-              <div className="workiz-testimonials__grid">
-                <article className="workiz-quote-card">
-                  <p>
-                    Flexible online access made it easy to learn around my schedule while still building skills I could
-                    use at work right away.
-                  </p>
-                  <div className="workiz-quote-card__meta">
-                    <strong>Amira K.</strong>
-                    <span>Professional Skills</span>
-                  </div>
-                </article>
-                <article className="workiz-quote-card">
-                  <p>
-                    The cultural awareness training helped our team communicate with more confidence across different
-                    workplaces.
-                  </p>
-                  <div className="workiz-quote-card__meta">
-                    <strong>James R.</strong>
-                    <span>Company Learner</span>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <div className="blog-area style-one">
         <div className="container">

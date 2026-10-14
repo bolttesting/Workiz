@@ -7,7 +7,7 @@ export function resend() {
 }
 
 export function fromAddress() {
-  return process.env.EMAIL_FROM || "WORKIZ <hello@workiz.com>";
+  return process.env.EMAIL_FROM || "WORKIZ <hello@workiz.net>";
 }
 
 function escapeHtml(value: string) {
@@ -142,6 +142,56 @@ export function adminReminderEmail(opts: { company: string; lines: string[]; hre
     title: "Training dates",
     paragraphs: [`People at ${opts.company} have courses that are due soon or overdue.`, ...opts.lines],
     action: { label: "Open team", href: opts.href },
+  });
+}
+
+export function confirmAccountEmail(opts: { href: string }) {
+  return renderEmail({
+    preview: "Confirm your WORKIZ account.",
+    title: "Confirm your WORKIZ account",
+    paragraphs: ["Use the button to confirm this email address and finish creating your account."],
+    action: { label: "Confirm account", href: opts.href },
+    note: "If you did not create an account, you can ignore this message.",
+  });
+}
+
+export function resetPasswordEmail(opts: { href: string }) {
+  return renderEmail({
+    preview: "Reset your WORKIZ password.",
+    title: "Reset your WORKIZ password",
+    paragraphs: ["Use the button to choose a new password. The link opens the sign-in page."],
+    action: { label: "Reset password", href: opts.href },
+    note: "If you did not ask for this, you can ignore the message.",
+  });
+}
+
+export function questionAnsweredEmail(opts: { course: string; href: string }) {
+  return renderEmail({
+    preview: `Your question on ${opts.course} has a reply.`,
+    title: "Your question has a reply",
+    paragraphs: [`An instructor answered your question on ${opts.course}.`, "Open the course to read it."],
+    action: { label: "Open course", href: opts.href },
+  });
+}
+
+export function weeklyAdminEmail(opts: { company: string; lines: string[]; href: string }) {
+  return renderEmail({
+    preview: `This week at ${opts.company}.`,
+    title: "This week on WORKIZ",
+    paragraphs: [`A short note for ${opts.company}.`, ...opts.lines],
+    action: { label: "Open team", href: opts.href },
+  });
+}
+
+export function certificateRenewEmail(opts: { course: string; expiresOn: string; href: string }) {
+  return renderEmail({
+    preview: `Your certificate for ${opts.course} expires on ${opts.expiresOn}.`,
+    title: `${opts.course} needs a refresh`,
+    paragraphs: [
+      `Your certificate for ${opts.course} expires on ${opts.expiresOn}.`,
+      "The course is open again. Finish it before that date to renew the certificate.",
+    ],
+    action: { label: "Open course", href: opts.href },
   });
 }
 

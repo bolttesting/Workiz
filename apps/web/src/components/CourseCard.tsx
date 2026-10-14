@@ -2,11 +2,14 @@ import Link from "next/link";
 import { ArrowUpRight, Clock3, Play } from "lucide-react";
 import { courseDepartment } from "@workix/config";
 import type { Course } from "@workix/db/types";
-import { Money } from "@/components/Money";
+import { CourseThumb } from "@/components/CourseThumb";
 
-function resolveThumb(url: string | null, fallback: string) {
-  if (!url) return fallback;
-  return url;
+function aed(cents: number) {
+  const amount = ((Number(cents) || 0) / 100).toLocaleString("en-AE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `AED ${amount}`;
 }
 
 function formatDuration(minutes: number | null) {
@@ -18,7 +21,6 @@ function formatDuration(minutes: number | null) {
 }
 
 export function CourseCard({ course }: { course: Course }) {
-  const thumb = resolveThumb(course.thumbnail_url, "/assets/images/inner-img/course-thumb1.png");
   const blurb = course.subtitle || course.description || "Practical training for professional teams.";
   const duration = formatDuration(course.duration_minutes);
   const department = courseDepartment(course);
@@ -26,7 +28,7 @@ export function CourseCard({ course }: { course: Course }) {
   return (
     <article className="workiz-course-card">
       <Link href={`/courses/${course.slug}`} className="workiz-course-card__media">
-        <img src={thumb} alt="" />
+        <CourseThumb src={course.thumbnail_url} />
         <span className="workiz-course-card__scrim" aria-hidden="true" />
         <span className="workiz-course-card__dept">{department}</span>
         <span className="workiz-course-card__duration">
@@ -56,12 +58,10 @@ export function CourseCard({ course }: { course: Course }) {
         <div className="workiz-course-card__footer">
           <div className="workiz-course-card__price-wrap">
             <span className="workiz-course-card__price-label">Price</span>
-            <strong className="workiz-course-card__price">
-              <Money cents={course.price_cents} currency={course.currency} />
-            </strong>
+            <strong className="workiz-course-card__price">{aed(course.price_cents)}</strong>
           </div>
           <Link href={`/courses/${course.slug}`} className="workiz-course-card__cta">
-            View
+            Buy
             <ArrowUpRight size={16} strokeWidth={2.4} aria-hidden="true" />
           </Link>
         </div>

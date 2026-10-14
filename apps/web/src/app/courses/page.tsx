@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
 import { CoursesCatalog } from "@/components/CoursesCatalog";
 import { publicApi } from "@/lib/session";
 import type { Course } from "@workix/db/types";
+
+export const metadata: Metadata = { title: "Courses", description: "Browse WORKIZ courses. Buy one for yourself, or assign the same catalog to your team with company seats." };
 
 async function loadCourses(): Promise<Course[]> {
   try {
@@ -25,11 +28,9 @@ export default async function CoursesPage() {
       <section className="workiz-courses-page">
         <div className="container">
           <div className="workiz-courses-page__intro">
-            <p className="workiz-courses-page__eyebrow">COURSE CATALOG</p>
-            <h1 className="workiz-courses-page__title">Training built for modern teams</h1>
+            <h1 className="workiz-courses-page__title">Courses</h1>
             <p className="workiz-courses-page__lede">
-              Practical programs your company can assign by role or department — language, culture,
-              professional skills, and specialized training.
+              Buy a course for yourself. Companies use the same catalog and assign it from a seat plan.
             </p>
           </div>
 

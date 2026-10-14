@@ -31,18 +31,39 @@ export async function maybeIssueCertificate(userId: string, courseId: string) {
     if (quizIds.some((id) => !passed.has(id))) return;
   }
 
+  const { data: course } = await adminDb.from("courses").select("certificate_months").eq("id", courseId).maybeSingle();
+  const months = Number(course?.certificate_months) || 0;
+  const expiresAt = months > 0 ? new Date(Date.now() + months * 30 * 86_400_000).toISOString() : null;
   const { data: existing } = await adminDb
     .from("certificates")
-    .select("id")
+    .select("id, expires_at")
     .eq("user_id", userId)
     .eq("course_id", courseId)
     .maybeSingle();
-  if (existing) return;
-  const { data: cert } = await adminDb
-    .from("certificates")
-    .insert({ user_id: userId, course_id: courseId })
-    .select("id")
-    .single();
+  if (existing) {
+    const expires = existing.expires_at ? new Date(existing.expires_at).getTime() : null;
+    const renewing = expires != null && expires - Date.now() < 14 * 86_400_000;
+    if (!renewing) return;
+    const patch: { issued_at: string; expires_at?: string | null; pdf_key: null } = {
+      issued_at: new Date().toISOString(),
+      pdf_key: null,
+    };
+    if (expiresAt) patch.expires_at = expiresAt;
+    await adminDb.from("certificates").update(patch).eq("id", existing.id);
+    try {
+      await pdfQueue().add("certificate", { kind: "certificate", userId, courseId });
+    } catch {
+      /* redis optional locally */
+    }
+    return;
+  }
+  const insert: { user_id: string; course_id: string; expires_at?: string } = { user_id: userId, course_id: courseId };
+  if (expiresAt) insert.expires_at = expiresAt;
+  let { data: cert, error } = await adminDb.from("certificates").insert(insert).select("id").single();
+  if (error && /expires_at/i.test(error.message)) {
+    const retry = await adminDb.from("certificates").insert({ user_id: userId, course_id: courseId }).select("id").single();
+    cert = retry.data;
+  }
   if (!cert) return;
   await ensureCertificateNumber(cert.id);
   try {

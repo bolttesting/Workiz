@@ -30,6 +30,11 @@ export default function OrgsPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setQuery(q);
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

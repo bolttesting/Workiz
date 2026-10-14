@@ -160,6 +160,7 @@ export default function CourseBuilderPage() {
     description: "",
     level: "",
     duration_minutes: 0,
+    certificate_months: 0,
     learning_outcomes: "",
     audience: "",
     tags: "",
@@ -198,6 +199,7 @@ export default function CourseBuilderPage() {
       description: res.course.description ?? "",
       level: res.course.level ?? "",
       duration_minutes: res.course.duration_minutes ?? 0,
+      certificate_months: Number(res.course.certificate_months) || 0,
       learning_outcomes: listToLines(res.course.learning_outcomes),
       audience: listToLines(res.course.audience),
       tags: listToLines(res.course.tags),
@@ -237,6 +239,7 @@ export default function CourseBuilderPage() {
       description: basics.description || null,
       level: basics.level || null,
       duration_minutes: basics.duration_minutes,
+      certificate_months: basics.certificate_months || null,
       learning_outcomes: linesToList(basics.learning_outcomes),
       audience: linesToList(basics.audience),
       tags: linesToList(basics.tags),
@@ -567,6 +570,18 @@ export default function CourseBuilderPage() {
                 value={basics.duration_minutes}
                 onChange={(e) => setBasics((s) => ({ ...s, duration_minutes: Number(e.target.value) }))}
               />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Certificate stays valid (months)</label>
+              <input
+                className="form-control radius-8"
+                type="number"
+                min={0}
+                max={120}
+                value={basics.certificate_months}
+                onChange={(e) => setBasics((s) => ({ ...s, certificate_months: Number(e.target.value) }))}
+              />
+              <p className="text-sm text-secondary-light mt-8 mb-0">Leave at 0 if the certificate does not expire. Otherwise the learner retakes the course before it lapses.</p>
             </div>
             <div className="col-md-6">
               <label className="form-label">What you&apos;ll learn</label>
@@ -944,6 +959,15 @@ export default function CourseBuilderPage() {
                                   onFile={(file) => uploadLessonPdf(lesson.id, file)}
                                   hint="PDF only. Learners with access (or free preview) can download."
                                 />
+                                <div className="mt-12">
+                                  <FileUploadField
+                                    label="Add captions"
+                                    accept=".vtt,text/vtt"
+                                    busy={uploading}
+                                    onFile={(file) => uploadLessonPdf(lesson.id, file)}
+                                    hint="A .vtt file plays as subtitles on the lesson video."
+                                  />
+                                </div>
                               </div>
                             ) : null}
                           </div>

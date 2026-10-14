@@ -51,6 +51,8 @@ export default function CoursesPage() {
   }
 
   useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setQuery(q);
     setLoading(true);
     refresh()
       .then(() => setError(null))

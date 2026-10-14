@@ -48,6 +48,18 @@ export function DashboardSkeleton({
             </Link>
           </div>
         </div>
+        <div className="card shadow-1 radius-8">
+          <div className="card-body p-0">
+            <div className="px-20 py-16 border-bottom border-neutral-200">
+              <h6 className="text-lg mb-0">Needs attention</h6>
+            </div>
+            <div className="p-20 d-flex flex-column gap-3">
+              <span className="workiz-bone workiz-bone--cell" />
+              <span className="workiz-bone workiz-bone--cell" />
+              <span className="workiz-bone workiz-bone--cell" />
+            </div>
+          </div>
+        </div>
         <div className="row gy-4">
           <div className="col-xxl-8">
             <div className="row gy-4">
@@ -82,28 +94,6 @@ export function DashboardSkeleton({
             </div>
           </div>
         </div>
-        <div className="card shadow-1 radius-8">
-          <div className="card-body p-0">
-            <div className="px-20 py-16 border-bottom border-neutral-200">
-              <h6 className="text-lg mb-0">Needs attention</h6>
-            </div>
-            <div className="p-20">
-              <table className="table workiz-dash-table mb-0">
-                <thead>
-                  <tr>
-                    <th>Person</th>
-                    <th>Course</th>
-                    <th>Due</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <BoneRows rows={5} columns={4} />
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       </div>
     );
   }
@@ -125,6 +115,19 @@ export function DashboardSkeleton({
             Browse catalog
           </Link>
         )}
+      </div>
+
+      <div className="card shadow-1 radius-8">
+        <div className="card-body p-0">
+          <div className="px-20 py-16 border-bottom border-neutral-200">
+            <h6 className="text-lg mb-0">Needs attention</h6>
+          </div>
+          <div className="p-20 d-flex flex-column gap-3">
+            <span className="workiz-bone workiz-bone--cell" />
+            <span className="workiz-bone workiz-bone--cell" />
+            <span className="workiz-bone workiz-bone--cell" />
+          </div>
+        </div>
       </div>
 
       <div className="card shadow-1 radius-8">

@@ -79,6 +79,7 @@ export async function processPdfJob(job: PdfJob) {
     number,
     companyName,
     issuer: platform.certificateIssuer,
+    verifyUrl: `${urls().web}/verify`,
   });
   if (pdf_key) await adminDb.from("certificates").update({ pdf_key }).eq("id", cert.id);
   await sendMail({

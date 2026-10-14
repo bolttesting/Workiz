@@ -16,10 +16,12 @@ import { me } from "./routes/me.js";
 import { instructor, publicInstructors } from "./routes/instructors.js";
 import { blog, adminBlog } from "./routes/blog.js";
 import { processPdfJob } from "./jobs/pdf.js";
-import { sendDueReminders } from "./jobs/reminders.js";
+import { sendDueReminders, sendWeeklyAndRefresh } from "./jobs/reminders.js";
+import { recordReminderFailure } from "./lib/reminder-status.js";
 import { listSeatPlans } from "./lib/plans.js";
 import { getPlatformSettings, publicContact } from "./lib/platform-settings.js";
 import { verify } from "./routes/verify.js";
+import { authMail } from "./routes/auth-mail.js";
 
 type Vars = { auth: Authed };
 
@@ -52,6 +54,7 @@ app.get("/health", (c) => c.json({ ok: true, service: "workix-api" }));
 app.get("/plans", async (c) => c.json({ plans: await listSeatPlans() }));
 app.get("/contact", async (c) => c.json({ contact: publicContact(await getPlatformSettings()) }));
 app.route("/", verify);
+app.route("/auth", authMail);
 app.route("/webhooks", webhooks);
 app.route("/courses", courseEngagement);
 app.route("/courses", courses);
@@ -98,4 +101,12 @@ serve({ fetch: app.fetch, port }, () => {
   };
   setTimeout(runReminders, 20_000);
   setInterval(runReminders, 6 * 60 * 60 * 1000);
+  const runWeekly = () => {
+    sendWeeklyAndRefresh().catch((err) => {
+      recordReminderFailure("The Monday reminder email did not send.");
+      console.error("[weekly]", (err as Error).message);
+    });
+  };
+  setTimeout(runWeekly, 40_000);
+  setInterval(runWeekly, 6 * 60 * 60 * 1000);
 });

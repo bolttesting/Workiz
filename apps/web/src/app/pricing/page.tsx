@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { SEAT_PLANS } from "@workix/config";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
 import { PricingSection, type PricingPlan } from "@/components/ui/pricing";
+import { CompanyTalkToUs } from "@/components/CompanyTalkToUs";
 import { buildSeatsSelection, useSeatsCart, type SeatPlanSnapshot } from "@/lib/seats-cart";
 
 type RemotePlan = SeatPlanSnapshot & {
@@ -127,6 +128,8 @@ export default function PricingPage() {
         description={"Contract seats for your workforce.\nAdmins create accounts and assign courses by department."}
         onSelectPlan={selectPlan}
       />
+
+      <CompanyTalkToUs />
 
       <SiteFooter />
     </>

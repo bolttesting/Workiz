@@ -18,7 +18,7 @@ interface SignInPageProps {
   description?: React.ReactNode;
   heroImageSrc?: string;
   testimonials?: Testimonial[];
-  mode?: "sign-in" | "sign-up" | "forgot";
+  mode?: "sign-in" | "sign-up" | "forgot" | "reset";
   submitLabel?: string;
   loading?: boolean;
   error?: string | null;
@@ -132,7 +132,7 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
 // --- MAIN COMPONENT ---
 
 export const SignInPage: React.FC<SignInPageProps> = ({
-  title = <span className="font-light tracking-tighter text-foreground">Welcome</span>,
+  title = <span className="font-light text-foreground">Welcome</span>,
   description = "Access your account and continue your journey with us",
   heroImageSrc,
   testimonials = [],
@@ -148,8 +148,10 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const isSignUp = mode === "sign-up";
   const isForgot = mode === "forgot";
+  const isReset = mode === "reset";
   const buttonLabel =
-    submitLabel ?? (isForgot ? "Send reset link" : isSignUp ? "Create account" : "Sign In");
+    submitLabel ??
+    (isReset ? "Save password" : isForgot ? "Send reset link" : isSignUp ? "Create account" : "Sign In");
 
   return (
     <div className="workiz-signin flex h-[100dvh] w-[100dvw] flex-col font-[Outfit,ui-sans-serif,system-ui,sans-serif] md:flex-row">
@@ -161,7 +163,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               <Link href="/" className="workiz-signin__logo inline-flex shrink-0 items-center">
                 <img src="/assets/images/logo.png" alt="Workiz" />
               </Link>
-              <h1 className="workiz-signin__title animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">
+              <h1 className="workiz-signin__title animate-delay-100 text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
                 {title}
               </h1>
             </div>
@@ -184,6 +186,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                 </div>
               ) : null}
 
+              {!isReset ? (
               <div className="animate-element animate-delay-300">
                 <label className="text-sm font-medium text-muted-foreground">Email Address</label>
                 <GlassInputWrapper>
@@ -197,6 +200,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                   />
                 </GlassInputWrapper>
               </div>
+              ) : null}
 
               {!isForgot ? (
                 <div className="animate-element animate-delay-400">
@@ -206,10 +210,10 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                       <input
                         name="password"
                         type={showPassword ? "text" : "password"}
-                        autoComplete={isSignUp ? "new-password" : "current-password"}
+                        autoComplete={isSignUp || isReset ? "new-password" : "current-password"}
                         required
-                        minLength={isSignUp ? 8 : undefined}
-                        placeholder={isSignUp ? "At least 8 characters" : "Enter your password"}
+                        minLength={isSignUp || isReset ? 8 : undefined}
+                        placeholder={isSignUp || isReset ? "At least 8 characters" : "Enter your password"}
                         className="workiz-signin__input w-full bg-transparent px-4 py-[1.05rem] pr-12 text-sm text-foreground placeholder:text-[#8b93a0] focus:outline-none"
                       />
                       <button
@@ -289,7 +293,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                     Sign in
                   </a>
                 </>
-              ) : isForgot ? (
+              ) : isForgot || isReset ? (
                 <>
                   Remembered your password?{" "}
                   <a

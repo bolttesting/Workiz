@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter, SiteHeader, Breadcrumb } from "@/components/SiteChrome";
+
+export const metadata: Metadata = { title: "About", description: "Workiz is a Dubai-based training company making practical learning accessible to individuals and professionals." };
 
 const HIGHLIGHTS = [
   "Based in Dubai Silicon Oasis, Dubai, UAE",

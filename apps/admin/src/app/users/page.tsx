@@ -1,18 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { AdminShell } from "@/components/AdminShell";
 import {
   AdminDataCard,
   AdminPageHeader,
   AdminSearchInput,
   EmptyState,
+  FilterSelect,
   LoadingState,
+  Pagination,
   StatusBadge,
+  formatDate,
   formatRole,
-  matchesQuery,
+  useConfirm,
 } from "@/components/AdminUi";
 import { apiClient } from "@/lib/api";
+import { useServerList } from "@/lib/useServerList";
 import type { Profile, UserRole } from "@workix/db/types";
 
 const ROLE_OPTIONS: UserRole[] = [
@@ -32,41 +36,33 @@ function roleTone(role: string) {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<Profile[]>([]);
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState("");
+  const list = useServerList<Profile>({ path: "/admin/users", key: "users", filters: { role } });
   const [busyId, setBusyId] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirm();
 
-  async function refresh() {
-    const res = await apiClient<{ users: Profile[] }>("/admin/users");
-    setUsers(res.users);
-  }
-
-  useEffect(() => {
-    setLoading(true);
-    refresh()
-      .then(() => setError(null))
-      .catch((err) => setError((err as Error).message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const filtered = useMemo(
-    () => users.filter((u) => matchesQuery(query, [u.full_name, u.email, u.role])),
-    [users, query],
-  );
-
-  async function changeRole(userId: string, role: UserRole) {
-    setBusyId(userId);
-    setError(null);
+  async function changeRole(user: Profile, next: UserRole) {
+    if (next === user.role) return;
+    const granting = next === "super_admin";
+    const ok = await confirm({
+      title: `Change ${user.full_name || user.email} to ${formatRole(next)}?`,
+      body: granting
+        ? "Super admins can edit every course, user, company and payment setting."
+        : `They are currently ${formatRole(user.role)}. Their access changes immediately.`,
+      confirmLabel: "Change role",
+      tone: granting || user.role === "super_admin" ? "danger" : "primary",
+    });
+    if (!ok) return;
+    setBusyId(user.id);
+    list.setError(null);
     try {
-      await apiClient(`/admin/users/${userId}`, {
+      await apiClient(`/admin/users/${user.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ role }),
+        body: JSON.stringify({ role: next }),
       });
-      await refresh();
+      list.reload();
     } catch (err) {
-      setError((err as Error).message);
+      list.setError((err as Error).message);
     } finally {
       setBusyId(null);
     }
@@ -75,46 +71,59 @@ export default function UsersPage() {
   return (
     <AdminShell>
       <AdminPageHeader title="Users" description="Search learners and staff, then update roles." />
-      {error ? (
+      {list.error ? (
         <div className="alert alert-danger radius-8 mb-24" role="alert">
-          {error}
+          {list.error}
         </div>
       ) : null}
 
       <AdminDataCard
         title="All users"
-        toolbar={<AdminSearchInput value={query} onChange={setQuery} placeholder="Search name or email…" />}
+        toolbar={
+          <>
+            <FilterSelect
+              label="Filter by role"
+              value={role}
+              onChange={setRole}
+              options={[{ value: "", label: "All roles" }, ...ROLE_OPTIONS.map((r) => ({ value: r, label: formatRole(r) }))]}
+            />
+            <AdminSearchInput value={list.query} onChange={list.setQuery} placeholder="Search name or email…" />
+          </>
+        }
       >
-        {loading ? <LoadingState /> : null}
-        {!loading ? (
-          <div className="workiz-admin-table-wrap">
+        {list.loading && list.rows.length === 0 ? <LoadingState /> : null}
+        {!list.loading || list.rows.length > 0 ? (
+          <div className="workiz-admin-table-wrap" aria-busy={list.loading}>
             <table className="table bordered-table mb-0">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Change role</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Joined</th>
+                  <th scope="col">Change role</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((u) => (
+                {list.rows.map((u) => (
                   <tr key={u.id}>
                     <td className="fw-medium text-primary-light">{u.full_name || "—"}</td>
                     <td>{u.email}</td>
                     <td>
                       <StatusBadge label={formatRole(u.role)} tone={roleTone(u.role)} />
                     </td>
-                    <td style={{ minWidth: 200 }}>
+                    <td className="text-nowrap">{formatDate(u.created_at)}</td>
+                    <td className="workiz-role-cell">
                       <select
                         className="form-select form-select-sm radius-8"
                         value={u.role}
                         disabled={busyId === u.id}
-                        onChange={(e) => changeRole(u.id, e.target.value as UserRole)}
+                        aria-label={`Role for ${u.full_name || u.email}`}
+                        onChange={(e) => changeRole(u, e.target.value as UserRole)}
                       >
-                        {ROLE_OPTIONS.map((role) => (
-                          <option key={role} value={role}>
-                            {formatRole(role)}
+                        {ROLE_OPTIONS.map((r) => (
+                          <option key={r} value={r}>
+                            {formatRole(r)}
                           </option>
                         ))}
                       </select>
@@ -123,10 +132,14 @@ export default function UsersPage() {
                 ))}
               </tbody>
             </table>
-            {filtered.length === 0 ? <EmptyState message="No users match your search." /> : null}
+            {!list.loading && list.rows.length === 0 ? (
+              <EmptyState message={list.query || role ? "No users match these filters." : "No users yet."} />
+            ) : null}
           </div>
         ) : null}
+        <Pagination page={list.page} pageSize={list.pageSize} total={list.total} onPageChange={list.setPage} label="users" />
       </AdminDataCard>
+      {dialog}
     </AdminShell>
   );
 }

@@ -4,8 +4,9 @@ import { fileURLToPath } from "node:url";
 import { urls } from "../lib/auth.js";
 import { adminDb } from "../lib/db.js";
 import { enrollmentDues, isDueDate } from "../lib/due-dates.js";
-import { adminReminderEmail, learnerReminderEmail, sendMail } from "../lib/mail.js";
+import { adminReminderEmail, certificateRenewEmail, learnerReminderEmail, sendMail, weeklyAdminEmail } from "../lib/mail.js";
 import { getPlatformSettings } from "../lib/platform-settings.js";
+import { recordReminderFailure, recordReminderSuccess } from "../lib/reminder-status.js";
 
 const sentFile = join(dirname(fileURLToPath(import.meta.url)), "../../data/reminder-sent.json");
 
@@ -199,4 +200,110 @@ export async function sendDueReminders() {
 
   writeSent(sent);
   return { learners, admins };
+}
+
+export async function sendWeeklyAndRefresh() {
+  const weekly = await sendMondayDigest();
+  const refresh = await refreshExpiringCertificates();
+  return { weekly, refresh };
+}
+
+async function sendMondayDigest() {
+  const weekday = new Date().toLocaleDateString("en-US", { timeZone: "Asia/Dubai", weekday: "long" });
+  if (weekday !== "Monday") return 0;
+  const today = dubaiDate();
+  const sent = readSent();
+  const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  const { data: certificates } = await adminDb.from("certificates").select("user_id, course_id, issued_at").gte("issued_at", since);
+  const { data: organizations } = await adminDb.from("organizations").select("id, name, seat_limit, seat_used");
+  const { data: admins } = await adminDb.from("profiles").select("email, organization_id").eq("role", "company_admin");
+  let count = 0;
+  let failed = false;
+  for (const org of organizations ?? []) {
+    const targets = (admins ?? []).filter((admin) => admin.organization_id === org.id && admin.email);
+    if (!targets.length) continue;
+    const { data: people } = await adminDb.from("profiles").select("id, full_name, email").eq("organization_id", org.id);
+    const ids = new Set((people ?? []).map((person) => person.id));
+    const finished = (certificates ?? []).filter((cert) => ids.has(cert.user_id));
+    const { data: dues } = ids.size
+      ? await adminDb.from("enrollments").select("user_id, due_at").in("user_id", [...ids])
+      : { data: [] as { due_at?: string | null }[] };
+    const late = (dues ?? []).filter((row) => row.due_at && String(row.due_at).slice(0, 10) < today).length;
+    const seats = Math.max(0, Number(org.seat_limit) - Number(org.seat_used));
+    const lines = [
+      `${finished.length} certificate${finished.length === 1 ? "" : "s"} issued in the last 7 days.`,
+      `${late} assignment${late === 1 ? "" : "s"} past the due date.`,
+      `${seats} seat${seats === 1 ? "" : "s"} open.`,
+    ];
+    for (const admin of targets) {
+      const key = `week:${org.id}:${admin.email}:${today}`;
+      if (sent[key]) continue;
+      const mail = await sendMail({
+        to: admin.email,
+        subject: `${org.name} this week`,
+        html: weeklyAdminEmail({ company: org.name, lines, href: `${urls().learn}/team` }),
+      });
+      if (!mail.sent) {
+        failed = true;
+        continue;
+      }
+      sent[key] = today;
+      count += 1;
+    }
+  }
+  writeSent(sent);
+  if (failed) recordReminderFailure("The Monday reminder email did not send.");
+  else recordReminderSuccess();
+  return count;
+}
+
+async function refreshExpiringCertificates() {
+  const { data: certificates, error } = await adminDb.from("certificates").select("id, user_id, course_id, issued_at, expires_at");
+  if (error) return 0;
+  const sent = readSent();
+  let reminded = 0;
+  for (const cert of certificates ?? []) {
+    if (!cert.expires_at) continue;
+    const expires = new Date(cert.expires_at);
+    if (Number.isNaN(expires.getTime())) continue;
+    const days = (expires.getTime() - Date.now()) / 86_400_000;
+    if (days > 14) continue;
+    const key = `renew:${cert.id}:${String(cert.expires_at).slice(0, 10)}`;
+    const { data: profile } = await adminDb.from("profiles").select("email").eq("id", cert.user_id).maybeSingle();
+    const { data: course } = await adminDb.from("courses").select("title, slug").eq("id", cert.course_id).maybeSingle();
+    if (profile?.email && course && !sent[key]) {
+      const mail = await sendMail({
+        to: profile.email,
+        subject: `${course.title} needs a refresh`,
+        html: certificateRenewEmail({
+          course: course.title,
+          expiresOn: String(cert.expires_at).slice(0, 10),
+          href: `${urls().learn}/courses/${course.slug}`,
+        }),
+      });
+      if (mail.sent) {
+        sent[key] = new Date().toISOString();
+        reminded += 1;
+      }
+    }
+    const resetKey = `renew-reset:${cert.id}`;
+    if (sent[resetKey]) continue;
+    const { data: modules } = await adminDb.from("modules").select("id").eq("course_id", cert.course_id);
+    const moduleIds = (modules ?? []).map((module) => module.id);
+    if (moduleIds.length) {
+      const { data: lessons } = await adminDb.from("lessons").select("id").in("module_id", moduleIds);
+      const lessonIds = (lessons ?? []).map((lesson) => lesson.id);
+      if (lessonIds.length) {
+        await adminDb.from("lesson_progress").delete().eq("user_id", cert.user_id).in("lesson_id", lessonIds);
+      }
+    }
+    await adminDb
+      .from("enrollments")
+      .update({ due_at: String(cert.expires_at).slice(0, 10) })
+      .eq("user_id", cert.user_id)
+      .eq("course_id", cert.course_id);
+    sent[resetKey] = new Date().toISOString();
+  }
+  writeSent(sent);
+  return reminded;
 }

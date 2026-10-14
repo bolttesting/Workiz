@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Money } from "@/components/Money";
+import { CourseThumb } from "@/components/CourseThumb";
 import { ArrowUpRight, ShoppingBag, Trash2 } from "lucide-react";
 import { createBrowserSupabase } from "@workix/db/browser";
 import { useCart } from "@/lib/cart";
@@ -90,26 +91,25 @@ export function CartCheckout() {
 
     try {
       if (authMode === "signup") {
-        const { data, error: err } = await sb.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              ...(isCompany
-                ? { company_name: company, intended_role: "company_admin" }
-                : { intended_role: "individual_learner" }),
-            },
-          },
+        const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+        const res = await fetch(`${api}/auth/sign-up`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            fullName,
+            ...(isCompany
+              ? { companyName: company, intendedRole: "company_admin" }
+              : { intendedRole: "individual_learner" }),
+          }),
         });
-        if (err) throw err;
-        if (!data.session) {
-          setMessage("Check your email to confirm your account, then sign in here to checkout.");
-          setAuthMode("signin");
-          setAuthLoading(false);
-          return;
-        }
-        setAuthedEmail(data.session.user.email ?? email);
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        if (!res.ok) throw new Error(json.error || "Could not create the account.");
+        setMessage("Check your email to confirm your account, then sign in here to checkout.");
+        setAuthMode("signin");
+        setAuthLoading(false);
+        return;
       } else {
         const { data, error: err } = await sb.auth.signInWithPassword({ email, password });
         if (err) throw err;
@@ -159,10 +159,7 @@ export function CartCheckout() {
               {items.map((item) => (
                 <article key={item.id} className="workiz-cart__row">
                   <Link href={`/courses/${item.slug}`} className="workiz-cart__thumb">
-                    <img
-                      src={item.thumbnail_url || "/assets/images/inner-img/course-thumb1.png"}
-                      alt=""
-                    />
+                    <CourseThumb src={item.thumbnail_url} />
                   </Link>
                   <div className="workiz-cart__copy">
                     <h2>

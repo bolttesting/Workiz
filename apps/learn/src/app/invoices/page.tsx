@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { LearnShell } from "@/components/LearnShell";
-import { EmptyState, LearnDataCard, LearnPageHeader, LoadingState, StatusBadge } from "@/components/LearnUi";
+import {
+  EmptyState,
+  LearnDataCard,
+  LearnPageHeader,
+  LoadingState,
+  Pagination,
+  StatusBadge,
+  formatDate,
+  usePagination,
+} from "@/components/LearnUi";
 import { apiClient, downloadFile } from "@/lib/api";
 import { formatMoney } from "@workix/config";
 import type { Profile } from "@workix/db/types";
@@ -11,6 +20,7 @@ type Invoice = { id: string; number: string; amount_cents: number; currency: str
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const invoicePage = usePagination(invoices, 20);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -92,15 +102,17 @@ export default function InvoicesPage() {
               <thead>
                 <tr>
                   <th>Number</th>
+                  <th>Issued</th>
                   <th>Amount</th>
                   <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {invoices.map((invoice) => (
+                {invoicePage.pageItems.map((invoice) => (
                   <tr key={invoice.id}>
                     <td className="fw-medium text-primary-light">{invoice.number}</td>
+                    <td className="text-nowrap">{formatDate(invoice.issued_at)}</td>
                     <td className="dirham-sign">{formatMoney(invoice.amount_cents, "aed")}</td>
                     <td>
                       <StatusBadge label="Paid" tone="success" />
@@ -126,6 +138,7 @@ export default function InvoicesPage() {
               </tbody>
             </table>
             {invoices.length === 0 ? <EmptyState message="Purchases show up here after checkout." /> : null}
+            <Pagination page={invoicePage.page} pageSize={invoicePage.pageSize} total={invoicePage.total} onPageChange={invoicePage.setPage} label="invoices" />
           </div>
         ) : null}
       </LearnDataCard>

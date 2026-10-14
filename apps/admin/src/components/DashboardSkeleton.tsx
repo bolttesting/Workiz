@@ -47,6 +47,18 @@ export function DashboardSkeleton() {
         </div>
       </div>
 
+      <div className="card shadow-1 radius-8">
+        <div className="card-body p-0">
+          <div className="px-20 py-16 border-bottom border-neutral-200">
+            <h6 className="text-lg mb-0">Needs attention</h6>
+          </div>
+          <div className="p-20 d-flex flex-column gap-3">
+            <span className="workiz-bone workiz-bone--cell" />
+            <span className="workiz-bone workiz-bone--cell" />
+          </div>
+        </div>
+      </div>
+
       <div className="d-flex flex-wrap gap-2">
         {quickActions.map((item) => (
           <Link key={item.href} href={item.href} className="btn btn-outline-primary-600 radius-8 px-16 py-8 d-inline-flex align-items-center gap-2">

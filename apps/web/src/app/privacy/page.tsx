@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
 import { fetchPublicContact } from "@/lib/contact";
+
+export const metadata: Metadata = { title: "Privacy policy" };
 
 export default async function PrivacyPolicyPage() {
   const contact = await fetchPublicContact();

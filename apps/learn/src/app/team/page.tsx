@@ -2,7 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { LearnShell } from "@/components/LearnShell";
-import { EmptyState, LearnDataCard, LearnPageHeader, LoadingState, StatusBadge, formatRole } from "@/components/LearnUi";
+import {
+  EmptyState,
+  LearnDataCard,
+  LearnPageHeader,
+  LoadingState,
+  Pagination,
+  StatusBadge,
+  formatDate,
+  formatRole,
+  usePagination,
+} from "@/components/LearnUi";
 import { apiClient, downloadFile } from "@/lib/api";
 import type { Course, Organization, Profile } from "@workix/db/types";
 
@@ -34,6 +44,7 @@ type TeamCertificate = {
 };
 type CourseSet = { id: string; name: string; courseIds: string[]; ordered?: boolean };
 type ActivityEvent = { id: string; actorName: string | null; action: string; detail: string; createdAt: string };
+type CourseRequest = { id: string; name: string | null; email: string; courseTitle: string };
 
 function formatSpent(seconds?: number) {
   if (!seconds) return "—";
@@ -74,6 +85,12 @@ function progressLabel(status: string) {
 type Assignment = { user_id: string; course_id: string; source: string; title: string };
 type InviteAssignment = { invite_id: string; course_id: string; title: string };
 
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 export default function TeamPage() {
   const [org, setOrg] = useState<Organization | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -85,12 +102,16 @@ export default function TeamPage() {
   const [email, setEmail] = useState("");
   const [inviteDepartment, setInviteDepartment] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [bulkCourse, setBulkCourse] = useState("");
   const [deptName, setDeptName] = useState("");
   const [deptCourse, setDeptCourse] = useState("");
   const [progress, setProgress] = useState<ProgressRow[]>([]);
   const [certificates, setCertificates] = useState<TeamCertificate[]>([]);
   const [peopleQuery, setPeopleQuery] = useState("");
+  const [courseQuery, setCourseQuery] = useState("");
+  const [pace, setPace] = useState<"" | "overdue" | "due_soon">("");
+  const [requests, setRequests] = useState<CourseRequest[]>([]);
   const [progressDept, setProgressDept] = useState("");
   const [notStartedOnly, setNotStartedOnly] = useState(false);
   const [unassignCourse, setUnassignCourse] = useState("");
@@ -115,7 +136,7 @@ export default function TeamPage() {
   const [ready, setReady] = useState(false);
 
   async function refresh() {
-    const [res, catalogRes, me, progressRes, certificateRes, setRes, activityRes, noteRes] = await Promise.all([
+    const [res, catalogRes, me, progressRes, certificateRes, setRes, activityRes, noteRes, requestRes] = await Promise.all([
       apiClient<{
         organization: Organization | null;
         members: Member[];
@@ -131,6 +152,7 @@ export default function TeamPage() {
       apiClient<{ sets: CourseSet[] }>("/orgs/course-sets").catch(() => ({ sets: [] as CourseSet[] })),
       apiClient<{ events: ActivityEvent[] }>("/orgs/activity").catch(() => ({ events: [] as ActivityEvent[] })),
       apiClient<{ note: string | null }>("/orgs/note").catch(() => ({ note: null })),
+      apiClient<{ requests: CourseRequest[] }>("/orgs/requests").catch(() => ({ requests: [] as CourseRequest[] })),
     ]);
     setRole(me.profile.role);
     setDepartmentLead(Boolean(me.profile.department_lead));
@@ -146,9 +168,17 @@ export default function TeamPage() {
     setCourseSets(setRes.sets ?? []);
     setActivity(activityRes.events ?? []);
     setCompanyNote(noteRes.note ?? "");
+    setRequests(requestRes.requests ?? []);
   }
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const person = params.get("person");
+    if (person) setPeopleQuery(person);
+    const course = params.get("course");
+    if (course) setCourseQuery(course);
+    const paceParam = params.get("pace");
+    if (paceParam === "overdue" || paceParam === "due_soon") setPace(paceParam);
     refresh()
       .catch((err) => setError((err as Error).message))
       .finally(() => setReady(true));
@@ -462,19 +492,37 @@ export default function TeamPage() {
       : members;
   const showPeopleSearch = teamPeople.length > 5;
   const peopleNeedle = peopleQuery.trim().toLowerCase();
-  const visibleMembers = peopleNeedle
-    ? teamPeople.filter((member) =>
-        [member.full_name, member.email, member.department, member.role].some((value) =>
-          (value ?? "").toLowerCase().includes(peopleNeedle),
-        ),
+  const courseNeedle = courseQuery.trim().toLowerCase();
+  const courseIds = courseNeedle
+    ? new Set(
+        progress
+          .filter((person) => person.courses.some((course) => course.title.toLowerCase().includes(courseNeedle)))
+          .map((person) => person.userId),
       )
-    : teamPeople;
+    : null;
+  const paceIds = pace
+    ? new Set(progress.filter((person) => person.courses.some((course) => course.dueStatus === pace)).map((person) => person.userId))
+    : null;
+  const visibleMembers = teamPeople.filter((member) => {
+    if (paceIds && !paceIds.has(member.id)) return false;
+    if (courseIds && !courseIds.has(member.id)) return false;
+    if (!peopleNeedle) return true;
+    return [member.full_name, member.email, member.department, member.role].some((value) =>
+      (value ?? "").toLowerCase().includes(peopleNeedle),
+    );
+  });
   const progressRows = progress.filter((person) => {
     if (progressDept && (person.department ?? "").toLowerCase() !== progressDept.toLowerCase()) return false;
+    if (courseNeedle && !person.courses.some((course) => course.title.toLowerCase().includes(courseNeedle))) return false;
     if (!notStartedOnly) return true;
     if (person.courses.length === 0) return true;
     return person.courses.some((course) => course.status === "not_started" || course.status === "no_lessons");
   });
+  const peoplePage = usePagination(visibleMembers, 25);
+  const pendingPage = usePagination(pending, 10);
+  const activityPage = usePagination(activity, 15);
+  const progressPage = usePagination(progressRows, 20);
+  const certificatePage = usePagination(certificates, 15);
 
   return (
     <LearnShell>
@@ -514,6 +562,64 @@ export default function TeamPage() {
       {!org ? <EmptyState message="No company yet. Buy seats from the public Companies page." /> : null}
       {org && canManage ? <datalist id="workiz-departments">{departmentNames.map((name) => <option key={name} value={name} />)}</datalist> : null}
       {org && canManage ? (
+        <form
+          className="card radius-12 shadow-1 mb-24"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void assignSelected();
+          }}
+        >
+          <div className="card-header border-bottom bg-base py-16 px-24">
+            <h6 className="mb-0 fw-semibold">Assign a course</h6>
+          </div>
+          <div className="card-body d-flex flex-wrap gap-3 align-items-end">
+            <div style={{ minWidth: 200, flex: 1 }}>
+              <label className="form-label">Person</label>
+              <select
+                className="form-select radius-8"
+                value={selected.length === 1 ? selected[0] : ""}
+                onChange={(e) => setSelected(e.target.value ? [e.target.value] : [])}
+              >
+                <option value="">{selected.length > 1 ? `${selected.length} people selected below` : "Choose a person"}</option>
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.full_name || member.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div style={{ minWidth: 200, flex: 1 }}>
+              <label className="form-label">Course</label>
+              <select className="form-select radius-8" value={bulkCourse} onChange={(e) => setBulkCourse(e.target.value)}>
+                <option value="">Choose a course</option>
+                {catalog.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Due date</label>
+              <input className="form-control radius-8" type="date" value={dueOn} onChange={(e) => setDueOn(e.target.value)} />
+            </div>
+            <button className="btn btn-primary-600 radius-8" type="submit" disabled={!bulkCourse || selected.length === 0}>
+              Assign
+            </button>
+          </div>
+          <p className="text-sm text-secondary-light px-24 pb-16 mb-0">
+            Tick several people in the list below if this course is for more than one person.
+          </p>
+        </form>
+      ) : null}
+      {org && canManage ? (
+        <div className="mb-24">
+          <button type="button" className="btn btn-outline-primary-600 radius-8" onClick={() => setMoreOpen((open) => !open)}>
+            {moreOpen ? "Hide invites and course sets" : "Invites, departments, and course sets"}
+          </button>
+        </div>
+      ) : null}
+      {org && canManage && moreOpen ? (
         <>
         <form className="card radius-12 shadow-1 mb-24" onSubmit={invite}>
           <div className="card-header border-bottom bg-base py-16 px-24">
@@ -581,43 +687,17 @@ export default function TeamPage() {
         </form>
         </>
       ) : null}
-      {org && canManage ? (
+      {org && canManage && moreOpen ? (
         <>
         <div className="row gy-4 mb-24">
           <div className="col-lg-6">
-            <form
-              className="card radius-12 shadow-1 h-100"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void assignSelected();
-              }}
-            >
+            <div className="card radius-12 shadow-1 h-100">
               <div className="card-header border-bottom bg-base py-16 px-24">
-                <h6 className="mb-0 fw-semibold">Assign to selected people</h6>
+                <h6 className="mb-0 fw-semibold">Unassign a course</h6>
               </div>
               <div className="card-body d-flex flex-wrap gap-3 align-items-end">
                 <div style={{ minWidth: 220, flex: 1 }}>
                   <label className="form-label">Course</label>
-                  <select className="form-select radius-8" value={bulkCourse} onChange={(e) => setBulkCourse(e.target.value)}>
-                    <option value="">Choose a course</option>
-                    {catalog.map((course) => (
-                      <option key={course.id} value={course.id}>
-                        {course.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="form-label">Due date</label>
-                  <input className="form-control radius-8" type="date" value={dueOn} onChange={(e) => setDueOn(e.target.value)} />
-                </div>
-                <button className="btn btn-primary-600 radius-8" type="submit">
-                  Assign to {selected.length || "selected"}
-                </button>
-              </div>
-              <div className="card-body border-top d-flex flex-wrap gap-3 align-items-end pt-16">
-                <div style={{ minWidth: 220, flex: 1 }}>
-                  <label className="form-label">Unassign a course</label>
                   <select className="form-select radius-8" value={unassignCourse} onChange={(e) => setUnassignCourse(e.target.value)}>
                     <option value="">Choose a course</option>
                     {catalog.map((course) => (
@@ -627,11 +707,16 @@ export default function TeamPage() {
                     ))}
                   </select>
                 </div>
-                <button className="btn btn-outline-danger-600 radius-8" type="button" onClick={() => void unassignSelected()}>
-                  Unassign from {selected.length || "selected"}
+                <button
+                  className="btn btn-outline-danger-600 radius-8"
+                  type="button"
+                  disabled={!unassignCourse || selected.length === 0}
+                  onClick={() => void unassignSelected()}
+                >
+                  Unassign
                 </button>
               </div>
-            </form>
+            </div>
           </div>
           <div className="col-lg-6">
             <form className="card radius-12 shadow-1 h-100" onSubmit={assignDepartment}>
@@ -754,21 +839,77 @@ export default function TeamPage() {
       {org && !canManage && !departmentLead ? (
         <EmptyState message="Your assigned courses are on My courses." />
       ) : null}
+      {org && canManage && requests.length ? (
+        <LearnDataCard title="Course requests">
+          <div className="d-flex flex-column gap-3">
+            {requests.map((request) => (
+              <div key={request.id} className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div>
+                  <div className="fw-medium">{request.name || request.email}</div>
+                  <div className="text-sm text-secondary-light">{request.courseTitle}</div>
+                </div>
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-primary-600 radius-8"
+                    onClick={() => {
+                      void apiClient(`/orgs/requests/${request.id}/assign`, { method: "POST" })
+                        .then(() => refresh())
+                        .catch((err) => setError((err as Error).message));
+                    }}
+                  >
+                    Assign
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary-600 radius-8"
+                    onClick={() => {
+                      void apiClient(`/orgs/requests/${request.id}/dismiss`, { method: "POST" })
+                        .then(() => refresh())
+                        .catch((err) => setError((err as Error).message));
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </LearnDataCard>
+      ) : null}
       {org && canManage ? (
         <LearnDataCard
           title="People"
           toolbar={
-            showPeopleSearch ? (
-              <input
-                className="form-control form-control-sm radius-8"
-                type="search"
-                placeholder="Search people"
-                aria-label="Search people"
-                value={peopleQuery}
-                onChange={(e) => setPeopleQuery(e.target.value)}
-                style={{ maxWidth: 220 }}
-              />
-            ) : null
+            <div className="d-flex flex-wrap gap-2">
+              <select
+                className="form-select form-select-sm radius-8"
+                aria-label="Filter by due date"
+                value={pace}
+                onChange={(e) => setPace(e.target.value as "" | "overdue" | "due_soon")}
+                style={{ maxWidth: 160 }}
+              >
+                <option value="">All people</option>
+                <option value="overdue">Overdue</option>
+                <option value="due_soon">Due soon</option>
+              </select>
+              {showPeopleSearch ? (
+                <input
+                  className="form-control form-control-sm radius-8"
+                  type="search"
+                  placeholder="Search people"
+                  aria-label="Search people"
+                  value={peopleQuery}
+                  onChange={(e) => setPeopleQuery(e.target.value)}
+                  style={{ maxWidth: 220 }}
+                />
+              ) : null}
+              {courseQuery ? (
+                <button type="button" className="btn btn-sm btn-outline-primary-600 radius-8" onClick={() => setCourseQuery("")}>
+                  Course: {courseQuery}
+                </button>
+              ) : null}
+            </div>
           }
         >
           <div className="workiz-admin-table-wrap">
@@ -799,7 +940,7 @@ export default function TeamPage() {
                 </tr>
               </thead>
               <tbody>
-                {visibleMembers.map((member) => {
+                {peoplePage.pageItems.map((member) => {
                   const memberCourses = assignments.filter((row) => row.user_id === member.id);
                   return (
                     <tr key={member.id}>
@@ -897,6 +1038,19 @@ export default function TeamPage() {
                             <button className="btn btn-sm btn-outline-danger-600 radius-8" type="button" onClick={() => remove(member.id)}>
                               Remove
                             </button>
+                            <button
+                              className="btn btn-sm btn-outline-primary-600 radius-8"
+                              type="button"
+                              disabled={downloading === member.id}
+                              onClick={() => {
+                                setDownloading(member.id);
+                                void downloadFile(`/orgs/members/${member.id}/record`, `${member.full_name || "learner"}-training-record.pdf`)
+                                  .catch((err) => setError((err as Error).message))
+                                  .finally(() => setDownloading(null));
+                              }}
+                            >
+                              {downloading === member.id ? "Preparing…" : "Record"}
+                            </button>
                           </div>
                         </td>
                       ) : null}
@@ -908,6 +1062,7 @@ export default function TeamPage() {
             {members.length === 0 ? <EmptyState message="No one has joined this company yet." /> : null}
             {members.length > 0 && visibleMembers.length === 0 ? <EmptyState message="No people match that search." /> : null}
           </div>
+          <Pagination page={peoplePage.page} pageSize={peoplePage.pageSize} total={peoplePage.total} onPageChange={peoplePage.setPage} label="people" />
         </LearnDataCard>
       ) : null}
       {org && canManage ? (
@@ -925,7 +1080,7 @@ export default function TeamPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pending.map((invite) => {
+                    {pendingPage.pageItems.map((invite) => {
                       const titles = inviteAssignments.filter((row) => row.invite_id === invite.id);
                       return (
                         <tr key={invite.id}>
@@ -972,6 +1127,7 @@ export default function TeamPage() {
                 </table>
               </div>
             ) : null}
+            <Pagination page={pendingPage.page} pageSize={pendingPage.pageSize} total={pendingPage.total} onPageChange={pendingPage.setPage} label="invites" />
           </LearnDataCard>
         </div>
       ) : null}
@@ -1007,17 +1163,18 @@ export default function TeamPage() {
             {activity.length === 0 ? <EmptyState message="Invites, assignments, and removals show up here." /> : null}
             {activity.length > 0 ? (
               <ul className="mb-0">
-                {activity.map((event) => (
+                {activityPage.pageItems.map((event) => (
                   <li key={event.id} className="mb-8">
                     <span className="fw-medium">{event.action}</span>
                     {event.detail ? ` · ${event.detail}` : ""}
                     <div className="text-sm text-secondary-light">
-                      {event.actorName || "Someone"} · {event.createdAt.slice(0, 16).replace("T", " ")}
+                      {event.actorName || "Someone"} · {formatDateTime(event.createdAt)}
                     </div>
                   </li>
                 ))}
               </ul>
             ) : null}
+            <Pagination page={activityPage.page} pageSize={activityPage.pageSize} total={activityPage.total} onPageChange={activityPage.setPage} label="events" />
           </LearnDataCard>
         </div>
       ) : null}
@@ -1070,7 +1227,7 @@ export default function TeamPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {progressRows.flatMap((person) => {
+                    {progressPage.pageItems.flatMap((person) => {
                       const courses = person.courses.length
                         ? person.courses
                         : [{ courseId: "none", title: "No course assigned", done: 0, total: 0, status: "not_started", lastLesson: null, lastAt: null }];
@@ -1099,7 +1256,7 @@ export default function TeamPage() {
                               {course.lastLesson ? (
                                 <>
                                   <div>{course.lastLesson}</div>
-                                  {course.lastAt ? <div className="text-sm text-secondary-light">{course.lastAt.slice(0, 10)}</div> : null}
+                                  {course.lastAt ? <div className="text-sm text-secondary-light">{formatDate(course.lastAt)}</div> : null}
                                 </>
                               ) : (
                                 "—"
@@ -1127,6 +1284,7 @@ export default function TeamPage() {
                 </table>
               </div>
             ) : null}
+            <Pagination page={progressPage.page} pageSize={progressPage.pageSize} total={progressPage.total} onPageChange={progressPage.setPage} label="people" />
           </LearnDataCard>
         </div>
       ) : null}
@@ -1147,7 +1305,7 @@ export default function TeamPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {certificates.map((certificate) => (
+                    {certificatePage.pageItems.map((certificate) => (
                       <tr key={certificate.id}>
                         <td>
                           <div className="fw-medium text-primary-light">{certificate.name || "Learner"}</div>
@@ -1155,7 +1313,7 @@ export default function TeamPage() {
                         </td>
                         <td>{certificate.courseTitle}</td>
                         <td>{certificate.number || "—"}</td>
-                        <td>{certificate.issuedAt.slice(0, 10)}</td>
+                        <td className="text-nowrap">{formatDate(certificate.issuedAt)}</td>
                         <td className="text-end">
                           <button
                             type="button"
@@ -1178,6 +1336,7 @@ export default function TeamPage() {
                 </table>
               </div>
             ) : null}
+            <Pagination page={certificatePage.page} pageSize={certificatePage.pageSize} total={certificatePage.total} onPageChange={certificatePage.setPage} label="certificates" />
           </LearnDataCard>
         </div>
       ) : null}

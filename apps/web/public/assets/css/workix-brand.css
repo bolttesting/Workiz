@@ -835,7 +835,7 @@ p.subtitle,
 }
 
 .footer-area .row.subscribe .footer-subcribe-title h3 span {
-  color: #b69856 !important;
+  color: #102846 !important;
 }
 
 .footer-area .row.subscribe .workiz-newsletter-lede,
@@ -1033,7 +1033,7 @@ img[src*="top-star.png"] {
 }
 
 .workiz-footer__subscribe-title span {
-  color: #b69856;
+  color: #102846;
 }
 
 .workiz-footer__subscribe-form {
@@ -1122,8 +1122,8 @@ img[src*="top-star.png"] {
   margin: 14px 0 0;
   font-family: Outfit, sans-serif;
   font-size: 15px;
-  letter-spacing: 0.06em;
-  color: #b69856;
+  letter-spacing: 0.02em;
+  color: #f3e6c8;
 }
 
 .workiz-footer__blurb {
@@ -1603,15 +1603,56 @@ img[src*="top-star.png"] {
 /* —— Courses catalog —— */
 .workiz-courses-page {
   padding: 72px 0 96px;
-  background:
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(182, 152, 86, 0.1), transparent 55%),
-    linear-gradient(180deg, #f7f5f0 0%, #ffffff 42%, #ffffff 100%);
+  background: #f7f5f0;
 }
 
 .workiz-courses-page__intro {
   max-width: 720px;
   margin: 0 auto 40px;
   text-align: center;
+}
+
+.workiz-verify-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 8px;
+  background: #102846;
+  color: #f3e6c8;
+  font-family: Outfit, sans-serif;
+  font-size: 15px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.workiz-verify-btn:hover,
+.workiz-verify-btn:focus-visible {
+  background: #0c1f37;
+  color: #f3e6c8;
+}
+
+.workiz-verify-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.workiz-blog-byline {
+  margin: 8px 0 0;
+  font-family: Outfit, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #102846;
+}
+
+.style-one .blog-btn a,
+.style-one .single-blog-box.box-2 .blog-btn a,
+.style-one .single-blog-box.box-3 .blog-btn a {
+  color: #102846 !important;
+  background-color: #f3e6c8 !important;
+  border-color: rgba(16, 40, 70, 0.2) !important;
 }
 
 .workiz-courses-page__eyebrow {
@@ -4190,9 +4231,9 @@ img[src*="top-star.png"] {
 /* —— Floating help widget (Bootstrap-safe) —— */
 .workiz-help {
   position: fixed;
-  left: max(20px, env(safe-area-inset-left));
-  right: auto;
-  bottom: max(20px, env(safe-area-inset-bottom));
+  left: auto;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(88px, calc(env(safe-area-inset-bottom) + 72px));
   z-index: 1200;
   display: flex;
   flex-direction: column;
@@ -4364,7 +4405,7 @@ img[src*="top-star.png"] {
   border-radius: 999px !important;
   background: #102846 !important;
   color: #ffffff !important;
-  box-shadow: 0 16px 40px rgba(16, 40, 70, 0.35) !important;
+  box-shadow: 0 8px 18px rgba(16, 40, 70, 0.18) !important;
   cursor: pointer;
   text-align: left;
   line-height: 1;
@@ -5186,3 +5227,271 @@ img[src*="top-star.png"] {
 @media (prefers-reduced-motion: reduce) {
   .workiz-home-pending span { animation: none; }
 }
+
+/* ---- Course page: free previews, instructor photo, mobile buy bar ---- */
+.workiz-course-detail__hero-action {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+
+.workiz-preview-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #f3e6c8;
+  color: #102846;
+  font-family: Outfit, sans-serif;
+  font-size: 16px;
+  font-weight: 650;
+  box-shadow: 0 12px 30px rgba(16, 40, 70, 0.35);
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+.workiz-preview-hero:hover { background: #fff; transform: translateY(-1px); }
+.workiz-preview-hero:focus-visible,
+.workiz-preview-link:focus-visible,
+.workiz-course-buybar__cta:focus-visible { outline: 2px solid #b69856; outline-offset: 3px; }
+
+.workiz-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid rgba(182, 152, 86, 0.55);
+  border-radius: 999px;
+  background: #fbf6ea;
+  color: #102846;
+  font-size: 12px;
+  font-weight: 650;
+}
+.workiz-preview-link:hover { background: #f3e6c8; }
+
+.workiz-course-detail__card-preview .workiz-preview-link {
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.workiz-course-detail__instructor-photo {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.workiz-preview-dialog {
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+  color: #102846;
+  box-shadow: 0 30px 80px rgba(16, 40, 70, 0.4);
+}
+.workiz-preview-dialog::backdrop { background: rgba(10, 25, 45, 0.72); }
+.workiz-preview-dialog__inner { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.workiz-preview-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 14px;
+}
+.workiz-preview-dialog__head h2 { margin: 2px 0 0; font-size: 20px; line-height: 1.3; }
+.workiz-preview-dialog__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a6f33;
+}
+.workiz-preview-dialog__close {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #f1f3f6;
+  color: #102846;
+}
+.workiz-preview-dialog__video { width: 100%; aspect-ratio: 16 / 9; background: #0a192d; display: block; }
+.workiz-preview-dialog__article { padding: 0 20px 24px; overflow-y: auto; line-height: 1.7; }
+.workiz-preview-dialog__error { margin: 0; padding: 32px 20px 40px; text-align: center; color: #5b6b80; }
+
+.workiz-course-buybar { display: none; }
+
+@media (max-width: 991px) {
+  .workiz-course-buybar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid rgba(16, 40, 70, 0.1);
+    box-shadow: 0 -8px 24px rgba(16, 40, 70, 0.08);
+  }
+  .workiz-course-buybar__price { display: flex; flex-direction: column; min-width: 0; }
+  .workiz-course-buybar__price span {
+    font-size: 12px;
+    color: #5b6b80;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .workiz-course-buybar__price strong { font-size: 18px; color: #102846; }
+  .workiz-course-buybar__cta {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 10px;
+    background: #102846;
+    color: #f3e6c8;
+    font-weight: 650;
+  }
+  .workiz-course-buybar__cta:hover { color: #fff; }
+  body:has(.workiz-course-buybar) { padding-bottom: 72px; }
+  body:has(.workiz-course-buybar) .workiz-help { bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
+
+  /* One floating button on phones: keep WhatsApp help, drop back-to-top. */
+  .workiz-scroll-top { display: none !important; }
+}
+
+/* Home: filler card while the catalog is small */
+.workiz-course-more {
+  height: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px;
+  border: 1.5px dashed rgba(182, 152, 86, 0.6);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #fbf6ea 0%, #fff 70%);
+  color: #102846;
+}
+.workiz-course-more__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a6f33;
+}
+.workiz-course-more h3 { margin: 0; font-size: 22px; line-height: 1.3; color: #102846; }
+.workiz-course-more p { margin: 0; color: #4a5b70; }
+.workiz-course-more__cta {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #102846;
+  color: #f3e6c8;
+  font-weight: 650;
+}
+.workiz-course-more__cta:hover { color: #fff; }
+
+/* Home: learner reviews (only rendered when real 4–5 star reviews exist) */
+.workiz-home-reviews { padding: 90px 0; background: #f7f9fc; }
+.workiz-home-reviews__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.workiz-home-review {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 26px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(16, 40, 70, 0.06);
+}
+.workiz-home-review__stars { color: #b69856; letter-spacing: 2px; font-size: 16px; }
+.workiz-home-review blockquote { margin: 0; color: #24364d; line-height: 1.65; }
+.workiz-home-review figcaption { margin-top: auto; font-size: 14px; color: #5b6b80; }
+.workiz-home-review figcaption strong { display: block; color: #102846; }
+.workiz-home-review figcaption a { color: #8a6f33; }
+
+/* Company page: how it works + talk to sales */
+.workiz-company-steps { padding: 72px 0 24px; }
+.workiz-company-steps__list {
+  list-style: none;
+  margin: 36px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+.workiz-company-steps__list li {
+  padding: 26px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(16, 40, 70, 0.06);
+}
+.workiz-company-steps__list h3 { margin: 14px 0 8px; font-size: 19px; color: #102846; }
+.workiz-company-steps__list p { margin: 0; color: #4a5b70; }
+.workiz-company-steps__num {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: #f3e6c8;
+  color: #102846;
+  font-weight: 700;
+}
+.workiz-company-talk { padding: 24px 0 90px; }
+.workiz-company-talk__card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 32px;
+  border-radius: 20px;
+  background: #102846;
+  color: #f3e6c8;
+}
+.workiz-company-talk__card h2 { margin: 0 0 6px; font-size: 24px; color: #fff; }
+.workiz-company-talk__card p { margin: 0; color: rgba(243, 230, 200, 0.85); max-width: 520px; }
+.workiz-company-talk__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.workiz-company-talk__primary,
+.workiz-company-talk__secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-weight: 650;
+}
+.workiz-company-talk__primary { background: #25d366; color: #0b2a17; }
+.workiz-company-talk__primary:hover { color: #000; }
+.workiz-company-talk__secondary { border: 1px solid rgba(243, 230, 200, 0.4); color: #f3e6c8; }
+.workiz-company-talk__secondary:hover { color: #fff; border-color: #fff; }

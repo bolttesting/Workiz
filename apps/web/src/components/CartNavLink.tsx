@@ -11,7 +11,7 @@ export function CartNavLink({ className = "" }: { className?: string }) {
     <Link
       href="/cart"
       className={`workiz-cart-nav ${className}`.trim()}
-      aria-label={count ? `Cart, ${count} items` : "Cart"}
+      aria-label={count ? `Cart, ${count} ${count === 1 ? "item" : "items"}` : "Cart"}
     >
       <ShoppingCart size={18} strokeWidth={2.2} aria-hidden="true" />
       {count > 0 ? <span className="workiz-cart-nav__badge">{count > 9 ? "9+" : count}</span> : null}

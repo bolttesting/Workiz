@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import type { Course } from "@workix/db/types";
 import { CourseCard } from "@/components/CourseCard";
 
 const AUTO_MS = 4500;
+/** Below this many courses, fill the row with an honest "more coming" card instead of empty space. */
+const SPARSE_BELOW = 3;
 
 export function HomeCoursesCarousel({ courses }: { courses: Course[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -85,6 +89,18 @@ export function HomeCoursesCarousel({ courses }: { courses: Course[] }) {
             <CourseCard course={course} />
           </div>
         ))}
+        {courses.length < SPARSE_BELOW ? (
+          <div className="workiz-course-slide">
+            <article className="workiz-course-more">
+              <span className="workiz-course-more__eyebrow">Coming soon</span>
+              <h3>More courses are on the way</h3>
+              <p>Need training on a specific topic for your team? Tell us and we will let you know when it is ready.</p>
+              <Link href="/contact" className="workiz-course-more__cta">
+                Suggest a course <ArrowUpRight size={16} strokeWidth={2.4} aria-hidden="true" />
+              </Link>
+            </article>
+          </div>
+        ) : null}
       </div>
 
       {courses.length > 1 ? (

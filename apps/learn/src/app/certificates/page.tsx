@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { LearnShell } from "@/components/LearnShell";
-import { EmptyState, LearnDataCard, LearnPageHeader, LoadingState } from "@/components/LearnUi";
+import {
+  EmptyState,
+  LearnDataCard,
+  LearnPageHeader,
+  LoadingState,
+  Pagination,
+  formatDate,
+  usePagination,
+} from "@/components/LearnUi";
 import { apiClient, downloadFile } from "@/lib/api";
 import type { Course, Profile } from "@workix/db/types";
 
@@ -20,6 +28,8 @@ export default function CertificatesPage() {
   const [role, setRole] = useState<Profile["role"] | null>(null);
   const [items, setItems] = useState<Certificate[]>([]);
   const [companyItems, setCompanyItems] = useState<CompanyCertificate[]>([]);
+  const ownPage = usePagination(items, 20);
+  const companyPage = usePagination(companyItems, 20);
   const [titles, setTitles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +94,7 @@ export default function CertificatesPage() {
                 </tr>
               </thead>
               <tbody>
-                {companyItems.map((cert) => (
+                {companyPage.pageItems.map((cert) => (
                   <tr key={cert.id}>
                     <td>
                       <div className="fw-medium text-primary-light">{cert.name?.trim() || "Learner"}</div>
@@ -92,7 +102,7 @@ export default function CertificatesPage() {
                     </td>
                     <td>{cert.courseTitle}</td>
                     <td>{cert.number || "—"}</td>
-                    <td>{cert.issuedAt.slice(0, 10)}</td>
+                    <td className="text-nowrap">{formatDate(cert.issuedAt)}</td>
                     <td>
                       <button
                         type="button"
@@ -117,6 +127,7 @@ export default function CertificatesPage() {
             {companyItems.length === 0 ? (
               <EmptyState message="Certificates appear here when a learner finishes a course." />
             ) : null}
+            <Pagination page={companyPage.page} pageSize={companyPage.pageSize} total={companyPage.total} onPageChange={companyPage.setPage} label="certificates" />
           </div>
         ) : null}
         {!loading && !managing ? (
@@ -131,11 +142,11 @@ export default function CertificatesPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((cert) => (
+                {ownPage.pageItems.map((cert) => (
                   <tr key={cert.id}>
                     <td className="fw-medium text-primary-light">{titles[cert.course_id] ?? "Course certificate"}</td>
                     <td>{cert.number || "—"}</td>
-                    <td>{cert.issued_at.slice(0, 10)}</td>
+                    <td className="text-nowrap">{formatDate(cert.issued_at)}</td>
                     <td>
                       <button
                         type="button"
@@ -160,6 +171,7 @@ export default function CertificatesPage() {
             {items.length === 0 ? (
               <EmptyState message="Finish every lesson, and pass the quiz when the course has one, to earn a certificate." />
             ) : null}
+            <Pagination page={ownPage.page} pageSize={ownPage.pageSize} total={ownPage.total} onPageChange={ownPage.setPage} label="certificates" />
           </div>
         ) : null}
       </LearnDataCard>

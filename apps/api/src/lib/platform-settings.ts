@@ -21,7 +21,7 @@ const defaults: PlatformSettings = {
   certificateIssuer: "WORKIZ",
   whatsapp: "+971 4 320 8888",
   phone: "+971 4 320 8888",
-  emails: ["hello@workiz.com"],
+  emails: ["hello@workiz.net"],
   address: "Workiz Support Solutions - FZCO, Dubai Silicon Oasis, Dubai, United Arab Emirates",
 };
 
@@ -155,4 +155,30 @@ export async function savePlatformSettings(patch: Partial<PlatformSettings>) {
   }
   writeFileSettings(next);
   return next;
+}
+
+export async function platformSettingGaps(): Promise<Array<"issuer" | "email">> {
+  const gaps: Array<"issuer" | "email"> = [];
+  const settings = await getPlatformSettings();
+  if (!settings.certificateIssuer.trim()) gaps.push("issuer");
+  if (settings.emails.length === 0) gaps.push("email");
+
+  if (tableReady !== false) {
+    const { data, error } = await adminDb
+      .from("platform_settings")
+      .select("certificate_issuer, emails")
+      .eq("id", "default")
+      .maybeSingle();
+    if (!error && data) {
+      if (!String(data.certificate_issuer ?? "").trim() && !gaps.includes("issuer")) gaps.push("issuer");
+      if (
+        Array.isArray(data.emails) &&
+        data.emails.filter((item) => String(item ?? "").trim()).length === 0 &&
+        !gaps.includes("email")
+      ) {
+        gaps.push("email");
+      }
+    }
+  }
+  return gaps;
 }

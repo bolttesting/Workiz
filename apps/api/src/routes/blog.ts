@@ -2,8 +2,17 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { adminDb } from "../lib/db.js";
 import { requireRole, type Authed } from "../lib/auth.js";
+import { sanitizeRichText } from "../lib/sanitize.js";
 
 export const blog = new Hono();
+
+const TEMPLATE_AUTHORS = new Set(["David X. Barmer", "Anjelina Watson", "John D. Alexon", "Workiz Team"]);
+
+function publisherName(name: string | null | undefined) {
+  const trimmed = (name ?? "").trim();
+  if (!trimmed || TEMPLATE_AUTHORS.has(trimmed)) return "WORKIZ";
+  return trimmed;
+}
 
 function formatDateLabel(iso: string | null) {
   if (!iso) return "";
@@ -29,7 +38,7 @@ function formatDateFull(iso: string | null) {
 
 function mapPublicPost(row: Record<string, unknown>) {
   const publishedAt = (row.published_at as string | null) ?? (row.created_at as string | null);
-  const contentHtml = String(row.content_html ?? "");
+  const contentHtml = sanitizeRichText(row.content_html as string | null);
   const bodyFromHtml = contentHtml
     .replace(/<blockquote>[\s\S]*?<\/blockquote>/gi, "")
     .split(/<\/p>/i)
@@ -49,7 +58,7 @@ function mapPublicPost(row: Record<string, unknown>) {
     content_html: contentHtml,
     category: row.category ?? "Learning",
     thumb: row.thumb_url ?? "/assets/images/home-one/blog-thumb1.png",
-    author: row.author_name ?? "Workiz Team",
+    author: publisherName(typeof row.author_name === "string" ? row.author_name : null),
     authorImage: row.author_image_url ?? "/assets/images/home-one/blog-autor1.png",
     dateLabel: formatDateLabel(publishedAt),
     dateFull: formatDateFull(publishedAt),

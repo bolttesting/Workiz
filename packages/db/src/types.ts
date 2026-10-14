@@ -65,6 +65,7 @@ export type Course = {
   currency: string;
   published: boolean;
   duration_minutes: number | null;
+  certificate_months?: number | null;
   level: string | null;
   learning_outcomes?: string[] | null;
   audience?: string[] | null;

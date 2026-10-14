@@ -6,5 +6,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* turbo.json tsconfig.base.j
 COPY packages ./packages
 COPY apps/worker ./apps/worker
 RUN pnpm install --frozen-lockfile=false
+ENV NODE_ENV=production
 WORKDIR /repo/apps/worker
-CMD ["pnpm", "dev"]
+# Env comes from docker compose (env_file); no watch mode in production.
+CMD ["pnpm", "serve"]

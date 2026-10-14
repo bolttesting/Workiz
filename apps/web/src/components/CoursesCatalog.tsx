@@ -58,7 +58,7 @@ export function CoursesCatalog({ courses }: Props) {
         <div className="workiz-courses__filters" role="group" aria-label="Filter by department">
           {departments.map((item) => {
             const active = department === item;
-            const label = item === "all" ? "All departments" : item;
+            const label = item === "all" ? "All courses" : item;
             return (
               <button
                 key={item}
@@ -105,11 +105,11 @@ export function CoursesCatalog({ courses }: Props) {
 
       <div className="workiz-courses__cta">
         <div>
-          <h3>Training for your whole company</h3>
-          <p>Contract seats, then let admins assign the right courses by department.</p>
+          <h3>Seats for your company</h3>
+          <p>Buy seats, then assign these courses by person or department.</p>
         </div>
         <Link href="/pricing" className="workiz-courses__cta-btn">
-          View company seats
+          Company seats
         </Link>
       </div>
     </div>

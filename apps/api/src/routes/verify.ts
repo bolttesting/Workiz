@@ -10,9 +10,13 @@ verify.get("/certificates/verify", async (c) => {
   const code = (c.req.query("code") ?? "").trim().toUpperCase();
   if (code.length < 4) return c.json({ found: false });
 
-  let cert: { id: string; user_id: string; course_id: string; issued_at: string; number?: string | null } | null = null;
-  const byNumber = await adminDb.from("certificates").select("id, user_id, course_id, issued_at, number").eq("number", code).maybeSingle();
+  let cert: { id: string; user_id: string; course_id: string; issued_at: string; number?: string | null; expires_at?: string | null } | null = null;
+  const byNumber = await adminDb.from("certificates").select("id, user_id, course_id, issued_at, number, expires_at").eq("number", code).maybeSingle();
   if (!byNumber.error) cert = byNumber.data;
+  else if (/expires_at|number/i.test(byNumber.error.message)) {
+    const retry = await adminDb.from("certificates").select("id, user_id, course_id, issued_at, number").eq("number", code).maybeSingle();
+    if (!retry.error) cert = retry.data;
+  }
   if (!cert && uuidPattern.test(code)) {
     const byId = await adminDb.from("certificates").select("id, user_id, course_id, issued_at").eq("id", code).maybeSingle();
     if (byId.data) cert = { ...byId.data, number: null };
@@ -29,5 +33,6 @@ verify.get("/certificates/verify", async (c) => {
     companyName,
     courseTitle: course?.title ?? "Course",
     issuedAt: cert.issued_at,
+    expiresAt: "expires_at" in cert ? cert.expires_at ?? null : null,
   });
 });

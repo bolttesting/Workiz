@@ -136,6 +136,31 @@ function fittedSize(doc: PDFKit.PDFDocument, text: string, maxWidth: number, sta
   return size;
 }
 
+function scriptLineOffset(doc: PDFKit.PDFDocument, text: string, size: number) {
+  const font = (
+    doc as unknown as {
+      _font?: {
+        ascender?: number;
+        unitsPerEm?: number;
+        layout?: (value: string) => { glyphs?: Array<{ bbox?: { minY?: number } }> };
+      };
+    }
+  )._font ?? {};
+  const units = font.unitsPerEm || 1000;
+  const ascent = ((font.ascender ?? 851) / units) * size;
+  let lowest = 0;
+  try {
+    for (const glyph of font.layout?.(text)?.glyphs ?? []) {
+      const minY = glyph.bbox?.minY;
+      if (typeof minY === "number") lowest = Math.min(lowest, minY);
+    }
+  } catch {
+    lowest = -420;
+  }
+  const drop = (Math.abs(Math.min(lowest, 0)) / units) * size;
+  return ascent + Math.min(drop, size * 0.62) + 2;
+}
+
 export async function buildCertificatePdf(input: {
   learnerName: string;
   courseTitle: string;
@@ -144,6 +169,7 @@ export async function buildCertificatePdf(input: {
   number?: string | null;
   companyName?: string | null;
   issuer?: string | null;
+  verifyUrl?: string | null;
 }) {
   const doc = new PDFDocument({ size: "A4", layout: "landscape", margin: 0 });
   doc.registerFont("Serif", path.join(fontsDir, "PlayfairDisplay-Regular.ttf"));
@@ -160,7 +186,6 @@ export async function buildCertificatePdf(input: {
 
   const innerLeft = 78;
   const innerWidth = pageWidth - innerLeft * 2;
-  const issuer = (input.issuer?.trim() || "WORKIZ").toUpperCase();
   const learner = input.learnerName.trim() || "Learner";
   const course = input.courseTitle.trim() || "Course";
   const company = input.companyName?.trim() || "";
@@ -173,12 +198,16 @@ export async function buildCertificatePdf(input: {
     width: logoWidth,
     height: logoHeight,
   });
-  doc.fillColor(certificateNavy).font("Serif").fontSize(12).text(issuer, innerLeft, logoY + logoHeight + 6, {
-    width: innerWidth,
-    align: "center",
-    characterSpacing: 3.4,
-  });
-  doc.font("Serif").fontSize(58).text("Certificate", innerLeft, 112, {
+  const issuer = (input.issuer?.trim() || "WORKIZ").toUpperCase();
+  const titleY = issuer === "WORKIZ" ? 96 : 112;
+  if (issuer !== "WORKIZ") {
+    doc.fillColor(certificateNavy).font("Serif").fontSize(12).text(issuer, innerLeft, logoY + logoHeight + 4, {
+      width: innerWidth,
+      align: "center",
+      characterSpacing: 3.4,
+    });
+  }
+  doc.fillColor(certificateNavy).font("Serif").fontSize(58).text("Certificate", innerLeft, titleY, {
     width: innerWidth,
     align: "center",
     characterSpacing: 0,
@@ -206,32 +235,35 @@ export async function buildCertificatePdf(input: {
   doc.font("Script").fontSize(nameSize);
   const nameWidth = doc.widthOfString(learner);
   const ruleWidth = Math.min(innerWidth - 80, Math.max(240, nameWidth + 28));
-  const ruleY = nameTop + nameSize * 1.12;
+  const ruleY = nameTop + scriptLineOffset(doc, learner, nameSize);
   doc.save();
   doc.strokeColor("#c5ced6").lineWidth(0.75);
   doc.moveTo((pageWidth - ruleWidth) / 2, ruleY).lineTo((pageWidth + ruleWidth) / 2, ruleY).stroke();
   doc.restore();
 
+  const sealY = pageHeight - 132;
   const courseLine = `for completing ${course}`;
-  let textBottom = ruleY + 14;
-  doc.fillColor(certificateInk).font("SerifItalic").fontSize(18).text(courseLine, innerLeft, textBottom, {
+  doc.font("SerifItalic").fontSize(18);
+  const courseHeight = doc.heightOfString(courseLine, { width: innerWidth });
+  let courseY = Math.max(ruleY + 16, sealY - 108);
+  doc.fillColor(certificateInk).text(courseLine, innerLeft, courseY, {
     width: innerWidth,
     align: "center",
     characterSpacing: 0,
   });
-  textBottom += doc.heightOfString(courseLine, { width: innerWidth }) + 2;
   if (company) {
-    doc.fillColor(certificateMuted).font("SerifItalic").fontSize(14).text(company, innerLeft, textBottom, {
+    doc.fillColor(certificateMuted).font("SerifItalic").fontSize(14).text(company, innerLeft, courseY + courseHeight + 4, {
       width: innerWidth,
       align: "center",
       characterSpacing: 0,
     });
-    textBottom += doc.heightOfString(company, { width: innerWidth });
   }
 
-  const sealY = Math.min(pageHeight - 96, Math.max(textBottom + 42, pageHeight - 122));
-  drawCertificateRibbons(doc, pageWidth / 2, sealY);
-  drawCertificateSeal(doc, pageWidth / 2, sealY);
+  const medal = 92;
+  doc.image(path.join(fontsDir, "..", "medal.png"), pageWidth / 2 - medal / 2, sealY - medal / 2 + 8, {
+    width: medal,
+    height: medal,
+  });
 
   const issued = input.issuedAt
     .toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
@@ -240,6 +272,12 @@ export async function buildCertificatePdf(input: {
   const footerY = pageHeight - 78;
   drawCertificateSignOff(doc, 78, footerY, signWidth, issued, "issued");
   drawCertificateSignOff(doc, pageWidth - 78 - signWidth, footerY, signWidth, code, "certificate");
+  if (input.verifyUrl) {
+    doc.font("Serif").fontSize(8).fillColor(certificateMuted).text(input.verifyUrl, pageWidth - 78 - signWidth, footerY + 34, {
+      width: signWidth,
+      align: "center",
+    });
+  }
 
   return collectPdf(doc);
 }
@@ -271,6 +309,7 @@ export async function renderCertificatePdf(input: {
   number?: string | null;
   companyName?: string | null;
   issuer?: string | null;
+  verifyUrl?: string | null;
 }) {
   const buffer = await buildCertificatePdf(input);
   const key = `certificates/${input.id}.pdf`;

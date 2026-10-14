@@ -127,6 +127,7 @@ quizzes.get("/:id", async (c) => {
 
 quizzes.post("/:id/attempt", async (c) => {
   const auth = c.get("auth");
+  if (auth.profile.role === "company_admin") return c.json({ error: "A preview does not record a score." }, 403);
   const answers = z.record(z.string().uuid()).parse((await c.req.json()).answers ?? {});
   const quizId = c.req.param("id");
   const { data: quiz } = await adminDb.from("quizzes").select("*").eq("id", quizId).single();
@@ -174,7 +175,16 @@ quizzes.post("/:id/attempt", async (c) => {
     : (questions ?? [])
         .filter((question) => answers[question.id] !== correct.get(question.id))
         .map((question) => ({ id: question.id as string, prompt: question.prompt as string }));
-  return c.json({ score, passed, passingScore: quiz.passing_score, missed });
+  const { data: lesson } = quiz.lesson_id
+    ? await adminDb.from("lessons").select("title").eq("id", quiz.lesson_id).maybeSingle()
+    : { data: null };
+  return c.json({
+    score,
+    passed,
+    passingScore: quiz.passing_score,
+    lessonTitle: lesson?.title ?? null,
+    missed,
+  });
 });
 
 quizzes.post("/lessons/:lessonId", async (c) => {

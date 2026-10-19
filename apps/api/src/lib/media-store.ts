@@ -126,7 +126,10 @@ export async function storeMediaFile(input: {
   if (hostingerConfigured()) {
     return storeOnHostinger(input.bytes, input.folder, input.fileName, contentType);
   }
-  if (s3Configured()) {
+  // Without S3_PUBLIC_BASE_URL the bucket is private and only reachable through signed URLs,
+  // which exist for lecture videos and lesson files. Thumbnails and avatars need a public URL.
+  const signedOnly = input.folder === "videos" || input.folder === "lessons";
+  if (s3Configured() && (signedOnly || process.env.S3_PUBLIC_BASE_URL)) {
     return storeOnS3(input.bytes, input.folder, input.fileName, contentType);
   }
   return storeOnSupabase(input.bytes, input.folder, input.fileName, contentType);

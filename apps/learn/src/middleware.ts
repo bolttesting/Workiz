@@ -38,7 +38,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user && !request.nextUrl.pathname.startsWith("/sign-in")) {
     const web = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000";
-    const next = encodeURIComponent(request.nextUrl.href);
+    // Behind the proxy request.nextUrl carries the container's own host (0.0.0.0:3000).
+    const self = process.env.NEXT_PUBLIC_LEARN_URL ?? request.nextUrl.origin;
+    const next = encodeURIComponent(`${self}${request.nextUrl.pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(`${web}/sign-in?next=${next}`);
   }
   return response;
